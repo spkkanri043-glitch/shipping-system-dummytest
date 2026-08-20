@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>出荷照合システム(クミ化成向け)</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="出荷照合(クミ化成)">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Meiryo','Hiragino Sans',sans-serif;background:#f5f5f2;color:#1a1a18;min-height:100vh}
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(160deg,#0d1b2e 0%,#1a2f4e 50%,#0d2340 100%);position:relative}
+#login-screen>*{position:relative;z-index:1}
+.login-logo{width:64px;height:64px;border-radius:50%;border:2px solid rgba(180,145,70,0.6);display:flex;align-items:center;justify-content:center;margin-bottom:20px;background:rgba(180,145,70,0.1)}
+.login-logo svg{width:32px;height:32px}
+.login-company{font-size:18px;font-weight:700;color:#fff;text-align:center;margin-bottom:4px;letter-spacing:.05em}
+.login-greeting{font-size:13px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:28px;letter-spacing:.03em}
+.login-card{background:rgba(255,255,255,0.97);border-radius:16px;padding:24px 24px 28px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,0.4)}
+.login-field{margin-bottom:14px}
+.login-label{font-size:11px;color:#888;margin-bottom:5px;font-weight:600;letter-spacing:.04em}
+.login-input{width:100%;font-size:15px;padding:11px 13px;border:1.5px solid #e5e5e0;border-radius:8px;outline:none;font-family:inherit;transition:border-color .2s;background:#fafafa}
+.login-input:focus{border-color:#1a2f4e;background:#fff}
+.login-btn{width:100%;padding:13px;background:#1a2f4e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;letter-spacing:.05em;transition:background .2s}
+.login-btn:active{background:#0d1b2e}
+.login-error{font-size:12px;color:#c0392b;margin-top:8px;text-align:center;display:none;font-weight:600}
+.login-footer{font-size:11px;color:rgba(255,255,255,0.25);text-align:center;margin-top:20px}
+#main-screen{display:none}
+.top-bar{background:#1a1a18;color:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.top-bar-row1{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.top-bar h1{font-size:15px;font-weight:600;white-space:nowrap;margin:0}
+.top-bar-user{font-size:12px;color:rgba(255,255,255,0.75);font-weight:600}
+@media(min-width:768px){.top-bar{flex-direction:row;align-items:center;flex-wrap:wrap}.top-bar-row1{flex:1}}
+.top-bar h1{font-size:16px;font-weight:600;white-space:nowrap}
+.top-btns{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.top-btn{font-size:13px;font-weight:600;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.18);color:#fff;padding:8px 14px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.top-btn:hover{background:rgba(255,255,255,0.27)}
+.top-btn.danger{background:rgba(220,60,60,0.55);border-color:rgba(255,120,120,0.4)}
+.top-btn.danger:hover{background:rgba(220,60,60,0.75)}
+.top-btn.exit{background:#b4913e;border-color:#d4b860;color:#1a1a18;font-weight:700}
+.top-btn.exit:hover{background:#c9a64f}
+.more-wrap{position:relative}
+.more-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#26261f;border:1px solid rgba(255,255,255,0.15);border-radius:9px;box-shadow:0 10px 28px rgba(0,0,0,0.45);padding:6px;min-width:170px;max-width:calc(100vw - 16px);flex-direction:column;gap:4px;z-index:200;box-sizing:border-box}
+.more-menu.show{display:flex}
+.more-item{font-size:13px;font-weight:600;background:transparent;border:none;color:#fff;padding:9px 12px;border-radius:6px;cursor:pointer;text-align:left;white-space:normal;word-break:keep-all}
+.more-item:hover{background:rgba(255,255,255,0.12)}
+.more-item.danger{color:#ff8a8a}
+.more-item.danger:hover{background:rgba(220,60,60,0.25)}
+.container{padding:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.stat{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:12px 14px}
+.stat-label{font-size:11px;color:#888;margin-bottom:4px}
+.stat-value{font-size:26px;font-weight:700}
+.stat-value.done{color:#1e8a55}
+.stat-value.remain{color:#b56e00}
+.progress-bar{height:6px;background:#e5e5e0;border-radius:99px;overflow:hidden;margin-bottom:14px}
+.progress-fill{height:100%;background:#1e8a55;border-radius:99px;transition:width .4s}
+.card{background:#fff;border:1px solid #e5e5e0;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:700;color:#aaa;margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.debug-toggle{font-size:10px;font-weight:600;color:#3a7bdc;cursor:pointer;text-transform:none;letter-spacing:0}
+.scan-grid{display:grid;grid-template-columns:1fr;gap:12px}
+.scan-label{font-size:12px;color:#555;margin-bottom:6px;font-weight:600}
+.scan-status{font-size:12px;margin-top:6px;color:#aaa;min-height:18px}
+.scan-status.active{color:#1e8a55;font-weight:700}
+input[type=text],input[type=password]{width:100%;font-size:14px;padding:10px 12px;border:1px solid #ccc;border-radius:8px;outline:none;font-family:inherit}
+input[type=text]{font-family:'Courier New',monospace}
+input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
+#internal-qr-input:focus{border-color:#1e8a55;box-shadow:0 0 0 3px rgba(30,138,85,0.15);background:#f0fff8}
+#customer-qr-input:focus{border-color:#3a7bdc;box-shadow:0 0 0 3px rgba(58,123,220,0.15);background:#f0f5ff}
+.feedback{margin-top:10px;font-size:13px;padding:10px 12px;border-radius:8px;display:none;font-weight:500;line-height:1.5;white-space:pre-wrap}
+.feedback.ok{display:block;background:#ecf9f2;color:#1e8a55;border:1px solid #a8d9be}
+.feedback.err{display:block;background:#fdecea;color:#c0392b;border:1px solid #f5b7b1}
+.feedback.warn{display:block;background:#fff8ec;color:#b56e00;border:1px solid #f5d98b}
+.debug-box{display:none;margin-top:10px;font-size:11px;font-family:'Courier New',monospace;background:#1c1f26;color:#e7e8ec;border-radius:8px;padding:10px 12px;line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.debug-box.show{display:block}
+.tabs{display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid #e5e5e0}
+.tab{font-size:13px;padding:8px 14px;border:none;background:none;cursor:pointer;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:600}
+.tab.active{color:#1a1a18;border-bottom-color:#1a1a18}
+.filter-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.filter-btn{font-size:11px;padding:5px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#555}
+.filter-btn.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.search-box{flex:1;min-width:100px;font-size:12px;padding:5px 10px;border:1px solid #ccc;border-radius:6px;outline:none;font-family:inherit}
+.list-item{background:#fff;border:1px solid #e5e5e0;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.list-item.done{opacity:.45}
+.item-body{flex:1;min-width:0}
+.item-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px}
+.item-hinban{font-weight:700;font-size:14px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-meta{font-size:11px;color:#aaa;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;white-space:nowrap}
+.badge-pending{background:#fff3d6;color:#b56e00}
+.badge-done{background:#d6f5e8;color:#1e8a55}
+.badge-color{background:#e7edf6;color:#2f5d9c}
+.file-chips-wrap{margin-bottom:10px}
+.section-title{font-size:11px;font-weight:700;color:#aaa;margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase}
+.file-chip{display:inline-flex;align-items:center;gap:4px;background:#f0f0ed;border-radius:99px;padding:3px 10px;font-size:11px;margin:2px;color:#555}
+.empty{text-align:center;color:#aaa;padding:32px;font-size:14px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:14px}
+.modal-field{margin-bottom:12px}
+.modal-label{font-size:12px;color:#888;margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="login-screen">
+  <div class="login-logo">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 20a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#b4913e" stroke-width="1.8" fill="none"/>
+      <path d="M26.7 13.1l-1.8-.5a9.1 9.1 0 0 0-.8-1.9l1-1.6a.8.8 0 0 0-.1-1l-1.1-1.1a.8.8 0 0 0-1-.1l-1.6 1a9.1 9.1 0 0 0-1.9-.8l-.5-1.8A.8.8 0 0 0 18 5h-1.6a.8.8 0 0 0-.8.6l-.5 1.8a9.1 9.1 0 0 0-1.9.8l-1.6-1a.8.8 0 0 0-1 .1L9.5 8.4a.8.8 0 0 0-.1 1l1 1.6a9.1 9.1 0 0 0-.8 1.9l-1.8.5A.8.8 0 0 0 7 14v1.6c0 .4.3.7.6.8l1.8.5c.2.7.5 1.3.8 1.9l-1 1.6a.8.8 0 0 0 .1 1l1.1 1.1a.8.8 0 0 0 1 .1l1.6-1c.6.3 1.2.6 1.9.8l.5 1.8c.1.4.4.6.8.6H16a.8.8 0 0 0 .8-.6l.5-1.8a9.1 9.1 0 0 0 1.9-.8l1.6 1a.8.8 0 0 0 1-.1l1.1-1.1a.8.8 0 0 0 .1-1l-1-1.6c.3-.6.6-1.2.8-1.9l1.8-.5a.8.8 0 0 0 .6-.8V14a.8.8 0 0 0-.5-.9z" stroke="#b4913e" stroke-width="1.5" fill="none"/>
+    </svg>
+  </div>
+  <div class="login-company">関ケ原プラ工業(株)</div>
+  <div class="login-greeting">従業員の皆様、ようこそ</div>
+  <div class="login-card">
+    <div class="login-field">
+      <div class="login-label">ユーザーID</div>
+      <input type="text" class="login-input" id="login-id" placeholder="" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <div class="login-label">パスワード</div>
+      <input type="password" class="login-input" id="login-pw" placeholder="パスワード" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">ログイン</button>
+    <div class="login-error" id="login-error">IDまたはパスワードが違います</div>
+  </div>
+  <div class="login-footer">© 関ケ原プラ工業株式会社</div>
+</div>
+
+<!-- メイン画面 -->
+<div id="main-screen">
+<div class="top-bar">
+  <div class="top-bar-row1">
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+      <h1>出荷照合システム（クミ化成）</h1>
+      <div id="user-name-display" class="top-bar-user"></div>
+    </div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.4);white-space:nowrap" id="save-indicator"></div>
+  </div>
+  <div class="top-btns">
+    <button class="top-btn exit" onclick="closeTab()">✕ タブを閉じる</button>
+    <button class="top-btn" onclick="showCsvModal()">📂 当日の出荷指示表を開く</button>
+    <button class="top-btn" onclick="exportCSV()">📤 CSV書き出し</button>
+    <button class="top-btn danger" onclick="clearAll()">リセット</button>
+    <div class="more-wrap">
+      <button class="top-btn" id="more-btn" onclick="toggleMoreMenu()">⋯ その他 ▾</button>
+      <div class="more-menu" id="more-menu">
+        <button class="more-item" id="refresh-btn" onclick="manualRefresh();closeMoreMenu()">🔄 更新</button>
+        <button class="more-item danger" onclick="doLogout();closeMoreMenu()">ログアウト</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div id="file-chips-wrap" class="file-chips-wrap" style="display:none">
+    <div class="section-title">読み込み済み出荷指示表</div>
+    <div id="chip-list"></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">総件数</div><div class="stat-value" id="s-total">0</div></div>
+    <div class="stat"><div class="stat-label">消込済</div><div class="stat-value done" id="s-done">0</div></div>
+    <div class="stat"><div class="stat-label">未消込</div><div class="stat-value remain" id="s-remain">0</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+
+  <div class="card">
+    <div class="card-title">
+      <span>QRスキャン照合</span>
+      <span class="debug-toggle" onclick="toggleDebug()" id="debug-toggle-label">🔍 生データ表示 OFF</span>
+    </div>
+    <div class="scan-grid">
+      <div>
+        <div class="scan-label">① 社内QR（品番 / 収容数 / 色調）</div>
+        <input type="text" id="internal-qr-input" placeholder="社内QRをスキャン（Enter）">
+        <div class="scan-status" id="internal-status">未スキャン</div>
+      </div>
+      <div id="customer-scan-area" style="display:none">
+        <div class="scan-label">② 客先QR（大＋小/ロットNo・同時スキャン）</div>
+        <input type="text" id="customer-qr-input" placeholder="客先QRをスキャン（Enter）※読み取り順不同OK">
+      </div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="debug-box" id="debug-box"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('list',this)">出荷リスト</button>
+    <button class="tab" onclick="switchTab('log',this)">消込履歴</button>
+  </div>
+  <div id="tab-list">
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
+      <button class="filter-btn" onclick="setFilter('pending',this)">未消込</button>
+      <button class="filter-btn" onclick="setFilter('done',this)">消込済</button>
+      <input type="text" class="search-box" id="search-box" placeholder="品番・整番検索" oninput="renderList()">
+    </div>
+    <div id="list-body"><div class="empty">出荷指示表を読み込んでください</div></div>
+  </div>
+  <div id="tab-log" style="display:none">
+    <div id="log-body"><div class="empty">消込履歴なし</div></div>
+  </div>
+</div>
+</div>
+
+<!-- 出荷指示表を開くモーダル -->
+<div class="modal-overlay" id="csv-modal">
+  <div class="modal" style="display:flex;flex-direction:column;max-height:90vh;padding:0;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #e5e5e0;flex-shrink:0">
+      <div class="modal-title" style="margin:0">📂 当日の出荷指示表を開く</div>
+      <button onclick="closeCsvModal()" style="padding:6px 14px;background:#e5e5e0;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✕ 閉じる</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:14px">
+      <div class="modal-field" style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px">
+        <div class="modal-label" style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:8px">☁️ ドライブから選ぶ</div>
+        <div style="font-size:11px;color:#888;margin-bottom:10px">読込元／未完了フォルダからCSVを選択</div>
+        <button style="width:100%;padding:10px;background:#3a7bdc;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px" onclick="loadDriveFileList()">📋 ファイル一覧を取得</button>
+        <div id="drive-file-list" style="display:none;border:1px solid #e5e5e0;border-radius:8px;max-height:240px;overflow-y:auto"></div>
+      </div>
+      <div class="modal-field" style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px">
+        <div class="modal-label" style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:8px">📁 ファイルから選ぶ</div>
+        <div style="font-size:11px;color:#888;margin-bottom:10px">【クミ化成出荷指示表】YYYYMMDD.csv を選択</div>
+        <label style="display:block;width:100%;padding:12px;background:#1a1a18;color:#fff;border-radius:8px;text-align:center;font-size:14px;font-weight:700;cursor:pointer">
+          ファイルを選択
+          <input type="file" accept=".csv,.CSV" style="display:none" onchange="loadCSVFromFile(this)">
+        </label>
+      </div>
+      <div id="csv-feedback" style="margin-top:4px;font-size:12px;display:none;white-space:pre-wrap;line-height:1.6;padding:8px 10px;border-radius:6px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 設定
+// ============================================================
+const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbzlj7JIEJwj65ACuflQVctEvYrmdcKBoJLdmghcQLyH1CYCK4gAzF7wue_OBdSNQGH0Bw/exec'; // (出荷照合アプリ)クミ化成 コード.gs.txt（Driveフォルダ版）をデプロイしたURLを設定する（未設定ならローカル完結モードで動作）
+
+// ①社内QR: `|`区切り。品番|品名|空|空|収容数|空|色調 の7項目固定（2026/07/28 確認済み）
+const INTERNAL_QR_IDX = { hinban: 0, capacity: 4, color: 6 };
+
+// ②客先QR(小/ロットNo)判定パターン。例: 260324B0661S001（2026/07/28 確認済み）
+const LOT_NO_PATTERN = /^\d{6}[A-Z]\d{4}S\d{3}$/;
+
+// ⚠️要検証: 大QRの生データ実例が未取得のため、下記オフセットは仮設定です。
+// 「🔍 生データ表示」をONにして大QRを実際にスキャンし、部品番号・色調(識別-1)が
+// 何文字目から始まるかを確認してから、下の start/length を実データに合わせて修正してください。
+const BIGQR_OFFSETS = {
+  hinban: { start: 0, length: 20 },
+  color:  { start: 20, length: 6 },
+};
+
+const CSV_HEADERS = ['整番','品番','色調','納期','出荷数','入数','箱数','端数','注文番号','備考','消込チェック','消込日時'];
+
+const USERS = [
+  // TODO: 実際の担当者IDに合わせて追加・修正してください（現在は仮の管理者アカウントのみ）
+  { id: 'admin', pw: '435511spk', name: '管理者', admin: true },
+];
+const SESSION_KEY = 'kumikasei_shipping_session_v1';
+const SAVE_KEY       = 'kumikasei_shipping_data_v1';
+const SAVE_KEY_FILE  = 'kumikasei_shipping_file_v1';
+const SAVE_KEY_LOG   = 'kumikasei_shipping_log_v1';
+const SAVE_KEY_LOTS  = 'kumikasei_shipping_lots_v1';
+
+// ============================================================
+// 状態
+// ============================================================
+let records        = [];        // 出荷指示表の各行
+let scannedLots    = new Set(); // 消込済みロットNo（2度読み防止）
+let logEntries     = [];        // 消込履歴
+let loadedFileName = '';
+let loadedFileId   = ''; // ドライブから読み込んだ場合のfileId（ローカルファイルの場合は空）
+let pendingInternal = null;     // ①でセットした社内QRの解析結果
+let debugMode      = false;
+let filterMode     = 'all';
+let autoSaveTimer  = null;
+
+// ============================================================
+// ①社内QRの解析
+// ============================================================
+function parseInternalQR(raw) {
+  const f = raw.split('|');
+  return {
+    hinban:   (f[INTERNAL_QR_IDX.hinban]   || '').trim(),
+    capacity: Number(f[INTERNAL_QR_IDX.capacity] || 0),
+    color:    (f[INTERNAL_QR_IDX.color]    || '').trim(),
+    raw
+  };
+}
+
+// ============================================================
+// ②客先QR(大+小)の解析。読み取り順序は不定のため内容の形で判別する
+// ============================================================
+function splitCustomerScan(raw) {
+  const parts = raw.split('|').map(s => s.trim()).filter(Boolean);
+  if (parts.length !== 2) {
+    return { ok: false, reason: `大QR/小QRの分割数が想定外です（${parts.length}個）` };
+  }
+  const [p0, p1] = parts;
+  const p0IsLot = LOT_NO_PATTERN.test(p0);
+  const p1IsLot = LOT_NO_PATTERN.test(p1);
+  let lotNo, bigQRRaw;
+  if (p0IsLot && !p1IsLot)      { lotNo = p0; bigQRRaw = p1; }
+  else if (p1IsLot && !p0IsLot) { lotNo = p1; bigQRRaw = p0; }
+  else { [lotNo, bigQRRaw] = p0.length <= p1.length ? [p0, p1] : [p1, p0]; }
+  return { ok: true, lotNo, bigQRRaw };
+}
+
+function parseBigQR(raw) {
+  const hinban = raw.substr(BIGQR_OFFSETS.hinban.start, BIGQR_OFFSETS.hinban.length).trim();
+  const color  = raw.substr(BIGQR_OFFSETS.color.start,  BIGQR_OFFSETS.color.length).trim();
+  return { hinban, color };
+}
+
+function normalizeHinban(s) {
+  return (s || '').replace(/\s+/g, '').toUpperCase();
+}
+
+// ============================================================
+// 消込ロジック本体
+// ============================================================
+function processScan(internalQR, customerRaw) {
+  const split = splitCustomerScan(customerRaw);
+  if (!split.ok) return { ok: false, reason: split.reason };
+
+  const bigQR = parseBigQR(split.bigQRRaw);
+  const lotNo = split.lotNo;
+
+  if (debugMode) showDebug(
+    `①社内QR: 品番=${internalQR.hinban} / 収容数=${internalQR.capacity} / 色調=${internalQR.color}\n` +
+    `②分割結果: 大QR="${split.bigQRRaw}" / 小QR(ロットNo)="${lotNo}"\n` +
+    `②大QR解析: 部品番号=${bigQR.hinban} / 色調=${bigQR.color}`
+  );
+
+  if (normalizeHinban(internalQR.hinban) !== normalizeHinban(bigQR.hinban) || internalQR.color !== bigQR.color) {
+    return { ok: false, reason: `品番または色調が不一致\n社内: ${internalQR.hinban} / ${internalQR.color}\n客先: ${bigQR.hinban} / ${bigQR.color}` };
+  }
+  if (scannedLots.has(lotNo)) {
+    return { ok: false, reason: `2度読みです（ロットNo: ${lotNo}）。このスキャンは無視されました` };
+  }
+
+  const candidates = records.filter(r =>
+    normalizeHinban(r['品番']) === normalizeHinban(internalQR.hinban) &&
+    (!r['色調'] || r['色調'] === internalQR.color) &&
+    Number(r['出荷数']) > 0
+  );
+  if (candidates.length === 0) {
+    return { ok: false, reason: `出荷指示表に該当する未消込行がありません（品番: ${internalQR.hinban} / 色調: ${internalQR.color}）` };
+  }
+
+  const row = candidates[0]; // FIFO: CSV内で先に出てくる行を優先
+  scannedLots.add(lotNo);
+  const before = Number(row['出荷数']);
+  row['出荷数'] = Math.max(0, before - internalQR.capacity);
+  let overScan = before < internalQR.capacity;
+  if (row['出荷数'] <= 0) {
+    row['消込チェック'] = '済';
+    row['消込日時']   = nowStr();
+  }
+  logEntries.push({
+    ts: nowStr(), 整番: row['整番'], 品番: row['品番'], 色調: row['色調'],
+    ロットNo: lotNo, 収容数: internalQR.capacity, 残数: row['出荷数'], 注文番号: row['注文番号']
+  });
+  return { ok: true, row, lotNo, overScan };
+}
+
+// ============================================================
+// スキャン入力ハンドリング
+// ============================================================
+function handleInternalScan() {
+  const inp = document.getElementById('internal-qr-input');
+  const raw = inp.value.trim();
+  if (!raw) return;
+  if (!records.length) { playSound('err'); showFB('err', 'まず出荷指示表を読み込んでください'); inp.value=''; return; }
+  pendingInternal = parseInternalQR(raw);
+  if (!pendingInternal.hinban) {
+    playSound('err'); showFB('err', '①社内QRの解析に失敗しました（品番が取得できません）');
+    pendingInternal = null; inp.value=''; return;
+  }
+  const st = document.getElementById('internal-status');
+  st.className = 'scan-status active';
+  st.textContent = `セット済み: 品番 ${pendingInternal.hinban} / 収容数 ${pendingInternal.capacity} / 色調 ${pendingInternal.color || '(指定なし)'}`;
+  inp.value = '';
+  const area = document.getElementById('customer-scan-area');
+  const custInp = document.getElementById('customer-qr-input');
+  area.style.display = 'block';
+  custInp.value = '';
+  setTimeout(() => custInp.focus(), 80);
+  showFB('ok', '①をセットしました。②客先QR(大+小)をスキャンしてください');
+}
+
+function handleCustomerScan() {
+  const inp = document.getElementById('customer-qr-input');
+  const raw = inp.value.trim();
+  if (!raw) return;
+  if (!pendingInternal) {
+    playSound('err'); showFB('warn', '①で社内QRを先にスキャンしてください');
+    inp.value=''; document.getElementById('internal-qr-input').focus(); return;
+  }
+  const result = processScan(pendingInternal, raw);
+  if (!result.ok) {
+    playSound('err'); showFB('err', result.reason);
+  } else {
+    playSound('ok');
+    const msg = result.overScan
+      ? `⚠ 消込しましたが収容数が出荷数を上回っていました（品番 ${result.row['品番']} / 残 ${result.row['出荷数']}）`
+      : `✓ 消込：品番 ${result.row['品番']}${result.row['色調'] ? ' / 色調 '+result.row['色調'] : ''} / 残数 ${result.row['出荷数']}${result.row['消込チェック']==='済' ? '（完了）' : ''}`;
+    showFB(result.overScan ? 'warn' : 'ok', msg);
+  }
+  inp.value = '';
+  pendingInternal = null;
+  document.getElementById('customer-scan-area').style.display = 'none';
+  const st = document.getElementById('internal-status');
+  st.className = 'scan-status'; st.textContent = '未スキャン';
+  const internalInp = document.getElementById('internal-qr-input');
+  internalInp.value = ''; internalInp.focus();
+  updateStats(); renderList(); autoSave();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const loginIdEl = document.getElementById('login-id');
+  const loginPwEl = document.getElementById('login-pw');
+  if (loginIdEl) loginIdEl.addEventListener('keydown', e => { if(e.key==='Enter') { if(loginPwEl) loginPwEl.focus(); } });
+  if (loginPwEl) loginPwEl.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  const internalEl = document.getElementById('internal-qr-input');
+  if (internalEl) internalEl.addEventListener('keydown', e => { if(e.key==='Enter') { e.preventDefault(); handleInternalScan(); } });
+  const custEl = document.getElementById('customer-qr-input');
+  if (custEl) custEl.addEventListener('keydown', e => { if(e.key==='Enter') { e.preventDefault(); handleCustomerScan(); } });
+});
+
+// ============================================================
+// デバッグ表示（大QRオフセット確認用）
+// ============================================================
+function toggleDebug() {
+  debugMode = !debugMode;
+  document.getElementById('debug-toggle-label').textContent = debugMode ? '🔍 生データ表示 ON' : '🔍 生データ表示 OFF';
+  if (!debugMode) document.getElementById('debug-box').classList.remove('show');
+}
+function showDebug(text) {
+  const box = document.getElementById('debug-box');
+  box.textContent = text;
+  box.classList.add('show');
+}
+
+// ============================================================
+// アラート音
+// ============================================================
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx || _audioCtx.state === 'closed') _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+function playSound(type) {
+  try {
+    const ctx = getAudioCtx(); const t = ctx.currentTime;
+    function beep(freq, startTime, duration) {
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(1.5, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.start(startTime); osc.stop(startTime + duration);
+    }
+    if (type === 'ok') { beep(1200, t, 0.15); beep(1600, t + 0.2, 0.2); }
+    else { beep(220, t, 0.2); beep(220, t + 0.25, 0.2); }
+  } catch(e) {}
+}
+
+// ============================================================
+// CSV読み込み
+// ============================================================
+function splitCSVLine(line) {
+  const cols = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') inQ = !inQ;
+    else if (c === ',' && !inQ) { cols.push(cur); cur=''; }
+    else cur += c;
+  }
+  cols.push(cur);
+  return cols;
+}
+
+function parseCSVText(text) {
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  const lines = text.trim().split(/\r?\n/);
+  const headers = splitCSVLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).filter(l => l.trim()).map(line => {
+    const cols = splitCSVLine(line);
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (cols[i] || '').trim().replace(/^"|"$/g,''); });
+    if (!obj['消込チェック']) obj['消込チェック'] = '未';
+    if (!obj['消込日時'])   obj['消込日時']   = '';
+    return obj;
+  }).filter(r => r['品番']);
+}
+
+function applyLoadedRecords(newRecords, fileName) {
+  records = newRecords;
+  loadedFileName = fileName;
+  loadedFileId = '';
+  scannedLots = new Set();
+  logEntries = [];
+  updateStats(); renderList(); updateChips(); autoSave();
+}
+
+function loadCSVFromFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    applyLoadedRecords(parseCSVText(e.target.result), file.name);
+    showCsvFb(`✅ ${file.name}：${records.length}件を読み込みました`, 'ok');
+    setTimeout(closeCsvModal, 1200);
+  };
+  reader.readAsText(file, 'utf-8');
+  input.value = '';
+}
+
+function updateChips() {
+  const wrap = document.getElementById('file-chips-wrap');
+  wrap.style.display = loadedFileName ? 'block' : 'none';
+  document.getElementById('chip-list').innerHTML = loadedFileName ? `<span class="file-chip">${loadedFileName}</span>` : '';
+}
+
+// ============================================================
+// 自動保存・復元
+// ============================================================
+function autoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(records));
+      localStorage.setItem(SAVE_KEY_FILE, loadedFileName);
+      localStorage.setItem(SAVE_KEY_LOG, JSON.stringify(logEntries));
+      localStorage.setItem(SAVE_KEY_LOTS, JSON.stringify(Array.from(scannedLots)));
+      const el = document.getElementById('save-indicator');
+      if (el) { el.textContent = '💾 保存済 ' + nowStr().slice(11,16); el.style.opacity='1'; setTimeout(()=>el.style.opacity='.4',2000); }
+    } catch(e) { console.warn('自動保存失敗:', e); }
+  }, 500);
+}
+
+function restoreData() {
+  try {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (saved) {
+      records = JSON.parse(saved);
+      loadedFileName = localStorage.getItem(SAVE_KEY_FILE) || '';
+      logEntries = JSON.parse(localStorage.getItem(SAVE_KEY_LOG) || '[]');
+      scannedLots = new Set(JSON.parse(localStorage.getItem(SAVE_KEY_LOTS) || '[]'));
+      updateStats(); renderList(); updateChips();
+    }
+  } catch(e) { console.warn('復元失敗:', e); }
+}
+
+async function manualRefresh() {
+  const btn = document.getElementById('refresh-btn');
+  btn.textContent = '🔄 更新中...';
+  restoreData();
+  btn.textContent = '✅ 更新済';
+  setTimeout(() => { btn.textContent = '🔄 更新'; }, 1200);
+}
+
+function clearAll() {
+  if (!confirm('リセットしますか？\n（読み込んだ出荷指示表・消込状況はすべて消去されます）')) return;
+  try {
+    localStorage.removeItem(SAVE_KEY); localStorage.removeItem(SAVE_KEY_FILE);
+    localStorage.removeItem(SAVE_KEY_LOG); localStorage.removeItem(SAVE_KEY_LOTS);
+  } catch(e) {}
+  location.reload();
+}
+
+// ============================================================
+// 集計・一覧描画
+// ============================================================
+function isDone(r) { return r['消込チェック'] === '済'; }
+function isPending(r) { return !isDone(r); }
+
+function updateStats() {
+  const total = records.length;
+  const done  = records.filter(isDone).length;
+  document.getElementById('s-total').textContent  = total;
+  document.getElementById('s-done').textContent   = done;
+  document.getElementById('s-remain').textContent = total - done;
+  document.getElementById('prog').style.width = (total > 0 ? Math.round(done/total*100) : 0) + '%';
+}
+
+function setFilter(mode, btn) {
+  filterMode = mode;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+function renderList() {
+  const body = document.getElementById('list-body');
+  const search = (document.getElementById('search-box').value || '').toLowerCase();
+  let list = filterMode === 'pending' ? records.filter(isPending)
+           : filterMode === 'done'    ? records.filter(isDone)
+           : records;
+  if (search) list = list.filter(r =>
+    (r['品番']||'').toLowerCase().includes(search) || (r['整番']||'').toLowerCase().includes(search)
+  );
+  if (!list.length) { body.innerHTML = '<div class="empty">該当なし</div>'; return; }
+  body.innerHTML = list.map(r => {
+    const done = isDone(r);
+    return `<div class="list-item ${done?'done':''}">
+      <div class="item-body">
+        <div class="item-top">
+          <span class="item-hinban">${r['整番']||''}</span>
+          <span style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+            ${r['色調'] ? `<span class="badge badge-color">${r['色調']}</span>` : ''}
+            <span class="badge ${done?'badge-done':'badge-pending'}">${done?'済':'未'}</span>
+          </span>
+        </div>
+        <div class="item-meta">
+          <span>品番:${r['品番']||''}</span>
+          <span>残:${r['出荷数']||0}</span>
+          <span>入数:${r['入数']||''}</span>
+          <span>箱数:${r['箱数']||''}</span>
+          <span>納期:${r['納期']||''}</span>
+          ${done ? `<span style="color:#1e8a55">消込:${r['消込日時']||''}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-list').style.display = tab === 'list' ? 'block' : 'none';
+  document.getElementById('tab-log').style.display  = tab === 'log'  ? 'block' : 'none';
+  if (tab === 'log') renderLog();
+}
+
+function renderLog() {
+  const body = document.getElementById('log-body');
+  if (!logEntries.length) { body.innerHTML = '<div class="empty">消込履歴なし</div>'; return; }
+  body.innerHTML = [...logEntries].reverse().map(l => `
+    <div class="list-item">
+      <div class="item-body">
+        <div class="item-top"><span class="item-hinban">${l['整番']||''}</span><span style="font-size:11px;color:#aaa">${l['ts']||''}</span></div>
+        <div class="item-meta">
+          <span>品番:${l['品番']||''}</span>
+          <span>色調:${l['色調']||''}</span>
+          <span>収容数:${l['収容数']||''}</span>
+          <span>残数:${l['残数']||''}</span>
+          <span>ロットNo:${l['ロットNo']||''}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ============================================================
+// CSV書き出し
+// ============================================================
+function makeCSV(data) {
+  let csv = '﻿' + CSV_HEADERS.join(',') + '\n';
+  data.forEach(r => {
+    csv += CSV_HEADERS.map(h => {
+      let v = r[h] != null ? String(r[h]) : '';
+      return v.includes(',') ? '"' + v + '"' : v;
+    }).join(',') + '\n';
+  });
+  return csv;
+}
+
+async function exportCSV() {
+  if (!records.length) { showFB('err', 'データがありません'); return; }
+  const baseName = (loadedFileName || '出荷指示表').replace(/\.csv$/i, '');
+
+  if (GAS_DEPLOY_URL) {
+    showFB('ok', '📤 ドライブに書き出し中...');
+    try {
+      const res = await fetch(GAS_DEPLOY_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'saveCSVByStatus', records, today: todayStr(), baseName })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.message);
+      const msgs = data.results.map(r => (r.type === 'pending' ? '未完了フォルダ: ' : '完了フォルダ: ') + r.count + '件（' + r.filename + '）');
+      showFB('ok', '☁️ ドライブに保存しました\n' + msgs.join('\n'));
+    } catch (err) {
+      showFB('err', 'ドライブ書き出し失敗: ' + err.message);
+    }
+    return;
+  }
+
+  const name = baseName + '_消込済み.csv';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([makeCSV(records)], {type:'text/csv;charset=utf-8'}));
+  a.download = name;
+  a.click();
+  showFB('ok', 'CSVをダウンロードしました：' + name);
+}
+
+// ============================================================
+// ドライブ連携（一覧取得・読込）
+// ============================================================
+function todayStr() { const d = new Date(); return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()); }
+
+async function loadDriveFileList() {
+  if (!GAS_DEPLOY_URL) { showCsvFb('GAS_DEPLOY_URLが未設定です', 'err'); return; }
+  showCsvFb('ファイル一覧を取得中...', 'ok');
+  try {
+    const res = await fetch(GAS_DEPLOY_URL + '?action=getFileList');
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.message || '取得失敗');
+    const listEl = document.getElementById('drive-file-list');
+    if (!data.files || data.files.length === 0) {
+      listEl.style.display = 'none';
+      showCsvFb('フォルダにCSVファイルがありません', 'warn');
+      return;
+    }
+    listEl.style.display = 'block';
+    listEl.innerHTML = data.files.map(f => {
+      const labelColor = f.folder === 'pending' ? '#b56e00' : '#3a7bdc';
+      return `<div style="padding:10px 12px;border-bottom:1px solid #f0f0ea;cursor:pointer" onclick="loadSelectedDriveFile('${f.id}','${f.name.replace(/'/g,"\\'")}')">
+        <div style="font-size:13px;font-weight:600;word-break:break-all">${f.name}</div>
+        <div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center">
+          <span style="color:${labelColor};font-weight:600">${f.label}</span>
+          <span style="color:#888">${f.updated}</span>
+        </div>
+      </div>`;
+    }).join('');
+    showCsvFb(data.files.length + '件見つかりました。読み込むファイルをタップしてください', 'ok');
+  } catch (err) {
+    showCsvFb('エラー: ' + err.message, 'err');
+  }
+}
+
+async function loadSelectedDriveFile(fileId, fileName) {
+  showCsvFb(fileName + ' を読込中...', 'ok');
+  try {
+    const res = await fetch(GAS_DEPLOY_URL + '?action=getCSV&fileId=' + fileId);
+    const text = await res.text();
+    applyLoadedRecords(parseCSVText(text), fileName);
+    loadedFileId = fileId;
+    showCsvFb(`✅ ${fileName}：${records.length}件を読み込みました`, 'ok');
+    setTimeout(closeCsvModal, 1200);
+  } catch (err) {
+    showCsvFb('読込失敗: ' + err.message, 'err');
+  }
+}
+
+// ============================================================
+// ユーティリティ
+// ============================================================
+function nowStr() { const d=new Date(); return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
+function pad(n) { return String(n).padStart(2,'0'); }
+function showFB(type,msg) { const fb=document.getElementById('feedback'); fb.className='feedback '+type; fb.textContent=msg; }
+function showCsvFb(msg,type) {
+  const fb = document.getElementById('csv-feedback');
+  fb.style.display = 'block'; fb.style.padding='8px 10px'; fb.style.borderRadius='6px';
+  fb.style.background = type==='ok' ? '#ecf9f2' : type==='err' ? '#fdecea' : '#fff8ec';
+  fb.style.color      = type==='ok' ? '#1e8a55' : type==='err' ? '#c0392b' : '#b56e00';
+  fb.textContent = msg;
+}
+
+// ============================================================
+// モーダル・メニュー
+// ============================================================
+function showCsvModal() {
+  const fb = document.getElementById('csv-feedback');
+  if (fb) { fb.style.display='none'; fb.textContent=''; }
+  const listEl = document.getElementById('drive-file-list');
+  if (listEl) { listEl.style.display='none'; listEl.innerHTML=''; }
+  document.getElementById('csv-modal').classList.add('show');
+}
+function closeCsvModal() { document.getElementById('csv-modal').classList.remove('show'); }
+function toggleMoreMenu() { document.getElementById('more-menu').classList.toggle('show'); }
+function closeMoreMenu() { document.getElementById('more-menu').classList.remove('show'); }
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.more-wrap');
+  if (wrap && !wrap.contains(e.target)) closeMoreMenu();
+});
+
+// ============================================================
+// ログイン・ポータル連携
+// ============================================================
+function doLogin() {
+  const id = document.getElementById('login-id').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  const user = USERS.find(u => u.id === id && u.pw === pw);
+  if (!user) { errEl.style.display='block'; document.getElementById('login-pw').value=''; return; }
+  errEl.style.display='none';
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({id:user.id,name:user.name,admin:user.admin})); } catch(e){}
+  showMainScreen(user);
+}
+
+function showMainScreen(user) {
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('main-screen').style.display='block';
+  const nameEl = document.getElementById('user-name-display');
+  if (nameEl) nameEl.textContent = '👤 ' + user.name + ' さん';
+  restoreData();
+}
+
+function doLogout() {
+  if (!confirm('ログアウトしますか？')) return;
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(e){}
+  document.getElementById('main-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-id').value=''; document.getElementById('login-pw').value='';
+}
+
+const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/AKfycbzAB87ZCwdp3mgVTMe8kS-bAgQAEleWotqJGS72GJCx3UkNKoLu-i2r2WBgibzpN9sU/exec';
+function closeTab() {
+  try { window.close(); } catch(e) {}
+  setTimeout(function() {
+    const portalUrl = new URLSearchParams(window.location.search).get('portal_url');
+    window.location.href = portalUrl ? decodeURIComponent(portalUrl) : DEFAULT_PORTAL_URL;
+  }, 300);
+}
+
+// SSO（ポータルからの起動時）
+(function() {
+  function parseSSOToken(token) {
+    try {
+      const decoded = atob(token.split('').reverse().join(''));
+      const data = JSON.parse(decoded);
+      if (Date.now() - data.ts > 5*60*1000) return null;
+      return data;
+    } catch(e) { return null; }
+  }
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('sso');
+  if (token) {
+    const data = parseSSOToken(token);
+    if (data) {
+      window.history.replaceState({}, '', window.location.pathname);
+      let name = data.name || '';
+      try { name = decodeURIComponent(escape(name)); } catch(e) {}
+      const user = { id: data.id, name, admin: data.role === 'admin' || data.role === 'master' };
+      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(user)); } catch(e) {}
+      showMainScreen(user);
+      return;
+    }
+  }
+  try {
+    const sess = sessionStorage.getItem(SESSION_KEY);
+    if (sess) { showMainScreen(JSON.parse(sess)); return; }
+  } catch(e) {}
+  document.getElementById('login-screen').style.display = 'flex';
+})();
+</script>
+</body>
+</html>

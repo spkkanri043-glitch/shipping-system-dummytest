@@ -1,0 +1,2986 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在庫管理</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif; font-size: 16px; background: #f0f2f5; color: #1a1a1a; min-height: 100vh;
+}
+.hd {
+  position: sticky; top: 0; z-index: 200;
+  background: #fff; border-bottom: 1px solid #ddd;
+  display: flex; align-items: center; gap: 12px; padding: 0 16px; height: 48px;
+}
+.hd-logo   { font-size: 18px; font-weight: 700; }
+.hd-div    { width: 1px; height: 20px; background: #e0e0e0; }
+.hd-client { font-size: 13px; color: #555; }
+.hd-sp     { flex: 1; }
+.save-ind  { font-size: 11px; color: #888; display: none; align-items: center; gap: 5px; }
+.spinner   { width: 12px; height: 12px; border: 2px solid #ddd; border-top-color: #1D9E75; border-radius: 50%; animation: spin .5s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-back     { font-size: 12px; padding: 5px 12px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #555; cursor: pointer; }
+.btn-back:hover { background: #f5f5f5; }
+.btn-settings { font-size: 12px; padding: 5px 10px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #777; cursor: pointer; }
+.btn-settings:hover { background: #f5f5f5; }
+/* URL設定バー */
+.url-bar { background: #fffbe6; border-bottom: 1px solid #f0d060; padding: 8px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.url-bar-title { font-size: 12px; font-weight: 500; color: #7a5c00; white-space: nowrap; }
+.url-bar input { flex: 1; min-width: 220px; font-size: 12px; border: 1px solid #e0c840; border-radius: 5px; padding: 5px 8px; background: #fff; }
+.url-bar input:focus { outline: none; border-color: #1D9E75; }
+.url-bar input::placeholder { color: #bbb; }
+.btn-connect { font-size: 12px; padding: 5px 14px; border: none; border-radius: 5px; background: #1D9E75; color: #fff; cursor: pointer; white-space: nowrap; }
+.btn-connect:hover { background: #178a65; }
+.conn-status { font-size: 11px; white-space: nowrap; }
+.conn-status.ok  { color: #0a6644; }
+.conn-status.err { color: #e24b4a; }
+.conn-status.ing { color: #888; }
+/* タブ */
+.tab-bar { background: #fff; border-bottom: 1px solid #ddd; display: flex; align-items: flex-end; padding: 0 16px; overflow-x: auto; }
+.ctab { padding: 14px 22px 12px; font-size: 16px; color: #999; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; flex-shrink: 0; user-select: none; transition: color .15s; }
+.ctab:hover  { color: #333; }
+.ctab.active { color: #1D9E75; border-bottom-color: #1D9E75; font-weight: 500; }
+.online-tab-badge { font-size: 11px; color: #1D9E75; font-weight: 700; margin-left: 4px; background: #e3f6ed; border-radius: 10px; padding: 1px 6px; }
+
+/* セル単位の編集状況表示 */
+td.cell-being-edited { outline: 2px solid #ff6b6b !important; outline-offset: -1px; background: #fff0f0 !important; }
+.cell-live-badge {
+  position: absolute; top: -8px; left: 2px; z-index: 8;
+  background: #ff6b6b; color: #fff; font-size: 9px; font-weight: 700;
+  padding: 1px 5px; border-radius: 8px; white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  pointer-events: none;
+}
+/* ツールバー */
+.toolbar { background: #fff; border-bottom: 1px solid #ddd; padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.excel-menu-wrap { position: relative; display: inline-block; }
+.excel-menu { position: absolute; top: 100%; left: 0; margin-top: 4px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.12); z-index: 50; min-width: 160px; overflow: hidden; }
+.excel-menu-item { display: block; width: 100%; text-align: left; padding: 10px 14px; font-size: 13px; border: none; background: #fff; cursor: pointer; white-space: nowrap; }
+.excel-menu-item:hover { background: #f5f5f5; }
+.excel-menu-item:not(:last-child) { border-bottom: 1px solid #eee; }
+.mnav   { display: flex; align-items: center; gap: 6px; }
+.mlabel { font-size: 18px; font-weight: 700; min-width: 120px; text-align: center; }
+.btn  { font-size: 12px; padding: 5px 12px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
+.btn:hover { background: #f5f5f5; }
+.btn-icon  { padding: 5px 9px; }
+.btn-green { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+.btn-green:hover { background: #178a65; }
+.btn-purple { background: #6a1b9a; color: #fff; border-color: #6a1b9a; }
+.btn-purple:hover { background: #531578; }
+.btn-purple.active-filter { background: #ff6f00; border-color: #ff6f00; }
+.tsp { flex: 1; }
+/* コンテンツ */
+.content { padding: 12px 16px 32px; }
+/* 月初在庫パネル */
+.init-panel { background: #fff; border: 1px solid #e2e2e2; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+.init-panel-hd { padding: 10px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+.init-panel-hd:hover { background: #f9f9f9; }
+.init-lbl   { font-size: 13px; font-weight: 600; color: #444; white-space: nowrap; }
+.init-toggle-icon { font-size: 11px; color: #999; transition: transform .2s; margin-left: auto; }
+.init-panel.collapsed .init-toggle-icon { transform: rotate(-90deg); }
+.init-panel.collapsed .init-body { display: none; }
+.init-body  { padding: 0 16px 12px; }
+.init-items { display: flex; flex-wrap: wrap; gap: 12px; }
+.init-summary { font-size: 11px; color: #999; font-weight: 400; }
+.init-item  { display: flex; flex-direction: column; gap: 2px; }
+.init-item label { font-size: 10px; color: #999; }
+.init-val   { display: flex; align-items: center; gap: 4px; }
+.init-item input { width: 80px; font-size: 12px; text-align: right; border: 1px solid #ddd; border-radius: 5px; padding: 3px 6px; -moz-appearance: textfield; }
+.init-item input::-webkit-outer-spin-button, .init-item input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.init-item input:focus { outline: none; border-color: #1D9E75; }
+.init-auto-badge { font-size: 10px; color: #1D9E75; background: #e1f5ee; border-radius: 3px; padding: 1px 5px; white-space: nowrap; }
+.init-part-badge { font-size: 10px; color: #6a1b9a; background: #f3e5ff; border-radius: 3px; padding: 1px 5px; white-space: nowrap; }
+/* テーブル */
+.tcard-wrap { background: #fff; border: 2px solid #bbb; border-radius: 8px; overflow: hidden; }
+.tscroll { overflow: auto; max-height: calc(100vh - 280px); }
+/* ── 分割テーブルレイアウト ── */
+/* 1テーブル方式 */
+#main-table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+#main-table th, #main-table td { border-right: 1px solid #d8d8d8; border-bottom: 1px solid #d8d8d8; }
+table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+th, td { border-right: 1px solid #ebebeb; border-bottom: 1px solid #ebebeb; white-space: nowrap; }
+thead th { background: #f7f7f7; font-size: 14px; font-weight: 600; color: #444; padding: 9px 4px; text-align: center; position: sticky; top: 0; z-index: 10; }
+/* 左上角（ヘッダー×固定列）は両方向に固定 */
+thead th.c-prod { z-index: 20; text-align: left;  padding: 7px 8px; will-change: transform; }
+thead th.c-type { z-index: 20; text-align: right; will-change: transform; }
+thead th.we  { background: #efefef; color: #ccc; }
+thead th.tdy { background: #e0f5ec; color: #0a6644; font-weight: 700; }
+.c-prod { width: 190px; min-width: 190px; max-width: 190px; background: #fff; vertical-align: top; position: relative; z-index: 6; }
+.c-type { width: 170px; min-width: 170px; max-width: 170px; background: #fff; text-align: right; position: relative; z-index: 5; }
+/* 合計列（右端固定） */
+.c-total { width: 82px; min-width: 82px; max-width: 82px; background: #f0f4f8 !important; border-left: 2px solid #bbb !important; text-align: right; padding: 6px 10px; font-size: 14px; font-weight: 700; color: #222; white-space: nowrap; }
+.c-total.neg  { color: #c0392b; font-weight: 800; font-size: 15px; }
+.c-total.zero { color: #bbb; font-weight: 400; }
+thead .c-total { z-index: 15; font-size: 11px; font-weight: 500; color: #666; text-align: center; background: #f7f7f7 !important; }
+thead .c-prod, thead .c-type { z-index: 10; background: #f7f7f7; }
+td.c-prod { background: #fff; overflow: hidden; box-shadow: 3px 0 5px rgba(0,0,0,.15); will-change: transform; }
+td.c-type { background: #fff; text-align: right; padding: 8px 12px; color: #444; font-size: 14px; font-weight: 600; white-space: normal; overflow: visible; line-height: 1.5; box-shadow: 2px 0 3px rgba(0,0,0,.06); will-change: transform; }
+td.c-type.lbl-seikei   { color: #1565C0; }
+td.c-type.lbl-keikaku  { color: #6A1B9A; }
+td.c-type.lbl-nyuuka   { color: #1D9E75; font-weight: 600; }
+td.c-type.lbl-shohi    { color: #e65100; }
+td.c-type.lbl-autoshohi{ color: #ff8f00; font-size: 14px; font-weight: 600; }
+.keikaku-note { font-size: 10px; color: #9E9E9E; display: block; margin-top: 2px; font-weight: 400; white-space: normal; line-height: 1.3; }
+td.keikaku-excluded { background: #e8e8e8 !important; }
+tr.r-keikaku td.keikaku-excluded { background: #e0e0e0 !important; }
+.excluded-input { color: #aaa !important; }
+/* 製品セル */
+.pcell  { padding: 6px 8px; vertical-align: middle; position: relative; }
+.p-row  { display: flex; align-items: baseline; gap: 3px; margin-bottom: 1px; flex-wrap: wrap; }
+.p-lbl  { font-size: 9px; color: #aaa; white-space: nowrap; min-width: 0; display: none; }
+.p-val  { font-size: 14px; color: #333; word-break: break-all; }
+.p-name { font-weight: 700; font-size: 15px; word-break: break-all; }
+.p-unit { color: #1D9E75; font-weight: 500; font-size: 13px; }
+.p-btns { display: flex; gap: 4px; margin-top: 3px; }
+/* 最初の行（naiji/part_nyuuka_plan）のみフル表示、他の行は品番のみ小さく */
+td.c-prod.pcell-main  { border-bottom: none !important; }
+td.c-prod.pcell-sub   { border-bottom: 1px solid #ebebeb; padding: 2px 8px; vertical-align: middle; }
+.pcell-sub-code { font-size: 9px; color: #bbb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+/* 製品/部品バッジ（右上） */
+.item-type-badge {
+  position: absolute; top: 4px; right: 6px;
+  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
+  white-space: nowrap;
+}
+.item-type-badge.product { background: #e3f6ed; color: #0a6644; border: 1px solid #b2dfdb; }
+.item-type-badge.part    { background: #f3e5ff; color: #4a1270; border: 1px solid #d1a0f0; }
+.p-parts-hint { margin-top: 3px; padding: 2px 6px; background: #f3e5ff; border-radius: 4px; font-size: 10px; line-height: 1.4; cursor: pointer; }
+.p-parts-hint:hover { background: #e1bee7; }
+.btn-edit { font-size: 10px; padding: 2px 6px; border: 1px solid #b0d4f1; border-radius: 4px; background: #eef6ff; color: #1565C0; cursor: pointer; }
+.btn-edit:hover { background: #d6eaff; }
+.btn-delp { font-size: 10px; padding: 2px 6px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; color: #ccc; cursor: pointer; }
+.btn-delp:hover { color: #e24b4a; border-color: #e24b4a; }
+/* 行カラー - 製品 */
+tr.r-naiji    td { background: #fffcf0; }
+tr.r-naiji    td.c-prod, tr.r-naiji    td.c-type { background: #fffcf0; }
+tr.r-naiji    td.nc.we { background: #ececec !important; }
+tr.r-shukko   td { background: #fff; }
+tr.r-shukko   td.c-prod, tr.r-shukko   td.c-type { background: #fff; }
+tr.r-shukko   td.nc.we { background: #ececec !important; }
+tr.r-seikei   td { background: #f0f4ff; }
+tr.r-seikei   td.c-prod, tr.r-seikei   td.c-type { background: #f0f4ff; }
+tr.r-seikei   td.nc.we { background: #ececec !important; }
+tr.r-keikaku  td { background: #f8f0ff; }
+tr.r-keikaku  td.c-prod, tr.r-keikaku  td.c-type { background: #f8f0ff; }
+tr.r-keikaku  td.nc.we { background: #ececec !important; }
+tr.r-zaiko    td { background: #f2faf6; }
+tr.r-zaiko    td.c-prod, tr.r-zaiko    td.c-type { background: #f2faf6; }
+tr.r-zaiko    td.zc.we { background: #ececec !important; color: #ccc !important; }
+/* 行カラー - 部品 */
+tr.r-part-nyuuka_plan td { background: #e0f7fa; }
+tr.r-part-nyuuka_plan td.c-prod, tr.r-part-nyuuka_plan td.c-type { background: #e0f7fa; }
+tr.r-part-nyuuka_plan td.nc.we { background: #ececec !important; }
+tr.r-part-nyuuka   td { background: #e8f5e9; }
+tr.r-part-nyuuka   td.c-prod, tr.r-part-nyuuka   td.c-type { background: #e8f5e9; }
+tr.r-part-nyuuka   td.nc.we { background: #ececec !important; }
+tr.r-part-shohi    td { background: #fff3e0; }
+tr.r-part-shohi    td.c-prod, tr.r-part-shohi    td.c-type { background: #fff3e0; }
+tr.r-part-shohi    td.nc.we { background: #ececec !important; }
+tr.r-part-zaiko    td { background: #f2faf6; }
+tr.r-part-zaiko    td.c-prod, tr.r-part-zaiko    td.c-type { background: #f2faf6; }
+tr.r-part-zaiko    td.zc.we { background: #ececec !important; color: #ccc !important; }
+/* pcell-sub の背景継承 */
+tr.r-part-nyuuka_plan td.pcell-sub { background: #e0f7fa !important; }
+tr.r-part-nyuuka   td.pcell-sub { background: #e8f5e9 !important; }
+tr.r-part-shohi    td.pcell-sub { background: #fff3e0 !important; }
+tr.r-part-zaiko    td.pcell-sub { background: #f2faf6 !important; }
+tr.r-naiji    td.pcell-sub { background: #fffcf0 !important; }
+tr.r-shukko   td.pcell-sub { background: #fff    !important; }
+tr.r-seikei   td.pcell-sub { background: #f0f4ff !important; }
+tr.r-keikaku  td.pcell-sub { background: #f8f0ff !important; }
+tr.r-zaiko    td.pcell-sub { background: #f2faf6 !important; }
+tr.divider    td { border-top: 3px solid #555 !important; }
+tr.divider-part td { border-top: 3px solid #7b1fa2 !important; }
+/* border-collapse:separate時の左上角の二重線対策 */
+td { border-left: none; border-top: none; }
+th { border-left: none; }
+thead tr:first-child th { border-top: 1px solid #ebebeb; }
+/* 消費数自動計算セル */
+td.auto-shohi { background: #fff8f0 !important; }
+td.auto-shohi input { color: #e65100; font-style: italic; }
+td.manual-shohi-override input { color: #b71c1c; font-weight: 700; }
+/* 入力セル */
+td.nc { text-align: right; padding: 3px 4px; min-width: 60px; }
+td.nc.we, td.we { background: #ececec !important; color: #ccc !important; }
+td.sat-locked { background: #ececec !important; }
+td.nc input { width: 64px; text-align: right; font-size: 15px; padding: 4px 5px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: #1a1a1a; -moz-appearance: textfield; }
+td.nc input::-webkit-outer-spin-button, td.nc input::-webkit-inner-spin-button { -webkit-appearance: none; }
+td.nc input:hover { border-color: #ccc; background: #fafafa; }
+td.nc input:focus { border-color: #1D9E75; background: #fff; outline: none; }
+td.sat-locked  { background: #f0f0f0 !important; text-align: center; vertical-align: middle; min-width: 0; }
+td.sat-unlocked { background: #fff9f0 !important; }
+.unlock-btn { font-size: 11px; padding: 4px 7px; border: 1px solid #ccc; border-radius: 3px; background: #fff; color: #888; cursor: pointer; display: block; white-space: nowrap; }
+.unlock-btn:hover { border-color: #1D9E75; color: #1D9E75; }
+.relock-btn { font-size: 9px; padding: 1px 4px; border: 1px solid #f0c040; border-radius: 3px; background: #fffbe6; color: #9a6700; cursor: pointer; display: block; margin-top: 1px; }
+.relock-btn:hover { background: #f0d060; }
+/* 在庫セル */
+td.zc { text-align: right; padding: 7px 8px; font-size: 16px; font-weight: 700; min-width: 64px; }
+td.zc.neg  { color: #c0392b; font-weight: 800; }
+td.zc.zero { color: #bbb; font-weight: 400; }
+td.zc.we   { background: #f3f3f3 !important; color: #ccc; }
+td.tdy-col { background: #f5fcf9 !important; }
+.state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #bbb; gap: 8px; }
+.state .ico { font-size: 28px; }
+/* モーダル */
+.ov { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; z-index: 500; }
+.modal { background: #fff; border-radius: 10px; padding: 20px 24px; width: 340px; max-width: 92vw; }
+.modal h3  { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+.modal label { font-size: 12px; color: #666; display: block; margin-bottom: 3px; }
+.modal input { width: 100%; font-size: 13px; border: 1px solid #ddd; border-radius: 6px; padding: 7px 9px; margin-bottom: 10px; }
+.modal input:focus { outline: none; border-color: #1D9E75; }
+.mbtns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+/* 検索結果 */
+.search-result-item { padding: 8px 12px; font-size: 13px; cursor: pointer; border-bottom: 0.5px solid #eee; display: flex; align-items: center; justify-content: space-between; transition: background .1s; }
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: #f5f5f5; }
+.sr-code  { font-weight: 500; font-size: 13px; }
+.sr-name  { font-size: 11px; color: #888; margin-left: 8px; }
+.sr-unit  { font-size: 10px; color: #1D9E75; font-weight: 500; }
+.sr-arrow { font-size: 11px; color: #1D9E75; font-weight: 500; flex-shrink: 0; margin-left: 8px; }
+/* 判定バッジ（検索結果内） */
+.sr-type-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; white-space: nowrap; margin-left: 4px; }
+.sr-type-badge.product { background: #e3f6ed; color: #0a6644; }
+.sr-type-badge.part    { background: #f3e5ff; color: #4a1270; }
+/* トースト */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 7px 18px; border-radius: 20px; font-size: 12px; z-index: 999; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+/* フィルタバナー */
+.filter-banner { background: #6a1b9a; color: #fff; font-size: 12px; padding: 6px 16px; display: flex; align-items: center; gap: 10px; }
+.filter-banner button { font-size: 11px; padding: 2px 10px; border: 1px solid rgba(255,255,255,.5); border-radius: 4px; background: transparent; color: #fff; cursor: pointer; }
+.filter-banner button:hover { background: rgba(255,255,255,.15); }
+/* ── 順番変更ボタン ── */
+.btn-order { font-size: 11px; padding: 2px 5px; border: 1px solid #ddd; border-radius: 4px; background: #fff; color: #888; cursor: pointer; line-height: 1; }
+.btn-order:hover:not(:disabled) { border-color: #1D9E75; color: #1D9E75; background: #f0faf6; }
+.btn-order:disabled { opacity: .3; cursor: not-allowed; }
+
+/* ── 入力値マイナス赤字 ── */
+td.nc input.minus-val { color: #c0392b !important; font-weight: 700; }
+
+/* ── 在庫マイナス警告バナー ── */
+.warn-banner {
+  background: #fff0f0; border-bottom: 2px solid #e24b4a;
+  padding: 8px 16px; display: flex; align-items: center; gap: 10px;
+  font-size: 12px; cursor: pointer;
+}
+.warn-banner-icon { font-size: 16px; flex-shrink: 0; }
+.warn-banner-msg  { flex: 1; color: #b71c1c; font-weight: 500; }
+.warn-banner-btn  { font-size: 11px; padding: 3px 10px; border: 1px solid #e24b4a; border-radius: 4px; background: #fff; color: #e24b4a; cursor: pointer; white-space: nowrap; }
+.warn-banner-btn:hover { background: #fce8e8; }
+
+/* ── ページローディングオーバーレイ ── */
+.page-loading {
+  position: fixed; inset: 0; background: rgba(255,255,255,.85);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 300; gap: 16px;
+}
+.page-loading.hidden { display: none; }
+.page-loading-spinner {
+  width: 44px; height: 44px;
+  border: 4px solid #e0e0e0; border-top-color: #1D9E75;
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+.page-loading-msg { font-size: 13px; color: #888; }
+
+/* ── 削除確認パスワードダイアログ ── */
+.del-modal { width: 340px; }
+.del-modal h3 { color: #b71c1c; }
+.del-warning { background: #fff0f0; border: 1px solid #f5c6c6; border-radius: 6px; padding: 10px 12px; font-size: 12px; color: #b71c1c; margin-bottom: 12px; line-height: 1.7; }
+.del-pw-wrap { position: relative; }
+.del-pw-wrap input { width: 100%; font-size: 13px; border: 1px solid #ddd; border-radius: 6px; padding: 7px 9px; }
+.del-pw-wrap input:focus { outline: none; border-color: #e24b4a; }
+.del-pw-err { font-size: 11px; color: #e24b4a; margin-top: 4px; min-height: 16px; display: none; }
+.del-pw-err.show { display: block; }
+
+/* ── 警告詳細モーダル ── */
+.warn-modal { width: 480px; max-width: 96vw; }
+.warn-modal h3 { color: #b71c1c; }
+.warn-list { max-height: 320px; overflow-y: auto; border: 1px solid #f5c6c6; border-radius: 6px; margin-bottom: 12px; }
+.warn-item { padding: 8px 12px; border-bottom: 1px solid #fde8e8; display: flex; align-items: center; gap: 10px; }
+.warn-item:last-child { border-bottom: none; }
+.warn-item:nth-child(even) { background: #fff8f8; }
+.warn-item-date  { font-size: 12px; font-weight: 600; color: #b71c1c; min-width: 52px; }
+.warn-item-prod  { font-size: 12px; color: #333; flex: 1; }
+.warn-item-stock { font-size: 12px; font-weight: 700; color: #e24b4a; min-width: 60px; text-align: right; }
+.warn-item-badge { font-size: 10px; padding: 1px 6px; border-radius: 10px; background: #fce8e8; color: #b71c1c; white-space: nowrap; }
+
+/* ── グループタブ ── */
+.group-tab-bar { background:#fff;border-bottom:1px solid #ddd;display:flex;align-items:flex-end;padding:0 16px;overflow-x:auto;gap:0; }
+.gtab { padding:8px 14px 7px;font-size:12px;color:#999;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0;user-select:none;transition:color .15s;display:flex;align-items:center;gap:5px; }
+.gtab:hover  { color:#333; }
+.gtab.active { color:#1D9E75;border-bottom-color:#1D9E75;font-weight:500; }
+.gtab-add    { padding:6px 10px;font-size:11px;color:#aaa;cursor:pointer;border:1px dashed #ccc;border-radius:5px;margin:4px 0 4px 6px;white-space:nowrap;background:#fff; }
+.gtab-add:hover { color:#1D9E75;border-color:#1D9E75; }
+.gtab-edit-btn { font-size:9px;color:#bbb;cursor:pointer;padding:1px 3px;border-radius:3px; }
+.gtab-edit-btn:hover { color:#e24b4a;background:#fff0f0; }
+/* グループ管理モーダル */
+.group-modal { width:360px; }
+/* 取引先管理モーダル */
+.client-modal { width:480px; }
+.client-list-item { display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #eee; }
+.client-list-item:last-child { border-bottom:none; }
+.client-list-item:hover { background:#f9f9f9; }
+.client-name { flex:1;font-size:13px;font-weight:500; }
+.client-ssid { font-size:10px;color:#aaa;flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.btn-client-edit { font-size:11px;padding:2px 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer; }
+.btn-client-del  { font-size:11px;padding:2px 8px;border:1px solid #fcc;border-radius:4px;background:#fff;color:#e24b4a;cursor:pointer; }
+
+/* ── 廃棄確認ダイアログ ── */
+.discard-overlay { position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:600; }
+.discard-box { background:#fff;border-radius:12px;padding:22px 26px;width:380px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.3); }
+.discard-box h4 { font-size:14px;font-weight:700;margin-bottom:6px;color:#b71c1c; }
+.discard-box p  { font-size:12px;color:#555;margin-bottom:16px;line-height:1.7; }
+.discard-opts { display:flex;flex-direction:column;gap:8px;margin-bottom:18px; }
+.discard-opt  { display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;cursor:pointer;transition:all .15s; }
+.discard-opt:hover { border-color:#1D9E75;background:#f5fdf8; }
+.discard-opt.selected { border-color:#1D9E75;background:#e8f5e9; }
+.discard-opt-icon { font-size:20px;flex-shrink:0;margin-top:1px; }
+.discard-opt-text strong { font-size:13px;display:block;margin-bottom:2px; }
+.discard-opt-text span   { font-size:11px;color:#888; }
+.discard-btns { display:flex;gap:8px;justify-content:flex-end; }
+.discard-btn-cancel { padding:7px 16px;font-size:12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer; }
+.discard-btn-ok     { padding:7px 18px;font-size:12px;font-weight:600;border:none;border-radius:6px;background:#1D9E75;color:#fff;cursor:pointer; }
+.discard-btn-ok:hover { background:#178a65; }
+
+/* ── 製品別部品パネル（テーブル内展開） ── */
+tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; border-top:2px solid #9c27b0 !important; }
+.parts-detail-panel { padding:10px 14px; }
+.parts-detail-panel h5 { font-size:12px;font-weight:600;color:#6a1b9a;margin-bottom:8px;display:flex;align-items:center;gap:6px; }
+.parts-detail-close { font-size:10px;padding:2px 8px;border:1px solid #d1a0f0;border-radius:4px;background:#fff;color:#6a1b9a;cursor:pointer;margin-left:auto; }
+.parts-detail-close:hover { background:#f3e5ff; }
+.parts-detail-table { border-collapse:collapse;font-size:11px;width:100%; }
+.parts-detail-table th { background:#f3e5ff;color:#4a1270;font-weight:600;padding:5px 8px;text-align:center;border-bottom:1px solid #d1a0f0;white-space:nowrap; }
+.parts-detail-table th.pdt-left { text-align:left; }
+.parts-detail-table td { padding:4px 8px;border-bottom:1px solid #ede7f6;text-align:right;white-space:nowrap; }
+.parts-detail-table td.pdt-left { text-align:left;font-weight:500;color:#4a1270; }
+.parts-detail-table td.pdt-total { font-weight:700;color:#6a1b9a; }
+.parts-detail-table tr:last-child td { border-bottom:none; }
+.parts-detail-table td.we-cell { background:#f0f0f0;color:#ccc; }
+.parts-detail-table td.tdy-cell { background:#e8f5e9; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+</head>
+<body>
+
+<!-- ログイン画面（ポータル経由でない場合のフォールバック） -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#1a3a5c;z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:28px 26px;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:28px">📦</div>
+      <div style="font-size:16px;font-weight:700;color:#1a3a5c;margin-top:6px">在庫管理アプリ</div>
+    </div>
+    <div id="login-err" style="display:none;background:#fce8e8;color:#b53030;border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:10px;text-align:center"></div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:12px;color:#5a6a7a;display:block;margin-bottom:4px">ログインID</label>
+      <input type="text" id="login-id" style="width:100%;padding:10px;font-size:15px;border:1px solid #cfd9e6;border-radius:6px" placeholder="admin">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;color:#5a6a7a;display:block;margin-bottom:4px">パスワード</label>
+      <input type="password" id="login-pw" style="width:100%;padding:10px;font-size:15px;border:1px solid #cfd9e6;border-radius:6px" placeholder="••••••••">
+    </div>
+    <button id="login-btn" style="width:100%;padding:11px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer">ログイン</button>
+  </div>
+</div>
+
+<div class="hd">
+  <span class="hd-logo">📦 在庫管理</span>
+  <div class="hd-div"></div>
+  <span class="hd-client" id="hd-client">—</span>
+  <div class="hd-sp"></div>
+  <span id="current-user-badge" style="font-size:12px;color:#1D9E75;font-weight:600;margin-right:8px"></span>
+  <div class="save-ind" id="save-ind"><span class="spinner"></span>保存中…</div>
+  <button class="btn-settings" id="btn-settings">⚙ 設定</button>
+  <button class="btn-back" id="btn-back">✕ タブを閉じる</button>
+</div>
+
+
+<div class="url-bar" id="url-bar">
+  <span class="url-bar-title">⚙ GAS URL設定</span>
+  <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:220px">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:11px;color:#7a5c00;white-space:nowrap;min-width:96px">在庫管理GAS</span>
+      <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/XXXXX/exec" style="flex:1">
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:11px;color:#7a5c00;white-space:nowrap;min-width:96px">製品マスタGAS</span>
+      <input type="text" id="master-url-input" placeholder="製品マスタ管理アプリのGAS URL" style="flex:1">
+    </div>
+  </div>
+  <button class="btn-connect" id="btn-connect">接続する</button>
+  <span class="conn-status" id="conn-status"></span>
+</div>
+
+<div class="tab-bar" id="tab-bar" style="display:flex;align-items:flex-end">
+  <div style="padding:10px 16px;font-size:12px;color:#bbb">読み込み中…</div>
+  <div style="margin-left:auto;padding:6px 12px;flex-shrink:0">
+    <button class="btn" id="btn-manage-clients" style="font-size:11px;padding:4px 10px">⚙ 取引先管理</button>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="mnav">
+    <button class="btn btn-icon" id="prev-m">◀</button>
+    <span class="mlabel" id="mlabel">—</span>
+    <button class="btn btn-icon" id="next-m">▶</button>
+  </div>
+  <div class="tsp"></div>
+  <button class="btn btn-purple" id="btn-parts-filter" onclick="togglePartsFilter()">🔩 部品在庫</button>
+  <button class="btn btn-green" id="add-prod-btn">＋ 製品追加</button>
+  <div class="excel-menu-wrap" id="excel-menu-wrap">
+    <button class="btn" id="btn-excel-menu" onclick="toggleExcelMenu()">📊 Excel ▾</button>
+    <div class="excel-menu" id="excel-menu" style="display:none">
+      <button class="excel-menu-item" onclick="exportExcel(); closeExcelMenu()">📥 Excel出力</button>
+      <button class="excel-menu-item" onclick="document.getElementById('excel-import-input').click(); closeExcelMenu()">📤 Excel取込</button>
+    </div>
+  </div>
+  <input type="file" id="excel-import-input" accept=".xlsx" style="display:none" onchange="onExcelImportSelected(event)">
+</div>
+
+<!-- グループタブバー -->
+<div class="group-tab-bar" id="group-tab-bar" style="display:none"></div>
+
+<!-- 部品フィルタ中バナー -->
+<div class="filter-banner" id="filter-banner" style="display:none">
+  🔩 部品在庫のみ表示中
+  <button onclick="togglePartsFilter()">✕ 全表示に戻す</button>
+</div>
+
+<!-- 在庫マイナス警告バナー -->
+<div class="warn-banner" id="warn-banner" style="display:none" onclick="openWarnModal()">
+  <span class="warn-banner-icon">⚠️</span>
+  <span class="warn-banner-msg" id="warn-banner-msg">在庫がマイナスになる製品があります</span>
+  <button class="warn-banner-btn" onclick="event.stopPropagation();openWarnModal()">詳細を見る</button>
+</div>
+
+<!-- ページローディングオーバーレイ -->
+<div class="page-loading hidden" id="page-loading">
+  <div class="page-loading-spinner"></div>
+  <div class="page-loading-msg" id="page-loading-msg">読み込み中...</div>
+</div>
+
+<div class="content">
+  <div class="init-panel" id="init-panel">
+    <div class="init-panel-hd" id="init-panel-hd">
+      <span class="init-lbl">📋 月初在庫</span>
+      <span class="init-summary" id="init-summary"></span>
+      <span class="init-toggle-icon">▼</span>
+    </div>
+    <div class="init-body">
+      <div class="init-items" id="init-items"></div>
+    </div>
+  </div>
+
+  <div class="tcard-wrap">
+    <div class="tscroll">
+      <table id="main-table">
+        <thead id="main-thead"></thead>
+        <tbody id="main-tbody">
+          <tr><td colspan="3"><div class="state"><span class="ico">⏳</span><span>読み込み中…</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 製品追加モーダル -->
+<div class="ov" id="modal-add" style="display:none">
+  <div class="modal" style="width:500px;max-width:96vw">
+    <h3>製品 / 部品を追加</h3>
+    <div id="step-search">
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <input id="ma-search" placeholder="品番・製品名で検索…" style="flex:1;margin-bottom:0">
+        <button class="btn btn-green" id="ma-search-btn" style="white-space:nowrap">検索</button>
+      </div>
+      <div id="ma-search-status" style="font-size:12px;color:#888;margin-bottom:6px;min-height:16px"></div>
+      <div id="ma-results" style="max-height:240px;overflow-y:auto;border:0.5px solid #ddd;border-radius:6px;margin-bottom:10px;display:none"></div>
+      <div style="border-top:0.5px solid #eee;padding-top:10px;margin-top:4px">
+        <div style="font-size:11px;color:#aaa;margin-bottom:6px">マスタに未登録の場合は手動入力</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <input id="ma-code-manual" placeholder="品番コード" style="flex:1;min-width:120px;margin-bottom:0">
+          <input id="ma-unit-manual" placeholder="箱入数" style="width:80px;margin-bottom:0">
+          <select id="ma-type-manual" style="font-size:12px;border:1px solid #ddd;border-radius:6px;padding:7px 8px;margin-bottom:0;background:#fff">
+            <option value="product">🟢 製品</option>
+            <option value="part">🔩 部品</option>
+          </select>
+          <button class="btn" id="ma-manual-set" style="white-space:nowrap;font-size:11px">手動で設定</button>
+        </div>
+      </div>
+    </div>
+    <div id="step-confirm" style="display:none">
+      <div style="background:#f5faf7;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:13px">
+        <div style="display:flex;gap:8px;margin-bottom:4px">
+          <span style="color:#888;min-width:52px;font-size:11px">品番</span>
+          <span id="confirm-code" style="font-weight:500"></span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:4px">
+          <span style="color:#888;min-width:52px;font-size:11px">製品名</span>
+          <span id="confirm-pname" style="color:#555;font-size:12px"></span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:4px">
+          <span style="color:#888;min-width:52px;font-size:11px">箱入数</span>
+          <span id="confirm-unit" style="color:#1D9E75;font-weight:500"></span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+          <span style="color:#888;min-width:52px;font-size:11px">種別</span>
+          <select id="confirm-item-type" style="font-size:13px;font-weight:600;border:1px solid #ddd;border-radius:6px;padding:4px 10px;background:#fff;cursor:pointer">
+            <option value="product">🟢 製品</option>
+            <option value="part">🔩 部品</option>
+          </select>
+          <span style="font-size:10px;color:#aaa">（変更可能）</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="color:#888;min-width:52px;font-size:11px">グループ</span>
+          <select id="confirm-group" style="font-size:12px;border:1px solid #ddd;border-radius:6px;padding:4px 10px;background:#fff;flex:1">
+            <option value="">未分類</option>
+          </select>
+        </div>
+      </div>
+      <label>名称 <span style="color:#888;font-size:11px">（手入力）</span></label>
+      <input id="ma-name" placeholder="例：51-14（大）">
+      <div class="mbtns">
+        <button class="btn" id="ma-back">← 戻る</button>
+        <button class="btn" id="ma-cancel">キャンセル</button>
+        <button class="btn btn-green" id="ma-ok">追加する</button>
+      </div>
+    </div>
+    <div class="mbtns" id="step-search-btns">
+      <button class="btn" id="ma-cancel2">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 製品編集モーダル -->
+<div class="ov" id="modal-edit" style="display:none">
+  <div class="modal">
+    <h3>製品 / 部品を編集</h3>
+    <label>品番コード <span style="color:#e24b4a">*</span></label>
+    <input id="me-code" placeholder="例：55046-42020">
+    <label>名称</label>
+    <input id="me-name" placeholder="例：51-14（大）">
+    <label>入数</label>
+    <input id="me-unit" placeholder="例：6ヶ入り">
+    <label>種別</label>
+    <select id="me-type" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:6px;padding:7px 9px;margin-bottom:10px;background:#fff">
+      <option value="product">🟢 製品</option>
+      <option value="part">🔩 部品</option>
+    </select>
+    <label>グループ</label>
+    <select id="me-group" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:6px;padding:7px 9px;margin-bottom:10px;background:#fff">
+      <option value="">未分類</option>
+    </select>
+    <input type="hidden" id="me-pid">
+    <div class="mbtns">
+      <button class="btn" id="me-cancel">キャンセル</button>
+      <button class="btn btn-green" id="me-ok">保存する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 削除確認パスワードモーダル -->
+<div class="ov" id="modal-delete-confirm" style="display:none">
+  <div class="modal del-modal">
+    <h3>🗑 削除の確認</h3>
+    <div class="del-warning">
+      ⚠️ <strong id="del-target-name"></strong> を削除します。<br>
+      この操作は取り消せません。<br>
+      削除するにはパスワードを入力してください。
+    </div>
+    <label style="font-size:12px;color:#666;display:block;margin-bottom:4px">パスワード</label>
+    <div class="del-pw-wrap">
+      <input type="password" id="del-pw-input" placeholder="パスワードを入力">
+    </div>
+    <div class="del-pw-err" id="del-pw-err">パスワードが違います</div>
+    <div class="mbtns" style="margin-top:12px">
+      <button class="btn" id="del-cancel-btn">キャンセル</button>
+      <button class="btn" id="del-ok-btn" style="background:#e24b4a;color:#fff;border-color:#e24b4a">削除する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 在庫マイナス警告モーダル -->
+<div class="ov" id="modal-warn" style="display:none">
+  <div class="modal warn-modal">
+    <h3>⚠️ 在庫マイナス警告</h3>
+    <p style="font-size:12px;color:#666;margin-bottom:10px">
+      以下の製品で在庫がマイナスになる日があります。<br>
+      出来高（計画）を入力すると警告が消えます。
+    </p>
+    <div class="warn-list" id="warn-list"></div>
+    <div class="mbtns">
+      <button class="btn" id="warn-modal-close">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 取引先管理モーダル -->
+<div class="ov" id="modal-clients" style="display:none">
+  <div class="modal client-modal">
+    <h3>⚙ 取引先管理</h3>
+    <div id="client-list" style="border:1px solid #eee;border-radius:6px;margin-bottom:12px;max-height:240px;overflow-y:auto"></div>
+    <div id="client-edit-area" style="display:none;background:#f5faf7;border-radius:6px;padding:12px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:500;color:#555;margin-bottom:8px" id="client-edit-title">取引先を追加</div>
+      <label style="font-size:12px;color:#666;display:block;margin-bottom:3px">取引先名 <span style="color:#e24b4a">*</span></label>
+      <input id="client-name-input" placeholder="例：カナモリ" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:6px;padding:7px 9px;margin-bottom:8px">
+      <label style="font-size:12px;color:#666;display:block;margin-bottom:3px">スプレッドシートID <span style="color:#e24b4a">*</span></label>
+      <input id="client-ssid-input" placeholder="GoogleスプレッドシートのID" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:6px;padding:7px 9px;margin-bottom:4px">
+      <div style="font-size:10px;color:#aaa;margin-bottom:8px">※ SpreadsheetのURLの /d/ と /edit の間の文字列</div>
+      <input type="hidden" id="client-editing-id">
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn" id="client-edit-cancel">キャンセル</button>
+        <button class="btn btn-green" id="client-edit-ok">保存する</button>
+      </div>
+    </div>
+    <div class="mbtns">
+      <button class="btn btn-green" id="btn-add-client-form">＋ 取引先を追加</button>
+      <button class="btn" id="client-modal-close">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- グループ管理モーダル -->
+<div class="ov" id="modal-group" style="display:none">
+  <div class="modal group-modal">
+    <h3 id="group-modal-title">グループを追加</h3>
+    <label>グループ名 <span style="color:#e24b4a">*</span></label>
+    <input id="group-name-input" placeholder="例：車系1">
+    <input type="hidden" id="group-editing-id">
+    <div class="mbtns">
+      <button class="btn" id="group-modal-cancel">キャンセル</button>
+      <button class="btn btn-green" id="group-modal-ok">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 廃棄確認ダイアログ -->
+<div class="discard-overlay" id="discard-overlay" style="display:none">
+  <div class="discard-box">
+    <h4>⚠️ 成形数がマイナスです</h4>
+    <p id="discard-msg">廃棄により製品を減らす場合、紐づく部品をどう扱いますか？</p>
+    <div class="discard-opts">
+      <div class="discard-opt selected" id="discard-opt-consume" onclick="selectDiscardOpt('consume')">
+        <span class="discard-opt-icon">🔩</span>
+        <div class="discard-opt-text">
+          <strong>部品も消費する（そのまま）</strong>
+          <span>マイナス成形数 × 構成数 だけ部品在庫が戻ります（通常の計算）</span>
+        </div>
+      </div>
+      <div class="discard-opt" id="discard-opt-none" onclick="selectDiscardOpt('none')">
+        <span class="discard-opt-icon">📦</span>
+        <div class="discard-opt-text">
+          <strong>部品は影響なし（廃棄扱い）</strong>
+          <span>この日の消費数を 0 として保存します（部品在庫は変わりません）</span>
+        </div>
+      </div>
+    </div>
+    <div class="discard-btns">
+      <button class="discard-btn-cancel" onclick="cancelDiscard()">キャンセル</button>
+      <button class="discard-btn-ok" onclick="confirmDiscard()">決定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  設定
+// ============================================================
+const SK_URL    = 'inv_gas_url';
+const SK_MASTER = 'inv_master_url';
+const DEFAULT_GAS_URL    = 'https://script.google.com/macros/s/AKfycbxmWXZwQDuGIQPVAV6TOpRJxe8YUDFAgX2ZYnvohSeo2J_Cwyv9woRSwROr5PGjMaqD/exec';
+const DEFAULT_MASTER_URL = 'https://script.google.com/macros/s/AKfycbww1lPYGVf7FLmIbjwxODbFMKSn8Q6yxFL9OpPnYmh9AnkAWVf9BgrRgk0Wc8GvK2XN/exec';
+const SK_PORTAL = 'inv_portal_url';
+const SK_SAT    = 'inv_sat_v2';
+
+let GAS_URL    = DEFAULT_GAS_URL    || localStorage.getItem(SK_URL)    || '';
+let MASTER_URL = DEFAULT_MASTER_URL || localStorage.getItem(SK_MASTER) || '';
+if (GAS_URL)    localStorage.setItem(SK_URL,    GAS_URL);
+if (MASTER_URL) localStorage.setItem(SK_MASTER, MASTER_URL);
+let PORTAL_URL = localStorage.getItem(SK_PORTAL) || '';
+
+// ============================================================
+//  ユーザー認証（ポータルSSO優先、フォールバックでローカルログイン）
+// ============================================================
+const SK_USER = 'inv_current_user';
+let currentUser = null; // { id, name, role }
+
+function decodeSsoToken(token) {
+  try {
+    const reversed = token.split('').reverse().join('');
+    const json = decodeURIComponent(escape(atob(reversed)));
+    const payload = JSON.parse(json);
+    if (!payload.id || !payload.name) return null;
+    return { id: payload.id, name: payload.name, role: payload.role || 'staff' };
+  } catch (e) { return null; }
+}
+
+function initAuth() {
+  const params = new URLSearchParams(location.search);
+  const ssoToken = params.get('sso');
+  const portalUrlParam = params.get('portal_url');
+  if (portalUrlParam) { PORTAL_URL = portalUrlParam; localStorage.setItem(SK_PORTAL, PORTAL_URL); }
+
+  if (ssoToken) {
+    const user = decodeSsoToken(ssoToken);
+    if (user) {
+      currentUser = user;
+      try { sessionStorage.setItem(SK_USER, JSON.stringify(user)); } catch(e) {}
+      return true;
+    }
+  }
+  // セッションに保存済みのユーザーがあれば再利用（同タブでのリロード時）
+  try {
+    const saved = sessionStorage.getItem(SK_USER);
+    if (saved) { currentUser = JSON.parse(saved); return true; }
+  } catch(e) {}
+  return false;
+}
+
+function showLoginScreen() {
+  document.getElementById('login-screen').style.display = 'flex';
+}
+function hideLoginScreen() {
+  document.getElementById('login-screen').style.display = 'none';
+}
+
+function doLocalLogin() {
+  const id = document.getElementById('login-id').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+  if (id === 'admin' && pw === 'admin123') {
+    currentUser = { id: 'admin', name: '管理者', role: 'master' };
+    try { sessionStorage.setItem(SK_USER, JSON.stringify(currentUser)); } catch(e) {}
+    hideLoginScreen();
+    updateUserBadge();
+    startOnlineHeartbeat();
+    boot();
+  } else {
+    errEl.textContent = 'IDまたはパスワードが違います';
+    errEl.style.display = 'block';
+  }
+}
+document.getElementById('login-btn').addEventListener('click', doLocalLogin);
+document.getElementById('login-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLocalLogin(); });
+
+function updateUserBadge() {
+  const badge = document.getElementById('current-user-badge');
+  if (badge && currentUser) badge.textContent = `👤 ${currentUser.name}`;
+}
+
+// ============================================================
+//  オンライン状態（同時編集の可視化）
+// ============================================================
+let onlineUsersData = []; // [{ clientId, groupId, userId, userName }]
+let _onlineHeartbeatTimer = null;
+
+async function sendOnlineStatus(action2) {
+  if (!currentUser || !selCid) return;
+  try {
+    await api({
+      action: 'setOnlineStatus',
+      clientId: selCid,
+      groupId: selGroupId || 'all',
+      userId: currentUser.id,
+      userName: currentUser.name,
+      action2: action2 || 'active',
+    });
+  } catch (e) {}
+}
+
+async function refreshOnlineUsers() {
+  try {
+    const res = await api({ action: 'getOnlineUsers' });
+    onlineUsersData = (res && res.data) || [];
+    renderClientTabOnlineBadges();
+    renderGroupTabOnlineBadges();
+  } catch (e) {}
+}
+
+function startOnlineHeartbeat() {
+  if (_onlineHeartbeatTimer) return;
+  sendOnlineStatus('active');
+  refreshOnlineUsers();
+  startCellPolling();
+  _onlineHeartbeatTimer = setInterval(() => {
+    sendOnlineStatus('active');
+    refreshOnlineUsers();
+  }, 8000); // 8秒ごとに更新（高速化）
+  window.addEventListener('beforeunload', () => { sendOnlineStatus('leave'); });
+}
+
+// 取引先タブに「誰が編集中か」を表示
+function renderClientTabOnlineBadges() {
+  if (!currentUser) return;
+  document.querySelectorAll('.ctab[data-cid]').forEach(tabEl => {
+    const cid = tabEl.dataset.cid;
+    const users = onlineUsersData.filter(u => String(u.clientId) === String(cid) && String(u.userId) !== String(currentUser.id));
+    let badge = tabEl.querySelector('.online-tab-badge');
+    if (users.length) {
+      const names = users.map(u => escH(u.userName)).join('・');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'online-tab-badge';
+        tabEl.appendChild(badge);
+      }
+      badge.title = `${names} が編集中`;
+      badge.textContent = ` 👥${users.length}`;
+    } else if (badge) {
+      badge.remove();
+    }
+  });
+}
+
+// グループタブに「誰が編集中か」を表示
+function renderGroupTabOnlineBadges() {
+  if (!currentUser || !selCid) return;
+  document.querySelectorAll('.gtab[data-gid]').forEach(tabEl => {
+    const gid = tabEl.dataset.gid;
+    const users = onlineUsersData.filter(u =>
+      String(u.clientId) === String(selCid) &&
+      String(u.groupId)  === String(gid) &&
+      String(u.userId)   !== String(currentUser.id)
+    );
+    let badge = tabEl.querySelector('.online-tab-badge');
+    if (users.length) {
+      const names = users.map(u => escH(u.userName)).join('・');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'online-tab-badge';
+        tabEl.appendChild(badge);
+      }
+      badge.title = `${names} が編集中`;
+      badge.textContent = ` 👥${users.length}`;
+    } else if (badge) {
+      badge.remove();
+    }
+  });
+}
+
+// ============================================================
+//  セル単位の編集状況（誰がどのセルを編集中か／最終更新者）
+// ============================================================
+let cellFocusData   = [];   // [{ productId, rowType, day, userId, userName }] 他の人がフォーカス中
+let cellHistoryData = {};   // key: `${productId}_${rowType}_${day}` -> { userId, userName, updatedAt }
+let _cellPollTimer  = null;
+let _myFocusedCell  = null; // 自分が今フォーカスしているセル { productId, rowType, day }
+
+function cellHistKey(pid, rt, d) { return `${pid}_${rt}_${d}`; }
+
+async function onCellFocus(e) {
+  const { pid, rt, d } = e.target.dataset;
+  if (!currentUser || !selCid) return;
+  _myFocusedCell = { pid, rt, d };
+  try {
+    await api({ action: 'setCellFocus', clientId: selCid, productId: pid, rowType: rt, day: d,
+                userId: currentUser.id, userName: currentUser.name, action2: 'focus' });
+  } catch (err) {}
+}
+
+async function onCellBlur(e) {
+  const { pid, rt, d } = e.target.dataset;
+  if (!currentUser || !selCid) return;
+  _myFocusedCell = null;
+  try {
+    await api({ action: 'setCellFocus', clientId: selCid, productId: pid, rowType: rt, day: d,
+                userId: currentUser.id, userName: currentUser.name, action2: 'blur' });
+  } catch (err) {}
+}
+
+// 現在表示中の全製品IDのリスト（フォーカス/履歴取得の問い合わせ範囲を絞る）
+function getVisibleProductIds() {
+  return products.map(p => p.id).join(',');
+}
+
+async function refreshCellFocusAndHistory() {
+  if (!currentUser || !selCid) return;
+  const productIds = getVisibleProductIds();
+  if (!productIds) return;
+  try {
+    const [focusRes, histRes] = await Promise.all([
+      api({ action: 'getCellFocusList', clientId: selCid, productIds }),
+      api({ action: 'getCellHistoryList', clientId: selCid, productIds }),
+    ]);
+    cellFocusData = ((focusRes && focusRes.data) || []).filter(c => String(c.userId) !== String(currentUser.id));
+    const histMap = {};
+    ((histRes && histRes.data) || []).forEach(h => {
+      histMap[cellHistKey(h.productId, h.rowType, h.day)] = h;
+    });
+    cellHistoryData = histMap;
+    applyCellEditBadges();
+  } catch (e) {}
+}
+
+// セルに「編集中」枠線・最終更新者ツールチップを反映
+function applyCellEditBadges() {
+  const mainTbody = document.getElementById('main-tbody');
+  if (!mainTbody) return;
+  mainTbody.querySelectorAll('input[data-pid]').forEach(inp => {
+    const { pid, rt, d } = inp.dataset;
+    const td = inp.closest('td');
+    if (!td) return;
+
+    // 他の人が今フォーカス中 → 枠線+名前バッジ
+    const focusUser = cellFocusData.find(c => String(c.productId) === String(pid) && c.rowType === rt && String(c.day) === String(d));
+    td.classList.toggle('cell-being-edited', !!focusUser);
+    let liveBadge = td.querySelector('.cell-live-badge');
+    if (focusUser) {
+      if (!liveBadge) {
+        liveBadge = document.createElement('div');
+        liveBadge.className = 'cell-live-badge';
+        td.style.position = 'relative';
+        td.appendChild(liveBadge);
+      }
+      liveBadge.textContent = focusUser.userName;
+    } else if (liveBadge) {
+      liveBadge.remove();
+    }
+
+    // 最終更新者 → ツールチップ（title属性）
+    const hist = cellHistoryData[cellHistKey(pid, rt, d)];
+    if (hist) {
+      const dt = hist.updatedAt ? new Date(hist.updatedAt) : null;
+      const dtStr = dt ? `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}` : '';
+      td.title = `最終更新: ${hist.userName}${dtStr ? '（' + dtStr + '）' : ''}`;
+    } else {
+      td.removeAttribute('title');
+    }
+  });
+}
+
+function startCellPolling() {
+  if (_cellPollTimer) return;
+  refreshCellFocusAndHistory();
+  _cellPollTimer = setInterval(refreshCellFocusAndHistory, 6000); // 6秒ごと（高速化要望対応）
+}
+
+document.getElementById('gas-url-input').value    = GAS_URL;
+document.getElementById('master-url-input').value = MASTER_URL;
+if (GAS_URL) document.getElementById('url-bar').style.display = 'none';
+
+document.getElementById('btn-settings').addEventListener('click', () => {
+  const bar = document.getElementById('url-bar');
+  const show = bar.style.display === 'none';
+  bar.style.display = show ? 'flex' : 'none';
+  if (show) document.getElementById('gas-url-input').focus();
+});
+document.getElementById('btn-connect').addEventListener('click', async () => {
+  const url = document.getElementById('gas-url-input').value.trim();
+  if (!url) { alert('URLを入力してください'); return; }
+  const st = document.getElementById('conn-status');
+  st.className = 'conn-status ing'; st.textContent = '接続確認中…';
+  try {
+    const r = await fetch(url + '?action=getClients');
+    const j = await r.json();
+    if (j.error) throw new Error(j.error);
+    GAS_URL = url;
+    localStorage.setItem(SK_URL, GAS_URL);
+    const masterUrl = document.getElementById('master-url-input').value.trim();
+    if (masterUrl) { MASTER_URL = masterUrl; localStorage.setItem(SK_MASTER, MASTER_URL); }
+    st.className = 'conn-status ok';
+    st.textContent = `✓ 接続OK（取引先 ${j.clients.length}社）`;
+    setTimeout(() => { document.getElementById('url-bar').style.display = 'none'; }, 1200);
+    selCid = null;
+    await boot();
+  } catch(e) {
+    st.className = 'conn-status err';
+    st.textContent = '✗ 接続失敗: ' + e.message;
+  }
+});
+document.getElementById('gas-url-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btn-connect').click();
+});
+
+// ============================================================
+//  定数
+// ============================================================
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const DOW   = ['日','月','火','水','木','金','土'];
+
+// 製品行定義
+const PROD_ROW_TYPES  = ['naiji','shukko','seikei','keikaku'];
+const PROD_ROW_LABELS = {
+  naiji:   '内示数',
+  shukko:  '出荷',
+  seikei:  '出来高（成形数）',
+  keikaku: '出来高（計画）',
+  zaiko:   '在庫数',
+};
+// 部品行定義
+const PART_ROW_TYPES  = ['part_nyuuka','part_shohi'];
+const PART_ROW_LABELS = {
+  part_nyuuka: '入荷数',
+  part_shohi:  '消費数',
+  part_zaiko:  '在庫数',
+};
+
+// ============================================================
+//  状態
+// ============================================================
+let viewYear  = TODAY.getFullYear();
+let viewMonth = TODAY.getMonth() + 1;
+let clients   = [];
+let selCid    = null;
+let products  = [];   // { id, name, sub, unit, code, itemType:'product'|'part' }
+let mdata     = {};
+let initStock = {};   // pid → value
+let satUnlocked = {};
+let partsFilterActive = false; // 🔩ボタンのフィルタ状態
+let partsRelMap = {};          // productCode → [partCode,...] ホバー表示用
+let partsRelLoaded = false;
+// 部品の自動消費数キャッシュ: `${pid}_${day}` → value
+let autoConsumeCache = {};
+// 廃棄ダイアログ
+let discardPending = null;
+let discardChoice  = 'consume';
+// 部品詳細パネル
+let partsDetailProdId = null;
+// グループ
+let groups       = [];
+let selGroupId   = 'all';
+// 在庫マイナス警告
+let warnItems    = []; // [{ prodId, prodCode, prodName, day, stock }]
+// 月初在庫パネル折りたたみ状態（デフォルト：閉じる）
+let initPanelCollapsed = true;
+
+function satStoreKey() {
+  return `${SK_SAT}_${selCid}_${viewYear}_${String(viewMonth).padStart(2,'0')}`;
+}
+function loadSat() {
+  const r = localStorage.getItem(satStoreKey());
+  satUnlocked = r ? JSON.parse(r) : {};
+}
+function saveSat() {
+  localStorage.setItem(satStoreKey(), JSON.stringify(satUnlocked));
+}
+function satCellKey(pid, day) { return `${pid}_${day}`; }
+
+// ============================================================
+//  API
+// ============================================================
+const MOCK_CLIENTS  = [{ id:'demo_c1', name:'【デモ】山田工業' }];
+const MOCK_PRODUCTS = {
+  demo_c1: [
+    { id:'dp1', code:'55046-42020', name:'51-14（大）', unit:'6ヶ入り',  sub:'', itemType:'product' },
+    { id:'dp2', code:'55045-42041', name:'51-13（小）', unit:'16ヶ入り', sub:'', itemType:'product' },
+    { id:'dp3', code:'90467-05171', name:'155D部品',    unit:'',         sub:'', itemType:'part'    },
+  ],
+};
+const DEMO_STORE = { initStock:{}, cells:{} };
+
+async function api(params) {
+  // saveCell呼び出し時は自動的にユーザー情報を付与（最終更新者記録用）
+  if (params.action === 'saveCell' && currentUser) {
+    params = { ...params, userId: currentUser.id, userName: currentUser.name };
+  }
+  if (!GAS_URL) return mockApi(params);
+  const url = GAS_URL + '?' + new URLSearchParams(params).toString();
+  try {
+    const r = await fetch(url);
+    const j = await r.json();
+    if (j.error) console.error('[API Error]', params.action, j.error);
+    return j;
+  } catch(e) {
+    console.error('[API Fetch Error]', params.action, e.message);
+    return { error: e.message };
+  }
+}
+
+function mockApi(p) {
+  switch(p.action) {
+    case 'getClients':   return { clients: MOCK_CLIENTS.map(c=>({...c,ssId:'demo_ssid'})) };
+    case 'getProducts':  return { products: MOCK_PRODUCTS[p.clientId] || [] };
+    case 'getMonthData': {
+      const prods = MOCK_PRODUCTS[p.clientId] || [];
+      const data  = [];
+      prods.forEach(prod => {
+        if (prod.itemType === 'part') {
+          ['part_zaiko_init','part_nyuuka','part_shohi'].forEach(rt => {
+            const days = Array(31).fill('');
+            for (let d=1;d<=31;d++){const v=DEMO_STORE.cells[`${p.clientId}_${prod.id}_${rt}_${p.year}_${p.month}_${d}`];if(v!==undefined)days[d-1]=v;}
+            data.push({ productId:prod.id, rowType:rt, days });
+          });
+        } else {
+          const initVal = DEMO_STORE.initStock[`${p.clientId}_${prod.id}`];
+          const initDays = Array(31).fill('');
+          if (initVal !== undefined) initDays[0] = initVal;
+          data.push({ productId:prod.id, rowType:'zaiko_init', days:initDays });
+          ['naiji','shukko','seikei','keikaku'].forEach(rt => {
+            const days = Array(31).fill('');
+            for (let d=1;d<=31;d++){const v=DEMO_STORE.cells[`${p.clientId}_${prod.id}_${rt}_${p.year}_${p.month}_${d}`];if(v!==undefined)days[d-1]=v;}
+            data.push({ productId:prod.id, rowType:rt, days });
+          });
+        }
+      });
+      return { data, year:parseInt(p.year), month:parseInt(p.month) };
+    }
+    case 'saveInitStock':
+      DEMO_STORE.initStock[`${p.clientId}_${p.productId}`] = parseFloat(p.value)||0;
+      return { ok:true };
+    case 'saveCell':
+      DEMO_STORE.cells[`${p.clientId}_${p.productId}_${p.rowType}_${p.year}_${p.month}_${p.day}`] = parseFloat(p.value);
+      return { ok:true };
+    case 'addProduct': {
+      const id = 'dp'+Date.now();
+      if (!MOCK_PRODUCTS[p.clientId]) MOCK_PRODUCTS[p.clientId]=[];
+      MOCK_PRODUCTS[p.clientId].push({ id, code:p.code||'', name:p.name||'', unit:p.unit||'', sub:'', itemType:p.itemType||'product' });
+      return { ok:true, id, itemType:p.itemType||'product' };
+    }
+    case 'deleteProduct':
+      if (MOCK_PRODUCTS[p.clientId]) MOCK_PRODUCTS[p.clientId]=MOCK_PRODUCTS[p.clientId].filter(x=>x.id!==p.productId);
+      return { ok:true };
+    case 'updateProduct': {
+      const prods2=MOCK_PRODUCTS[p.clientId]||[];
+      const prod=prods2.find(x=>x.id===p.productId);
+      if (prod){prod.code=p.code;prod.name=p.name;prod.unit=p.unit;prod.itemType=p.itemType||prod.itemType;}
+      return { ok:true };
+    }
+    case 'getPrevMonthLastStock': return { stocks:{} };
+    case 'classifyProduct': return { ok:true, itemType:'product', isProduct:true, isPart:false, name:'', unit:'' };
+    case 'getPartsData':    return { ok:true, parts:[], codeMap:{} };
+    case 'getPartsStock':   return { ok:true, stocks:[] };
+    case 'getGroups':       return { groups:[] };
+    case 'addGroup':        return { ok:true, id:'g_demo_'+Date.now(), name:p.name };
+    case 'updateGroup':     return { ok:true };
+    case 'deleteGroup':     return { ok:true };
+    case 'addClient':       return { ok:true, id:'client_demo_'+Date.now(), name:p.name, ssId:p.ssId };
+    case 'updateClient':    return { ok:true };
+    case 'deleteClient':    return { ok:true };
+    default: return { error:'unknown mock action: '+p.action };
+  }
+}
+
+// ============================================================
+//  データロード
+// ============================================================
+async function loadClients() {
+  const r = await api({ action:'getClients' });
+  clients = r.clients || [];
+  if (clients.length && !selCid) selCid = clients[0].id;
+}
+
+// ============================================================
+//  取引先管理
+// ============================================================
+function openClientsModal() {
+  renderClientList();
+  document.getElementById('client-edit-area').style.display = 'none';
+  document.getElementById('modal-clients').style.display = 'flex';
+}
+
+function renderClientList() {
+  const list = document.getElementById('client-list');
+  if (!clients.length) {
+    list.innerHTML = '<div style="padding:16px;text-align:center;color:#aaa;font-size:12px">取引先がありません</div>';
+    return;
+  }
+  list.innerHTML = clients.map(c => `
+    <div class="client-list-item">
+      <span class="client-name">${escH(c.name)}</span>
+      <span class="client-ssid" title="${escH(c.ssId||'')}">SS: ${escH((c.ssId||'').substring(0,20))}…</span>
+      <button class="btn-client-edit" onclick="openEditClientForm('${escH(c.id)}','${escH(c.name)}','${escH(c.ssId||'')}')">編集</button>
+      ${c.id !== selCid
+        ? `<button class="btn-client-del" onclick="onDeleteClient('${escH(c.id)}','${escH(c.name)}')">削除</button>`
+        : '<span style="font-size:10px;color:#1D9E75;font-weight:500">使用中</span>'}
+    </div>`).join('');
+}
+
+function openAddClientForm() {
+  document.getElementById('client-edit-title').textContent = '取引先を追加';
+  document.getElementById('client-name-input').value = '';
+  document.getElementById('client-ssid-input').value = '';
+  document.getElementById('client-editing-id').value = '';
+  document.getElementById('client-edit-area').style.display = 'block';
+  document.getElementById('client-name-input').focus();
+}
+
+function openEditClientForm(id, name, ssId) {
+  document.getElementById('client-edit-title').textContent = '取引先を編集';
+  document.getElementById('client-name-input').value = name;
+  document.getElementById('client-ssid-input').value = ssId;
+  document.getElementById('client-editing-id').value = id;
+  document.getElementById('client-edit-area').style.display = 'block';
+  document.getElementById('client-name-input').focus();
+}
+
+async function onDeleteClient(id, name) {
+  if (!confirm(`「${name}」を削除しますか？
+データは残ります（スプレッドシートは削除されません）`)) return;
+  showLoad(true);
+  await api({ action:'deleteClient', clientId:id });
+  clients = clients.filter(c => c.id !== id);
+  renderClientList();
+  renderTabs();
+  showLoad(false);
+  showToast('取引先を削除しました');
+}
+
+document.getElementById('btn-add-client-form').addEventListener('click', openAddClientForm);
+document.getElementById('client-edit-cancel').addEventListener('click', () => {
+  document.getElementById('client-edit-area').style.display = 'none';
+});
+document.getElementById('client-modal-close').addEventListener('click', () => {
+  document.getElementById('modal-clients').style.display = 'none';
+});
+document.getElementById('client-edit-ok').addEventListener('click', async () => {
+  const name  = document.getElementById('client-name-input').value.trim();
+  const ssId  = document.getElementById('client-ssid-input').value.trim();
+  const editId= document.getElementById('client-editing-id').value;
+  if (!name) { document.getElementById('client-name-input').focus(); return; }
+  if (!ssId) { document.getElementById('client-ssid-input').focus(); return; }
+  showLoad(true);
+  if (editId) {
+    await api({ action:'updateClient', clientId:editId, name, ssId });
+    const c = clients.find(x => x.id === editId);
+    if (c) { c.name = name; c.ssId = ssId; }
+    showToast('取引先を更新しました');
+  } else {
+    const r = await api({ action:'addClient', name, ssId });
+    clients.push({ id:r.id, name, ssId });
+    showToast('取引先を追加しました');
+  }
+  showLoad(false);
+  document.getElementById('client-edit-area').style.display = 'none';
+  renderClientList();
+  renderTabs();
+});
+document.getElementById('client-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('client-ssid-input').focus();
+});
+document.getElementById('client-ssid-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('client-edit-ok').click();
+});
+
+async function loadGroups() {
+  try {
+    const r = await api({ action:'getGroups', clientId: selCid });
+    groups = r.groups || [];
+  } catch(e) { groups = []; }
+  renderGroupTabBar();
+  updateGroupSelects();
+}
+
+function renderGroupTabBar() {
+  const bar = document.getElementById('group-tab-bar');
+  bar.style.display = 'flex'; // 常に表示
+
+  const tabs = [
+    { id:'all',   name:'全表示', icon:'📋' },
+    { id:'unset', name:'未分類', icon:'📌' },
+    ...groups.map(g => ({ id:g.id, name:g.name, icon:'📂' })),
+  ];
+
+  bar.innerHTML = tabs.map(t =>
+    `<div class="gtab${selGroupId===t.id?' active':''}" data-gid="${escH(t.id)}">
+      ${t.icon} ${escH(t.name)}
+      ${t.id!=='all'&&t.id!=='unset'
+        ? `<span class="gtab-edit-btn" onclick="event.stopPropagation();openEditGroupModal('${escH(t.id)}','${escH(t.name)}')">✎</span>`
+        : ''}
+    </div>`
+  ).join('') +
+  `<div class="gtab-add" onclick="openAddGroupModal()">＋ グループ追加</div>`;
+
+  bar.querySelectorAll('.gtab[data-gid]').forEach(el => {
+    el.addEventListener('click', () => {
+      selGroupId = el.dataset.gid;
+      renderGroupTabBar();
+      renderTableOnly();
+      sendOnlineStatus('active');
+      refreshOnlineUsers();
+    });
+  });
+  renderGroupTabOnlineBadges();
+}
+
+function updateGroupSelects() {
+  // 追加モーダルのグループセレクト
+  const confirmSel = document.getElementById('confirm-group');
+  if (confirmSel) {
+    confirmSel.innerHTML = '<option value="">未分類</option>' +
+      groups.map(g => `<option value="${escH(g.id)}">${escH(g.name)}</option>`).join('');
+  }
+  // 編集モーダルのグループセレクト
+  const editSel = document.getElementById('me-group');
+  if (editSel) {
+    editSel.innerHTML = '<option value="">未分類</option>' +
+      groups.map(g => `<option value="${escH(g.id)}">${escH(g.name)}</option>`).join('');
+  }
+}
+
+// グループモーダル
+function openAddGroupModal() {
+  document.getElementById('group-modal-title').textContent = 'グループを追加';
+  document.getElementById('group-name-input').value = '';
+  document.getElementById('group-editing-id').value = '';
+  document.getElementById('modal-group').style.display = 'flex';
+  document.getElementById('group-name-input').focus();
+}
+function openEditGroupModal(id, name) {
+  document.getElementById('group-modal-title').textContent = 'グループを編集';
+  document.getElementById('group-name-input').value = name;
+  document.getElementById('group-editing-id').value = id;
+  document.getElementById('modal-group').style.display = 'flex';
+  document.getElementById('group-name-input').focus();
+}
+document.getElementById('group-modal-cancel').addEventListener('click', () => {
+  document.getElementById('modal-group').style.display = 'none';
+});
+document.getElementById('group-modal-ok').addEventListener('click', async () => {
+  const name = document.getElementById('group-name-input').value.trim();
+  if (!name) { document.getElementById('group-name-input').focus(); return; }
+  const editId = document.getElementById('group-editing-id').value;
+  document.getElementById('modal-group').style.display = 'none';
+  showLoad(true);
+  if (editId) {
+    await api({ action:'updateGroup', groupId:editId, name, clientId: selCid });
+    const g = groups.find(x => x.id === editId);
+    if (g) g.name = name;
+    showToast('グループ名を変更しました');
+  } else {
+    const r = await api({ action:'addGroup', name, clientId: selCid });
+    groups.push({ id:r.id, name });
+    showToast('グループを追加しました');
+  }
+  showLoad(false);
+  renderGroupTabBar();
+  updateGroupSelects();
+});
+document.getElementById('group-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('group-modal-ok').click();
+});
+
+async function loadMonth() {
+  if (!selCid) return;
+  loadSat();
+  autoConsumeCache = {};
+
+  const [pr, mr] = await Promise.all([
+    api({ action:'getProducts',  clientId:selCid }),
+    api({ action:'getMonthData', clientId:selCid, year:viewYear, month:viewMonth }),
+  ]);
+  products  = (pr.products || []).sort((a, b) => (a.order || 9999) - (b.order || 9999));
+  mdata     = {};
+  initStock = {};
+
+  (mr.data || []).forEach(row => {
+    // 製品月初在庫
+    if (row.rowType === 'zaiko_init') {
+      const v = row.days[0];
+      initStock[row.productId] = (v !== '' && v !== null && v !== undefined) ? parseFloat(v) : undefined;
+      return;
+    }
+    // 部品月初在庫
+    if (row.rowType === 'part_zaiko_init') {
+      const v = row.days[0];
+      initStock[row.productId] = (v !== '' && v !== null && v !== undefined) ? parseFloat(v) : undefined;
+      return;
+    }
+    row.days.forEach((v, i) => {
+      if (v !== '' && v !== null && v !== undefined)
+        mdata[`${row.productId}_${row.rowType}_${i+1}`] = parseFloat(v);
+    });
+  });
+
+  // 月初在庫未設定 → 前月末から引き継ぎ
+  const missing = products.filter(p => initStock[p.id] === undefined);
+  if (missing.length) {
+    try {
+      const pr2    = await api({ action:'getPrevMonthLastStock', clientId:selCid, year:viewYear, month:viewMonth });
+      const stocks = pr2.stocks || {};
+      missing.forEach(p => { initStock[p.id] = stocks[p.id] !== undefined ? parseFloat(stocks[p.id]) : 0; });
+    } catch(e) {
+      missing.forEach(p => { initStock[p.id] = 0; });
+    }
+  }
+
+  // デバッグ: seikei系mdataを確認
+  const _seikeiKeys = Object.keys(mdata).filter(k => k.includes('seikei'));
+  console.log('[loadMonth完了] seikei系mdata:', JSON.stringify(
+    Object.fromEntries(_seikeiKeys.map(k => [k, mdata[k]]))
+  ));
+
+  // 部品の自動消費数をGASから取得
+  await loadPartsAutoConsume();
+}
+
+// 部品自動消費数をGASから非同期取得してキャッシュ
+async function loadPartsAutoConsume() {
+  const partItems = products.filter(p => p.itemType === 'part');
+  if (!partItems.length) return;
+  try {
+    const r = await api({ action:'getPartsStock', year:viewYear, month:viewMonth });
+    if (!r.ok || !r.stocks) return;
+    r.stocks.forEach(s => {
+      // マッチング優先順:
+      // 1. GASが返したssProductId（在庫管理SS側の製品ID）
+      // 2. ssCode（在庫管理SS側の品番）
+      // 3. partCode（子整番）
+      let prod = null;
+      if (s.ssProductId) prod = products.find(p => p.id === s.ssProductId);
+      if (!prod && s.ssCode)   prod = products.find(p => p.code === s.ssCode);
+      if (!prod && s.partCode) prod = products.find(p => p.code === s.partCode);
+      if (!prod) return;
+      (s.consumeDays || []).forEach((v, i) => {
+        if (v !== null && v !== undefined && v !== 0)
+          autoConsumeCache[`${prod.id}_${i+1}`] = v;
+      });
+    });
+  } catch(e) { /* 失敗しても続行 */ }
+}
+
+// partsRelMap 取得（製品セルの🔩ヒント表示用）
+async function loadPartsRel() {
+  if (partsRelLoaded) return;
+  try {
+    const pr = await api({ action:'getPartsData' });
+    if (!pr.ok || !pr.parts) return;
+    partsRelMap = {};
+    const codeMap = pr.codeMap || {};
+    const seibanToHinban = pr.seibanToHinban || {};
+    // partsMapキャッシュ（部品詳細パネルの構成数参照用）
+    window._partsMapCache = pr.parts;
+    // 品番→整番マップ
+    window._seibanMap = {};
+    Object.entries(codeMap).forEach(([hinban, seiban]) => {
+      window._seibanMap[hinban] = seiban;
+    });
+    // 整番→品番リストマップ（親製品の整番→品番への変換用）
+    const seibanToHinbans = {};
+    Object.entries(codeMap).forEach(([hinban, seiban]) => {
+      if (!seibanToHinbans[seiban]) seibanToHinbans[seiban] = [];
+      if (!seibanToHinbans[seiban].includes(hinban)) seibanToHinbans[seiban].push(hinban);
+    });
+    // pr.partsのpartSeibanはGAS側で品番に変換済み
+    pr.parts.forEach(rel => {
+      // 親整番→品番リストを取得（親製品の品番でpartsRelMapを引けるように）
+      const parentHinban = seibanToHinban[rel.parentSeiban] || rel.parentSeiban;
+      const keys = new Set([rel.parentSeiban, parentHinban, ...(seibanToHinbans[rel.parentSeiban] || [])]);
+      keys.forEach(key => {
+        if (!key) return;
+        if (!partsRelMap[key]) partsRelMap[key] = [];
+        if (!partsRelMap[key].includes(rel.partSeiban)) partsRelMap[key].push(rel.partSeiban);
+      });
+    });
+    partsRelLoaded = true;
+  } catch(e) { /* 失敗しても続行 */ }
+}
+
+// ============================================================
+//  在庫計算
+// ============================================================
+function daysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
+
+// 製品在庫計算
+function calcStock(pid, upToDay) {
+  let stock = parseFloat(initStock[pid]);
+  if (isNaN(stock)) stock = 0;
+  for (let d = 1; d <= upToDay; d++) {
+    const dt  = new Date(viewYear, viewMonth-1, d);
+    const dow = dt.getDay();
+    if (dow === 0) continue;
+    if (dow === 6) {
+      if (satUnlocked[satCellKey(pid, d)]) stock -= parseFloat(mdata[`${pid}_shukko_${d}`]) || 0;
+      continue;
+    }
+    stock -= parseFloat(mdata[`${pid}_shukko_${d}`]) || 0;
+    const seikei_v  = mdata[`${pid}_seikei_${d}`];
+    const keikaku_v = mdata[`${pid}_keikaku_${d}`];
+    if (seikei_v !== undefined && seikei_v !== '') {
+      stock += parseFloat(seikei_v) || 0;
+    } else {
+      stock += parseFloat(keikaku_v) || 0;
+    }
+  }
+  return stock;
+}
+
+// 部品在庫計算（フロント計算）
+// 部品の1日分の自動消費数を計算（要望1・2）
+// 優先: 成形数 > 計画 > 出荷
+function calcAutoConsumePart(pid, d) {
+  if (!partsRelLoaded) return parseFloat(autoConsumeCache[`${pid}_${d}`]) || 0;
+  const partProd = products.find(p => p.id === pid);
+  if (!partProd) return 0;
+  let total = 0;
+  products.filter(p => p.itemType !== 'part').forEach(prod => {
+    const linked = partsRelMap[prod.code] || [];
+    if (!linked.includes(partProd.code)) return;
+    const rel = (window._partsMapCache || []).find(r =>
+      (r.parentSeiban === (window._seibanMap?.[prod.code] || prod.code)) &&
+      r.partSeiban === partProd.code
+    );
+    const count = rel ? rel.count : 0;
+    if (!count) return;
+    // 新ロジック:
+    // ・成形数が入力されている日 → 計画は無視し、出荷ベースで消費
+    // ・成形数がない日 → 計画があれば計画ベースで消費（将来見込み確認用）
+    // ・どちらもなければ出荷ベース
+    const seikeiV  = mdata[`${prod.id}_seikei_${d}`];
+    const keikakuV = mdata[`${prod.id}_keikaku_${d}`];
+    const shukkoV  = mdata[`${prod.id}_shukko_${d}`];
+    const hasSeikei = seikeiV !== undefined && seikeiV !== '';
+    let base = 0;
+    if (hasSeikei) {
+      // 成形確定済み → 出荷ベースのみ
+      if (shukkoV !== undefined && shukkoV !== '') base = parseFloat(shukkoV) || 0;
+    } else if (keikakuV !== undefined && keikakuV !== '') {
+      // 計画ベース（将来見込み）
+      base = parseFloat(keikakuV) || 0;
+    } else if (shukkoV !== undefined && shukkoV !== '') {
+      base = parseFloat(shukkoV) || 0;
+    }
+    total += base * count;
+  });
+  return total;
+}
+
+function calcPartStock(pid, upToDay) {
+  let stock = parseFloat(initStock[pid]);
+  if (isNaN(stock)) stock = 0;
+  for (let d = 1; d <= upToDay; d++) {
+    const dt  = new Date(viewYear, viewMonth-1, d);
+    const dow = dt.getDay();
+    if (dow === 0 || dow === 6) continue;
+    // 入荷: 実績優先、なければ予定
+    const nyuukaV     = mdata[`${pid}_part_nyuuka_${d}`];
+    const nyuukaPlanV = mdata[`${pid}_part_nyuuka_plan_${d}`];
+    if (nyuukaV !== undefined && nyuukaV !== '') {
+      stock += parseFloat(nyuukaV) || 0;
+    } else if (nyuukaPlanV !== undefined && nyuukaPlanV !== '') {
+      stock += parseFloat(nyuukaPlanV) || 0;
+    }
+    // 消費: 手動上書きがあればそちら、なければ新ロジックで自動計算
+    const manualShohi = mdata[`${pid}_part_shohi_${d}`];
+    if (manualShohi !== undefined && manualShohi !== '') {
+      stock -= parseFloat(manualShohi) || 0;
+    } else {
+      stock -= calcAutoConsumePart(pid, d);
+    }
+  }
+  return stock;
+}
+
+// ============================================================
+//  部品フィルタ切り替え
+// ============================================================
+// 部品詳細パネルのトグル（要望4）
+function togglePartsDetail(prodId) {
+  partsDetailProdId = (partsDetailProdId === prodId) ? null : prodId;
+  renderTableOnly();
+}
+
+// unlock/relock ハンドラ
+function onUnlock(ck) { satUnlocked[ck]=true;  saveSat(); renderTable(); showToast('出荷入力を解除しました'); }
+function onRelock(ck) { delete satUnlocked[ck]; saveSat(); renderTable(); showToast('再ロックしました'); }
+
+// ============================================================
+//  Excel エクスポート（要望: 配列そのまま出力）
+// ============================================================
+// Excelメニューの開閉
+function toggleExcelMenu() {
+  const menu = document.getElementById('excel-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+function closeExcelMenu() {
+  document.getElementById('excel-menu').style.display = 'none';
+}
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('excel-menu-wrap');
+  if (wrap && !wrap.contains(e.target)) closeExcelMenu();
+});
+
+async function exportExcel() {
+  try {
+    showLoad(true);
+    const days = daysInMonth(viewYear, viewMonth);
+    const wb = new ExcelJS.Workbook();
+
+    const thinBorder  = { style: 'thin',   color: { argb: 'FFCCCCCC' } };
+    const thickBorder = { style: 'medium', color: { argb: 'FF555555' } };
+    const headerFill  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFEFEF' } };
+    const headerFont  = { bold: true, color: { argb: 'FF333333' } };
+
+    // ── シート1: 月初在庫 ──
+    const ws1 = wb.addWorksheet('月初在庫');
+    ws1.addRow(['製品ID', '品番', '名称', '区分', '月初在庫']);
+    products.forEach(p => {
+      const v = initStock[p.id] !== undefined ? initStock[p.id] : 0;
+      ws1.addRow([p.id, p.code, p.name, p.itemType === 'part' ? '部品' : '製品', v]);
+    });
+    // ヘッダー装飾
+    ws1.getRow(1).eachCell(c => { c.font = headerFont; c.fill = headerFill; });
+    // 全セル罫線
+    ws1.eachRow(row => row.eachCell(c => { c.border = { top: thinBorder, bottom: thinBorder, left: thinBorder, right: thinBorder }; }));
+    // 列幅自動調整
+    ws1.columns.forEach(col => {
+      let maxLen = 8;
+      col.eachCell({ includeEmpty: true }, c => { maxLen = Math.max(maxLen, String(c.value ?? '').length); });
+      col.width = Math.min(maxLen + 2, 40);
+    });
+    ws1.getColumn(1).hidden = false;
+
+    // ── シート2: 日別データ（全製品・全部品、配列そのまま） ──
+    const ws2 = wb.addWorksheet(`${viewYear}年${viewMonth}月`);
+    const dateHeaders = [];
+    for (let d = 1; d <= days; d++) dateHeaders.push(`${d}日`);
+    ws2.addRow(['製品ID', '品番', '名称', '区分', ...dateHeaders]);
+    ws2.getRow(1).eachCell(c => { c.font = headerFont; c.fill = headerFill; });
+    ws2.views = [{ state: 'frozen', xSplit: 4, ySplit: 1 }];
+
+    products.forEach(prod => {
+      const isPart = prod.itemType === 'part';
+      const rowTypes = isPart
+        ? ['part_nyuuka_plan', 'part_nyuuka', 'part_shohi']
+        : PROD_ROW_TYPES;
+      const labels = isPart ? {
+        part_nyuuka_plan: '入荷予定数', part_nyuuka: '入荷数', part_shohi: '消費数'
+      } : PROD_ROW_LABELS;
+
+      const groupStartRow = ws2.rowCount + 1;
+
+      rowTypes.forEach(rtype => {
+        const row = [prod.id, prod.code, prod.name, labels[rtype] || rtype];
+        for (let d = 1; d <= days; d++) {
+          const v = mdata[`${prod.id}_${rtype}_${d}`];
+          row.push(v !== undefined && v !== '' ? parseFloat(v) : '');
+        }
+        ws2.addRow(row);
+      });
+
+      // 在庫数行（計算値・参考表示。インポート対象外）
+      const zaikoLabel = '在庫数（参考・取込対象外）';
+      const zRow = [prod.id, prod.code, prod.name, zaikoLabel];
+      for (let d = 1; d <= days; d++) {
+        const dt = new Date(viewYear, viewMonth - 1, d);
+        const dow = dt.getDay();
+        if (dow === 0 || dow === 6) { zRow.push(''); continue; }
+        zRow.push(isPart ? calcPartStock(prod.id, d) : calcStock(prod.id, d));
+      }
+      ws2.addRow(zRow);
+
+      // 製品ごとの区切り線（グループの先頭行の上端を太線に）
+      const startRowObj = ws2.getRow(groupStartRow);
+      startRowObj.eachCell({ includeEmpty: true }, c => {
+        c.border = Object.assign({}, c.border, { top: thickBorder });
+      });
+    });
+
+    // 全セル罫線（薄い線、区切り線は上で上書き済みなので維持される）
+    ws2.eachRow((row, rowNum) => {
+      row.eachCell({ includeEmpty: true }, c => {
+        const existingTop = c.border && c.border.top;
+        c.border = {
+          top:    existingTop && existingTop.style === 'medium' ? existingTop : thinBorder,
+          bottom: thinBorder, left: thinBorder, right: thinBorder
+        };
+      });
+    });
+
+    // 列幅自動調整（A〜D列は文字数基準、日付列は固定幅）
+    [1,2,3,4].forEach(colIdx => {
+      let maxLen = 8;
+      ws2.getColumn(colIdx).eachCell({ includeEmpty: true }, c => { maxLen = Math.max(maxLen, String(c.value ?? '').length); });
+      ws2.getColumn(colIdx).width = Math.min(maxLen * 1.3 + 2, 30);
+    });
+    for (let d = 1; d <= days; d++) {
+      ws2.getColumn(4 + d).width = 9;
+    }
+
+    const clientName = (clients.find(c => c.id === selCid) || {}).name || '取引先';
+    const fname = `在庫データ_${clientName}_${viewYear}${String(viewMonth).padStart(2,'0')}.xlsx`;
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Excelファイルを出力しました');
+  } catch (err) {
+    showToast('出力エラー: ' + err.message);
+  }
+  showLoad(false);
+}
+
+// ============================================================
+//  Excel インポート
+// ============================================================
+let _pendingImportChanges = null;
+
+function onExcelImportSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      processImportWorkbook(wb);
+    } catch (err) {
+      showToast('読込エラー: ' + err.message);
+    }
+    event.target.value = ''; // 同じファイルを再選択できるようリセット
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processImportWorkbook(wb) {
+  const days = daysInMonth(viewYear, viewMonth);
+  const sheetName = `${viewYear}年${viewMonth}月`;
+  const ws = wb.Sheets[sheetName];
+  if (!ws) {
+    showToast(`エラー: シート「${sheetName}」が見つかりません。現在表示中の年月と一致するファイルを選んでください。`);
+    return;
+  }
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  if (!rows.length) { showToast('エラー: データが空です'); return; }
+
+  const header = rows[0];
+  // ヘッダー構成チェック（製品ID, 品番, 名称, 区分, 1日...N日）
+  if (header[0] !== '製品ID' || header[3] !== '区分') {
+    showToast('エラー: ファイルの形式が想定と異なります（ヘッダー不一致）。エクスポートしたファイルをそのまま編集してください。');
+    return;
+  }
+  const expectedDateCols = days;
+  const actualDateCols = header.length - 4;
+  if (actualDateCols !== expectedDateCols) {
+    showToast(`エラー: 日数が一致しません（想定${expectedDateCols}日 / 実際${actualDateCols}日）。行・列構成を変更しないでください。`);
+    return;
+  }
+
+  // ラベル→rtype逆引き
+  const labelToRtype = {};
+  Object.entries(PROD_ROW_LABELS).forEach(([k,v]) => { if (k!=='zaiko') labelToRtype[v] = k; });
+  labelToRtype['入荷予定数'] = 'part_nyuuka_plan';
+  labelToRtype['入荷数']     = 'part_nyuuka';
+  labelToRtype['消費数']     = 'part_shohi';
+
+  const changes = []; // { pid, rtype, d, oldVal, newVal }
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const pid   = row[0];
+    const label = row[3];
+    if (!pid || !label) continue;
+    if (String(label).includes('参考・取込対象外')) continue; // 在庫数行はスキップ
+    const rtype = labelToRtype[label];
+    if (!rtype) continue;
+    if (!products.find(p => p.id === pid)) continue; // 存在しない製品IDはスキップ
+
+    for (let d = 1; d <= days; d++) {
+      const cellVal = row[3 + d];
+      const newVal  = (cellVal === '' || cellVal === undefined) ? '' : String(cellVal);
+      const oldVal  = mdata[`${pid}_${rtype}_${d}`];
+      const oldNorm = (oldVal === undefined) ? '' : String(oldVal);
+      if (newVal !== oldNorm) {
+        changes.push({ pid, rtype, d, oldVal: oldNorm, newVal });
+      }
+    }
+  }
+
+  if (!changes.length) {
+    showToast('変更点はありませんでした');
+    return;
+  }
+
+  _pendingImportChanges = changes;
+  showImportConfirm(changes);
+}
+
+function showImportConfirm(changes) {
+  const prodMap = {};
+  products.forEach(p => prodMap[p.id] = p);
+  const rows = changes.slice(0, 200).map(c => {
+    const p = prodMap[c.pid] || {};
+    const label = Object.entries(PROD_ROW_LABELS).find(([k])=>k===c.rtype)?.[1]
+                || ({part_nyuuka_plan:'入荷予定数',part_nyuuka:'入荷数',part_shohi:'消費数'})[c.rtype]
+                || c.rtype;
+    return `<tr><td>${escH(p.code||c.pid)}</td><td>${escH(p.name||'')}</td><td>${escH(label)}</td><td>${c.d}日</td><td>${escH(c.oldVal||'(空)')}</td><td>${escH(c.newVal||'(空)')}</td></tr>`;
+  }).join('');
+  const moreNote = changes.length > 200 ? `<div style="font-size:11px;color:#888;margin-top:6px">他 ${changes.length-200} 件...</div>` : '';
+
+  const ov = document.createElement('div');
+  ov.className = 'ov';
+  ov.style.display = 'flex';
+  ov.innerHTML = `
+    <div class="modal" style="width:700px;max-width:96vw;max-height:80vh;display:flex;flex-direction:column">
+      <h3>Excel取込の確認（${changes.length}件の変更）</h3>
+      <div style="overflow-y:auto;flex:1;border:1px solid #eee;border-radius:6px">
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <thead style="background:#f7f7f7;position:sticky;top:0">
+            <tr><th style="padding:6px;text-align:left">品番</th><th style="padding:6px;text-align:left">名称</th><th style="padding:6px;text-align:left">区分</th><th style="padding:6px">日付</th><th style="padding:6px">変更前</th><th style="padding:6px">変更後</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      ${moreNote}
+      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+        <button class="btn" id="import-cancel">キャンセル</button>
+        <button class="btn btn-green" id="import-ok">取り込む</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#import-cancel').onclick = () => { ov.remove(); _pendingImportChanges = null; };
+  ov.querySelector('#import-ok').onclick = () => applyImportChanges(ov);
+}
+
+async function applyImportChanges(ov) {
+  if (!_pendingImportChanges) return;
+  const okBtn = ov.querySelector('#import-ok');
+  const cancelBtn = ov.querySelector('#import-cancel');
+  okBtn.disabled = true;
+  cancelBtn.disabled = true;
+  const total = _pendingImportChanges.length;
+  let done = 0;
+  try {
+    for (const c of _pendingImportChanges) {
+      mdata[`${c.pid}_${c.rtype}_${c.d}`] = c.newVal;
+      await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
+                  productId:c.pid, rowType:c.rtype, day:parseInt(c.d), value:c.newVal });
+      done++;
+      okBtn.textContent = `取込中… (${done}/${total})`;
+    }
+    showToast(`${total}件を取り込みました`);
+    _pendingImportChanges = null;
+    ov.remove();
+    renderTableOnly();
+  } catch (err) {
+    showToast('取込エラー: ' + err.message + `（${done}/${total}件まで保存済み）`);
+    okBtn.disabled = false;
+    cancelBtn.disabled = false;
+  }
+}
+
+function togglePartsFilter() {
+  partsFilterActive = !partsFilterActive;
+  const btn    = document.getElementById('btn-parts-filter');
+  const banner = document.getElementById('filter-banner');
+  btn.classList.toggle('active-filter', partsFilterActive);
+  banner.style.display = partsFilterActive ? 'flex' : 'none';
+  renderTable();
+  // 初回ONのときpartsRelMapを読み込む
+  if (partsFilterActive && !partsRelLoaded) loadPartsRel().then(() => renderTable());
+}
+
+// ============================================================
+//  描画
+// ============================================================
+function renderAll() {
+  renderTabs(); renderToolbar(); renderGroupTabBar(); renderInitPanel(); renderTable();
+  document.getElementById('hd-client').textContent =
+    selCid ? (clients.find(c=>c.id===selCid)?.name||'') : '—';
+  checkWarnItems();
+}
+
+function renderTabs() {
+  const bar = document.getElementById('tab-bar');
+  const manageBtn = `<div style="margin-left:auto;padding:4px 8px;flex-shrink:0">
+    <button class="btn" id="btn-manage-clients" style="font-size:11px;padding:4px 10px" onclick="openClientsModal()">⚙ 取引先管理</button>
+  </div>`;
+  if (!clients.length) {
+    bar.innerHTML = '<div style="padding:10px 16px;font-size:12px;color:#bbb;flex:1">取引先なし</div>' + manageBtn;
+    return;
+  }
+  bar.innerHTML = clients.map(c =>
+    `<div class="ctab${c.id===selCid?' active':''}" data-cid="${c.id}">${escH(c.name)}</div>`
+  ).join('') + manageBtn;
+  bar.querySelectorAll('.ctab').forEach(t => {
+    t.addEventListener('click', async () => {
+      if (selCid===t.dataset.cid) return;
+      selCid=t.dataset.cid; mdata={}; initStock={};
+      partsRelLoaded = false; partsRelMap = {};
+      groups = []; selGroupId = 'all';
+      // ページローディング表示（グループタブ等は隠したまま）
+      showPageLoad(clients.find(c=>c.id===t.dataset.cid)?.name + ' を読み込み中...');
+      try {
+        await Promise.all([loadMonth(), loadGroups(), loadPartsRel()]);
+        resetInitPanel();
+        renderAll();
+        sendOnlineStatus('active');
+        refreshOnlineUsers();
+      } finally {
+        hidePageLoad();
+      }
+    });
+  });
+  renderClientTabOnlineBadges();
+}
+
+function renderToolbar() {
+  document.getElementById('mlabel').textContent = `${viewYear}年${viewMonth}月`;
+}
+
+function renderInitPanel() {
+  const wrap = document.getElementById('init-items');
+  products.forEach(p => {
+    const existing = wrap.querySelector(`input[data-pid="${p.id}"]`);
+    if (existing) {
+      if (document.activeElement !== existing)
+        existing.value = initStock[p.id] !== undefined ? initStock[p.id] : 0;
+      const lbl = existing.closest('.init-item')?.querySelector('label');
+      if (lbl) lbl.textContent = `${p.code} ${p.name}`;
+      return;
+    }
+    const v    = initStock[p.id] !== undefined ? initStock[p.id] : 0;
+    const item = document.createElement('div');
+    item.className = 'init-item';
+    const badge = p.itemType === 'part'
+      ? `<span class="init-part-badge">🔩 部品</span>`
+      : `<span class="init-auto-badge">前月末</span>`;
+    item.innerHTML = `
+      <label>${escH(p.code)} ${escH(p.name)}</label>
+      <div class="init-val">
+        <input type="number" value="${v}" data-pid="${p.id}" data-item-type="${p.itemType||'product'}">
+        ${badge}
+      </div>`;
+    item.querySelector('input').addEventListener('change', async e => {
+      const val      = parseFloat(e.target.value) || 0;
+      const targetPid = e.target.dataset.pid;
+      const itype    = e.target.dataset.itemType;
+      initStock[targetPid] = val;
+      renderTableOnly();
+      showLoad(true);
+      try {
+        const rowType = itype === 'part' ? 'part_zaiko_init' : 'zaiko_init';
+        await api({ action:'saveInitStock', clientId:selCid, year:viewYear, month:viewMonth,
+                    productId:targetPid, value:val, rowType });
+        showToast('月初在庫を保存しました');
+      } catch(err) {
+        showToast('保存失敗: ' + err.message);
+      }
+      showLoad(false);
+    });
+    wrap.appendChild(item);
+  });
+  wrap.querySelectorAll('input[data-pid]').forEach(inp => {
+    if (!products.find(p => p.id === inp.dataset.pid)) inp.closest('.init-item')?.remove();
+  });
+  // サマリー表示・折りたたみ状態の反映
+  const summary = document.getElementById('init-summary');
+  if (summary) summary.textContent = `（${products.length}件）`;
+  const panel = document.getElementById('init-panel');
+  if (panel) panel.classList.toggle('collapsed', initPanelCollapsed);
+}
+
+function toggleInitPanel() {
+  initPanelCollapsed = !initPanelCollapsed;
+  document.getElementById('init-panel').classList.toggle('collapsed', initPanelCollapsed);
+}
+document.getElementById('init-panel-hd').addEventListener('click', toggleInitPanel);
+
+function resetInitPanel() {
+  document.getElementById('init-items').innerHTML = '';
+  renderInitPanel();
+}
+
+function renderTable() {
+  const days  = daysInMonth(viewYear, viewMonth);
+
+  // フィルタ適用
+  let displayProducts;
+  if (partsFilterActive) {
+    displayProducts = products.filter(p => p.itemType === 'part');
+  } else if (selGroupId === 'all') {
+    displayProducts = products;
+  } else if (selGroupId === 'unset') {
+    displayProducts = products.filter(p => !p.group || p.group === '');
+  } else {
+    displayProducts = products.filter(p => p.group === selGroupId || p.itemType === 'part');
+  }
+
+  // ── ヘッダー生成 ──
+  let thead = '<tr>';
+  thead += '<th class="c-prod" style="text-align:left;background:#f7f7f7;font-size:12px;font-weight:600;color:#555;padding:7px 8px">製品 / 部品</th>';
+  thead += '<th class="c-type" style="text-align:right;background:#f7f7f7;font-size:12px;font-weight:600;color:#555;padding:7px 8px">区分</th>';
+  for (let d=1; d<=days; d++) {
+    const dt  = new Date(viewYear, viewMonth-1, d);
+    const dow = dt.getDay();
+    const we  = dow===0||dow===6;
+    const tdy = dt.getTime()===TODAY.getTime();
+    thead += `<th class="${we?'we':tdy?'tdy':''}" style="min-width:60px;font-size:12px;font-weight:600;color:#555;padding:7px 4px;text-align:center;position:sticky;top:0;background:#f7f7f7;z-index:10">
+      ${d}<br><span style="font-size:11px;font-weight:400">${DOW[dow]}</span></th>`;
+  }
+  thead += `<th class="c-total" style="position:sticky;top:0;z-index:10;background:#f0f4f8">合計<br><span style="font-size:9px;font-weight:400">／月末</span></th>`;
+  thead += '</tr>';
+  document.getElementById('main-thead').innerHTML = thead;
+
+  // ── tbody構築 ──
+  let lHtml = ''; // 左セル用（c-prod+c-type）
+  let rHtml = ''; // 右セル用（日別+合計）
+  // ※ lHtmlとrHtmlを結合して1つのtrにする
+
+  if (!displayProducts.length) {
+    const msg = partsFilterActive ? '部品が登録されていません' : '製品を追加してください';
+    lHtml += `<tr><td colspan="2" style="text-align:center;padding:40px;color:#bbb">${msg}</td></tr>`;
+    rHtml += `<tr><td colspan="${days+1}"><div class="state"><span class="ico">📋</span><span></span></div></td></tr>`;
+  } else {
+    displayProducts.forEach(prod => {
+      const isPart = prod.itemType === 'part';
+      const typeBadge = isPart
+        ? `<span class="item-type-badge part">🔩 部品</span>`
+        : `<span class="item-type-badge product">🟢 製品</span>`;
+
+      if (isPart) {
+        // ── 部品行 ──
+        const PART_ROW_TYPES_DISP = ['part_nyuuka_plan','part_nyuuka','part_shohi'];
+        const partRows = [...PART_ROW_TYPES_DISP, 'part_zaiko'];
+        partRows.forEach((rtype, ri) => {
+          const isFirst = ri === 0;
+          lHtml += `<tr class="r-part-${rtype.replace('part_','')}${isFirst?' divider-part':''}">`;
+                    rHtml += `<tr class="r-part-${rtype.replace('part_','')}${isFirst?' divider-part':''}">`;
+          if (isFirst) {
+            lHtml += `<td class="c-prod pcell" rowspan="${partRows.length}">
+              ${typeBadge}
+              <div class="p-row"><span class="p-val">${escH(prod.code)}</span></div>
+              <div class="p-row"><span class="p-val p-name">${escH(prod.name)}</span></div>
+              <div class="p-row"><span class="p-val p-unit">${escH(prod.unit)}</span></div>
+              <div class="p-btns">
+                <button class="btn-edit" data-edit="${prod.id}">編集</button>
+                <button class="btn-delp" data-del="${prod.id}">削除</button>
+                <button class="btn-order btn-up" data-up="${prod.id}" title="上へ移動"
+                  ${displayProducts.indexOf(prod)===0?'disabled':''}>▲</button>
+                <button class="btn-order btn-dn" data-dn="${prod.id}" title="下へ移動"
+                  ${displayProducts.indexOf(prod)===displayProducts.length-1?'disabled':''}>▼</button>
+              </div>
+            </td>`;
+          }
+
+          // 区分ラベル
+          if (rtype === 'part_zaiko') {
+            lHtml += `<td class="c-type lbl-autoshohi">在庫数</td>`;
+            lHtml += '</tr>';
+          } else if (rtype === 'part_nyuuka_plan') {
+            lHtml += `<td class="c-type lbl-nyuuka" style="color:#80cbc4">入荷予定数<span class="keikaku-note">入荷数入力で無効化</span></td>`;
+            lHtml += '</tr>';
+          } else if (rtype === 'part_nyuuka') {
+            lHtml += `<td class="c-type lbl-nyuuka">${PART_ROW_LABELS.part_nyuuka}</td>`;
+            lHtml += '</tr>';
+          } else {
+            lHtml += `<td class="c-type lbl-shohi">${PART_ROW_LABELS.part_shohi}<span class="keikaku-note">手動入力で自動計算を上書き</span></td>`;
+            lHtml += '</tr>';
+          }
+
+          for (let d=1; d<=days; d++) {
+            const dt  = new Date(viewYear, viewMonth-1, d);
+            const dow = dt.getDay();
+            const isWE = dow===0||dow===6;
+            const tdy  = dt.getTime()===TODAY.getTime();
+            const tdyCls = (!isWE&&tdy)?' tdy-col':'';
+
+            if (rtype === 'part_zaiko') {
+              if (isWE) { rHtml+=`<td class="zc we"></td>`; continue; }
+              const z = calcPartStock(prod.id, d);
+              rHtml += `<td class="zc${z<0?' neg':z===0?' zero':''}${tdyCls}">${z.toLocaleString()}</td>`;
+              continue;
+            }
+            if (isWE) { rHtml+=`<td class="nc we${tdyCls}"></td>`; continue; }
+
+            if (rtype === 'part_shohi') {
+              // 消費数行: 成形数>計画>出荷 の優先順位で自動計算、手動入力で上書き可能
+              const manualVal  = mdata[`${prod.id}_part_shohi_${d}`];
+              const autoVal    = calcAutoConsumePart(prod.id, d);
+              const displayVal = (manualVal !== undefined && manualVal !== '') ? manualVal : (autoVal || '');
+              const isManual   = manualVal !== undefined && manualVal !== '';
+              const isAuto     = !isManual && autoVal > 0;
+              const cellCls    = isManual ? ' manual-shohi-override' : (isAuto ? ' auto-shohi' : '');
+              rHtml += `<td class="nc${cellCls}${tdyCls}" title="${isAuto?'自動計算: '+autoVal:''}">
+                <input type="number" data-pid="${prod.id}" data-rt="part_shohi" data-d="${d}"
+                  data-auto="${autoVal}" value="${displayVal}" placeholder="${autoVal||''}">
+              </td>`;
+              continue;
+            }
+
+            if (rtype === 'part_nyuuka_plan') {
+              // 入荷予定数: 入荷数が入力済みの日はグレーアウト
+              const nyuukaVal = mdata[`${prod.id}_part_nyuuka_${d}`];
+              const isLocked  = nyuukaVal !== undefined && nyuukaVal !== '';
+              const v = mdata[`${prod.id}_part_nyuuka_plan_${d}`];
+              if (isLocked) {
+                rHtml += `<td class="nc keikaku-excluded${tdyCls}" title="入荷数が入力済み">
+                  <input type="number" data-pid="${prod.id}" data-rt="part_nyuuka_plan" data-d="${d}"
+                    value="${v!==undefined?v:''}" placeholder="" class="excluded-input">
+                </td>`;
+              } else {
+                rHtml += `<td class="nc${tdyCls}" style="background:#e0f7fa !important;">
+                  <input type="number" data-pid="${prod.id}" data-rt="part_nyuuka_plan" data-d="${d}"
+                    value="${v!==undefined?v:''}" placeholder="" style="color:#00897b">
+                </td>`;
+              }
+              continue;
+            }
+
+            // part_nyuuka
+            const v = mdata[`${prod.id}_${rtype}_${d}`];
+            const _minusCls = (v !== undefined && parseFloat(v) < 0) ? ' minus-val' : '';
+          rHtml += `<td class="nc${tdyCls}"><input type="number"
+              data-pid="${prod.id}" data-rt="${rtype}" data-d="${d}"
+              value="${v!==undefined?v:''}" placeholder=""
+              class="${_minusCls}"
+              oninput="this.className=parseFloat(this.value)<0?'minus-val':''"></td>`;
+          }
+          // ── 部品合計列 ──
+          let ptotalVal = '';
+          let ptotalCls = '';
+          if (rtype === 'part_zaiko') {
+            let lastStock = null;
+            for (let d = days; d >= 1; d--) {
+              const dt  = new Date(viewYear, viewMonth-1, d);
+              const dow = dt.getDay();
+              if (dow === 0 || dow === 6) continue;
+              lastStock = calcPartStock(prod.id, d);
+              break;
+            }
+            if (lastStock !== null) {
+              ptotalVal = lastStock.toLocaleString();
+              ptotalCls = lastStock < 0 ? ' neg' : lastStock === 0 ? ' zero' : '';
+            }
+          } else {
+            // 入荷予定・入荷・消費の月合計
+            const rtKey = rtype === 'part_nyuuka_plan' ? 'part_nyuuka_plan'
+                        : rtype === 'part_nyuuka'      ? 'part_nyuuka'
+                        : 'part_shohi';
+            let sum = 0;
+            let hasVal = false;
+            for (let d = 1; d <= days; d++) {
+              const v = mdata[`${prod.id}_${rtKey}_${d}`];
+              if (v !== undefined && v !== '') { sum += parseFloat(v) || 0; hasVal = true; }
+              // 消費数は自動計算分も加算
+              if (rtKey === 'part_shohi' && (v === undefined || v === '')) {
+                const autoV = autoConsumeCache[`${prod.id}_${d}`];
+                if (autoV) { sum += autoV; hasVal = true; }
+              }
+            }
+            if (hasVal && sum !== 0) {
+              ptotalVal = sum.toLocaleString();
+              ptotalCls = sum < 0 ? ' neg' : '';
+            }
+          }
+          rHtml += `<td class="c-total${ptotalCls}">${ptotalVal}</td>`;
+          rHtml += '</tr>';
+        });
+
+      } else {
+        // ── 製品行 ──
+        const allRows = [...PROD_ROW_TYPES, 'zaiko'];
+        allRows.forEach((rtype, ri) => {
+          const isFirst  = ri === 0;
+          const rCls     = { naiji:'r-naiji',shukko:'r-shukko',seikei:'r-seikei',keikaku:'r-keikaku',zaiko:'r-zaiko' }[rtype] || 'r-shukko';
+          const typeLblCls = rtype==='seikei'?' lbl-seikei':rtype==='keikaku'?' lbl-keikaku':'';
+          lHtml += `<tr class="${rCls}${isFirst?' divider':''}">`;
+        rHtml += `<tr class="${rCls}${isFirst?' divider':''}">`;
+          if (isFirst) {
+            const linkedParts  = partsRelMap[prod.code] || [];
+            const hasLinked    = linkedParts.length > 0;
+            const isDetailOpen = partsDetailProdId === prod.id;
+            const partsHint = hasLinked
+              ? `<div class="p-parts-hint${isDetailOpen?' active-hint':''}"
+                  onclick="togglePartsDetail('${prod.id}')"
+                  style="${isDetailOpen?'background:#d1a0f0;color:#fff;':''}">
+                  🔩
+                  ${isDetailOpen
+                    ? `<span style="font-size:10px;color:#fff">${linkedParts.map(p=>escH(p)).join('、')}</span>
+                       <span style="font-size:9px;margin-left:4px;opacity:.8">▲ 閉じる</span>`
+                    : `<span style="font-size:10px;color:#6a1b9a">部品構成を見る ▼</span>`
+                  }
+                 </div>`
+              : '';
+            lHtml += `<td class="c-prod pcell" rowspan="${allRows.length}">
+              ${typeBadge}
+              <div class="p-row"><span class="p-val">${escH(prod.code)}</span></div>
+              <div class="p-row"><span class="p-val p-name">${escH(prod.name)}</span></div>
+              <div class="p-row"><span class="p-val p-unit">${escH(prod.unit)}</span></div>
+              ${partsHint}
+              <div class="p-btns">
+                <button class="btn-edit" data-edit="${prod.id}">編集</button>
+                <button class="btn-delp" data-del="${prod.id}">削除</button>
+                <button class="btn-order btn-up" data-up="${prod.id}" title="上へ移動"
+                  ${displayProducts.indexOf(prod)===0?'disabled':''}>▲</button>
+                <button class="btn-order btn-dn" data-dn="${prod.id}" title="下へ移動"
+                  ${displayProducts.indexOf(prod)===displayProducts.length-1?'disabled':''}>▼</button>
+              </div>
+            </td>`;
+          }
+          // c-type を lHtml に出力し、rHtmlには出さない
+          const keikakuNote = rtype === 'keikaku' ? ' <span class="keikaku-note">在庫計算：成形数優先</span>' : '';
+          lHtml += `<td class="c-type${typeLblCls}" style="padding:6px 10px;font-size:12px;font-weight:500;white-space:normal;line-height:1.4">${PROD_ROW_LABELS[rtype]||''}${keikakuNote}</td>`;
+          lHtml += '</tr>';
+
+          for (let d=1; d<=days; d++) {
+            const dt  = new Date(viewYear, viewMonth-1, d);
+            const dow = dt.getDay();
+            const isSun=dow===0, isSat=dow===6;
+            const tdy = dt.getTime()===TODAY.getTime();
+            const tdyCls = (!isSun&&!isSat&&tdy)?' tdy-col':'';
+
+            if (rtype === 'zaiko') {
+              if (isSun||isSat) { rHtml+=`<td class="zc we"></td>`; continue; }
+              const z = calcStock(prod.id, d);
+              rHtml += `<td class="zc${z<0?' neg':z===0?' zero':''}${tdyCls}">${z.toLocaleString()}</td>`;
+              continue;
+            }
+            if (isSat && rtype === 'shukko') {
+              const ck       = satCellKey(prod.id, d);
+              const unlocked = satUnlocked[ck]===true;
+              if (unlocked) {
+                const v = mdata[`${prod.id}_shukko_${d}`];
+                const _sMC = (v !== undefined && parseFloat(v) < 0) ? 'minus-val' : '';
+                rHtml += `<td class="nc sat-unlocked">
+                  <input type="number" data-pid="${prod.id}" data-rt="shukko" data-d="${d}"
+                    value="${v!==undefined?v:''}" placeholder=""
+                    class="${_sMC}" oninput="this.className=parseFloat(this.value)<0?'minus-val':''">
+                  <button class="relock-btn" data-relock="${ck}">ロック</button>
+                </td>`;
+              } else {
+                rHtml += `<td class="sat-locked"><button class="unlock-btn" data-unlock="${ck}">出荷入力</button></td>`;
+              }
+              continue;
+            }
+            if (isSun||isSat) { rHtml+=`<td class="nc we${tdyCls}"></td>`; continue; }
+
+            const v = mdata[`${prod.id}_${rtype}_${d}`];
+            if (rtype === 'keikaku') {
+              const seikeiVal  = mdata[`${prod.id}_seikei_${d}`];
+              const isExcluded = seikeiVal !== undefined && seikeiVal !== '';
+              if (isExcluded) {
+                rHtml += `<td class="nc keikaku-excluded${tdyCls}">
+                  <input type="number" data-pid="${prod.id}" data-rt="${rtype}" data-d="${d}"
+                    value="${v!==undefined?v:''}" placeholder="" class="excluded-input">
+                </td>`;
+                continue;
+              }
+            }
+            const _minusCls = (v !== undefined && parseFloat(v) < 0) ? ' minus-val' : '';
+          rHtml += `<td class="nc${tdyCls}"><input type="number"
+              data-pid="${prod.id}" data-rt="${rtype}" data-d="${d}"
+              value="${v!==undefined?v:''}" placeholder=""
+              class="${_minusCls}"
+              oninput="this.className=parseFloat(this.value)<0?'minus-val':''"></td>`;
+          }
+          // ── 合計列（右端固定） ──
+          let totalVal = '';
+          let totalCls = '';
+          if (rtype === 'zaiko') {
+            // 月末最終平日の在庫数
+            let lastStock = null;
+            for (let d = days; d >= 1; d--) {
+              const dt  = new Date(viewYear, viewMonth-1, d);
+              const dow = dt.getDay();
+              if (dow === 0 || dow === 6) continue;
+              lastStock = calcStock(prod.id, d);
+              break;
+            }
+            if (lastStock !== null) {
+              totalVal = lastStock.toLocaleString();
+              totalCls = lastStock < 0 ? ' neg' : lastStock === 0 ? ' zero' : '';
+            }
+          } else if (rtype !== 'zaiko') {
+            // 入力値の月合計（土日・未入力は0）
+            let sum = 0;
+            for (let d = 1; d <= days; d++) {
+              const v = mdata[`${prod.id}_${rtype}_${d}`];
+              if (v !== undefined && v !== '') sum += parseFloat(v) || 0;
+            }
+            if (sum !== 0) {
+              totalVal = sum.toLocaleString();
+              totalCls = sum < 0 ? ' neg' : '';
+            }
+          }
+          rHtml += `<td class="c-total${totalCls}">${totalVal}</td>`;
+          rHtml += '</tr>';
+        });
+
+        // ── 部品詳細パネル（展開中の製品のみ） ──
+        if (partsDetailProdId === prod.id) {
+          const linkedParts = partsRelMap[prod.code] || [];
+
+          // 部品詳細パネルをメインテーブルの行として展開（要望5：列幅合わせ）
+          // lHtml: 部品整番+構成数セル、rHtml: 日別消費+合計セル
+
+          if (!linkedParts.length) {
+            lHtml += `<tr class="parts-detail-row"><td colspan="2" style="padding:8px;text-align:center;color:#aaa;font-size:12px;background:#faf5ff">部品構成データなし</td></tr>`;
+            rHtml += `<tr class="parts-detail-row"><td colspan="${days+1}" style="background:#faf5ff"></td></tr>`;
+          } else {
+            // タイトル行
+            lHtml += `<tr style="background:#f3e5ff">
+              <td colspan="2" style="padding:5px 10px;font-size:12px;font-weight:600;color:#6a1b9a;position:relative">
+                🔩 部品使用数
+                <button class="parts-detail-close" onclick="togglePartsDetail('${prod.id}')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">✕ 閉じる</button>
+              </td>
+            </tr>`;
+            rHtml += `<tr style="background:#f3e5ff"><td colspan="${days+1}" style="padding:5px 8px;font-size:11px;color:#888">
+              ※ 計画ベースで計算（成形数確定後は出荷ベースに切替）
+            </td></tr>`;
+
+            linkedParts.forEach(partCode => {
+              const rel = (window._partsMapCache || []).find(r =>
+                r.parentSeiban === (window._seibanMap?.[prod.code] || prod.code) &&
+                r.partSeiban === partCode
+              );
+              const count = rel ? rel.count : '?';
+              let total = 0;
+
+              // 左：部品整番・構成数
+              lHtml += `<tr style="background:#faf5ff;border-bottom:1px solid #ede7f6">
+                <td style="padding:5px 8px;font-size:12px;font-weight:600;color:#4a1270;white-space:nowrap">${escH(partCode)}</td>
+                <td style="padding:5px 8px;text-align:right;font-size:12px;color:#888">×${count}</td>
+              </tr>`;
+
+              // 右：日別消費数（メインテーブルと同じ列幅）
+              let rCells = '';
+              for (let d=1; d<=days; d++) {
+                const dt  = new Date(viewYear, viewMonth-1, d);
+                const dow = dt.getDay();
+                const we  = dow===0||dow===6;
+                const tdy = dt.getTime()===TODAY.getTime();
+                if (we) { rCells += `<td style="background:#f0f0f0;min-width:60px"></td>`; continue; }
+                // 新ロジック: 成形数あり→出荷ベース／成形数なし→計画ベース（なければ出荷）
+                const seikeiV  = mdata[`${prod.id}_seikei_${d}`];
+                const keikakuV = mdata[`${prod.id}_keikaku_${d}`];
+                const shukkoV  = mdata[`${prod.id}_shukko_${d}`];
+                const hasSeikei = seikeiV !== undefined && seikeiV !== '';
+                let base = 0;
+                if (hasSeikei) {
+                  if (shukkoV !== undefined && shukkoV !== '') base = parseFloat(shukkoV) || 0;
+                } else if (keikakuV !== undefined && keikakuV !== '') {
+                  base = parseFloat(keikakuV) || 0;
+                } else if (shukkoV !== undefined && shukkoV !== '') {
+                  base = parseFloat(shukkoV) || 0;
+                }
+                const consume = (typeof count === 'number') ? base * count : 0;
+                total += consume;
+                const neg = consume < 0;
+                rCells += `<td style="text-align:right;padding:3px 5px;font-size:12px;min-width:60px;background:${tdy?'#e8f5e9':'#faf5ff'};${neg?'color:#c0392b;font-weight:700':''}${consume===0?';color:#ccc':''}">
+                  ${consume !== 0 ? consume.toLocaleString() : ''}
+                </td>`;
+              }
+              // 合計セル
+              rCells += `<td style="text-align:right;padding:5px 8px;font-size:12px;font-weight:700;color:#6a1b9a;background:#f3e5ff;border-left:2px solid #d1a0f0">${total!==0?total.toLocaleString():''}</td>`;
+              rHtml += `<tr style="background:#faf5ff;border-bottom:1px solid #ede7f6">${rCells}</tr>`;
+            });
+          }
+        }
+      }
+    });
+  }
+  // lHtmlとrHtmlを合成して1テーブルのtrに出力
+  const TR_OPEN  = /<tr([^>]*)>/gi;
+  const TR_CLOSE = /<\/tr>/gi;
+  const lSegs = lHtml.split(TR_CLOSE).filter(s => s.trim());
+  const rSegs = rHtml.split(TR_CLOSE).filter(s => s.trim());
+  let mainHtml = '';
+  const maxLen = Math.max(lSegs.length, rSegs.length);
+  for (let i = 0; i < maxLen; i++) {
+    const lSeg = lSegs[i] || '';
+    const rSeg = rSegs[i] || '';
+    const attrMatch = lSeg.match(/<tr([^>]*)>/) || rSeg.match(/<tr([^>]*)/);
+    const attrs = attrMatch ? attrMatch[1] : '';
+    const lInner = lSeg.replace(/<tr[^>]*>/, '');
+    const rInner = rSeg.replace(/<tr[^>]*>/, '');
+    mainHtml += '<tr' + attrs + '>' + lInner + rInner + '</tr>';
+  }
+  document.getElementById('main-tbody').innerHTML = mainHtml;
+
+  // 列固定初期化
+  requestAnimationFrame(initStickyColumns);
+
+  // イベント登録
+  const mainTbody = document.getElementById('main-tbody');
+  mainTbody.querySelectorAll('input[data-pid]').forEach(i => {
+    i.addEventListener('change', onCell);
+    i.addEventListener('focus', onCellFocus);
+    i.addEventListener('blur', onCellBlur);
+  });
+  mainTbody.querySelectorAll('[data-del]').forEach(b  => b.addEventListener('click', () => openDeleteConfirm(b.dataset.del)));
+  mainTbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEditModal(b.dataset.edit)));
+  mainTbody.querySelectorAll('[data-up]').forEach(b => b.addEventListener('click', () => moveProduct(b.dataset.up, 'up')));
+  mainTbody.querySelectorAll('[data-dn]').forEach(b => b.addEventListener('click', () => moveProduct(b.dataset.dn, 'dn')));
+  mainTbody.querySelectorAll('[data-unlock]').forEach(b => b.addEventListener('click', () => onUnlock(b.dataset.unlock)));
+  mainTbody.querySelectorAll('[data-relock]').forEach(b => b.addEventListener('click', () => onRelock(b.dataset.relock)));
+  applyCellEditBadges();
+}
+
+function renderTableOnly() { renderTable(); checkWarnItems(); }
+
+// ============================================================
+//  列固定：scrollイベントでtransformを使って強制固定
+// ============================================================
+function initStickyColumns() {
+  const scroll = document.querySelector('.tscroll');
+  if (!scroll || scroll._stickyBound) return;
+  scroll._stickyBound = true;
+
+  const PROD_W = 170; // c-prod列幅
+  const TYPE_W = 150; // c-type列幅
+
+  const fixCols = () => {
+    const sl = scroll.scrollLeft;
+    const table = document.getElementById('main-table');
+    if (!table) return;
+    // c-prod セル（左端に固定）
+    table.querySelectorAll('td.c-prod, th.c-prod').forEach(el => {
+      el.style.transform = `translateX(${sl}px)`;
+    });
+    // c-type セル（c-prodの右に固定）
+    table.querySelectorAll('td.c-type, th.c-type').forEach(el => {
+      el.style.transform = `translateX(${sl}px)`;
+    });
+  };
+
+  scroll.addEventListener('scroll', fixCols, { passive: true });
+  fixCols(); // 初期実行
+}
+
+// 左右テーブルの行高さを同期
+// syncRowHeights: 1テーブル方式のため不要
+
+// ============================================================
+//  削除確認パスワード
+// ============================================================
+const DELETE_PW = 'spk435511';
+let deletePendingId = null;
+
+function openDeleteConfirm(pid) {
+  const prod = products.find(p => p.id === pid);
+  if (!prod) return;
+  deletePendingId = pid;
+  document.getElementById('del-target-name').textContent =
+    `${prod.code}${prod.name ? '（' + prod.name + '）' : ''}`;
+  document.getElementById('del-pw-input').value = '';
+  document.getElementById('del-pw-err').classList.remove('show');
+  document.getElementById('modal-delete-confirm').style.display = 'flex';
+  document.getElementById('del-pw-input').focus();
+}
+
+document.getElementById('del-cancel-btn').addEventListener('click', () => {
+  document.getElementById('modal-delete-confirm').style.display = 'none';
+  deletePendingId = null;
+});
+
+document.getElementById('del-ok-btn').addEventListener('click', async () => {
+  const pw = document.getElementById('del-pw-input').value;
+  if (pw !== DELETE_PW) {
+    document.getElementById('del-pw-err').classList.add('show');
+    document.getElementById('del-pw-input').value = '';
+    document.getElementById('del-pw-input').focus();
+    return;
+  }
+  document.getElementById('modal-delete-confirm').style.display = 'none';
+  if (deletePendingId) {
+    await onDelProd(deletePendingId);
+    deletePendingId = null;
+  }
+});
+
+document.getElementById('del-pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('del-ok-btn').click();
+});
+
+// ============================================================
+//  製品順番変更
+// ============================================================
+async function moveProduct(pid, dir) {
+  // 現在の表示リストを取得
+  const displayProducts = partsFilterActive
+    ? products.filter(p => p.itemType === 'part')
+    : selGroupId === 'all'   ? products
+    : selGroupId === 'unset' ? products.filter(p => !p.group || p.group === '')
+    : products.filter(p => p.group === selGroupId || p.itemType === 'part');
+
+  // orderが未設定（全て9999等）の場合、現在の表示インデックスをorderとして初期化
+  const allSame = displayProducts.every(p => (p.order || 9999) === (displayProducts[0].order || 9999));
+  if (allSame) {
+    displayProducts.forEach((p, i) => { p.order = (i + 1) * 10; });
+  }
+
+  const idx = displayProducts.findIndex(p => p.id === pid);
+  if (idx < 0) return;
+
+  const targetIdx = dir === 'up' ? idx - 1 : idx + 1;
+  if (targetIdx < 0 || targetIdx >= displayProducts.length) return;
+
+  const prod1 = displayProducts[idx];
+  const prod2 = displayProducts[targetIdx];
+
+  // orderを入れ替え（同じ値なら強制的に差をつける）
+  if (prod1.order === prod2.order) {
+    prod1.order = idx * 10;
+    prod2.order = targetIdx * 10;
+  }
+  const tmpOrder = prod1.order;
+  prod1.order = prod2.order;
+  prod2.order = tmpOrder;
+
+  // products配列をorder順に再ソート
+  products.sort((a, b) => (a.order || 9999) - (b.order || 9999));
+  renderAll();
+
+  // GASに保存
+  showLoad(true);
+  try {
+    const res = await api({ action:'swapProductOrder', productId1:prod1.id, productId2:prod2.id });
+    if (!res.ok) showToast('⚠️ 保存失敗: ' + (res.error || ''));
+  } catch(e) {
+    showToast('順番の保存に失敗しました: ' + e.message);
+  }
+  showLoad(false);
+}
+
+// ============================================================
+//  廃棄確認ダイアログ
+// ============================================================
+function selectDiscardOpt(choice) {
+  discardChoice = choice;
+  document.getElementById('discard-opt-consume').classList.toggle('selected', choice==='consume');
+  document.getElementById('discard-opt-none').classList.toggle('selected', choice==='none');
+}
+
+function cancelDiscard() {
+  document.getElementById('discard-overlay').style.display = 'none';
+  if (discardPending) {
+    // mdataは変更していないのでrenderTableOnly()で元の表示に戻る
+    discardPending = null;
+    renderTableOnly();
+  }
+}
+
+async function confirmDiscard() {
+  document.getElementById('discard-overlay').style.display = 'none';
+  if (!discardPending) return;
+  const { pid, rt, d, v, input } = discardPending;
+  discardPending = null;
+
+  const key = `${pid}_${rt}_${d}`;
+  if (v === '') delete mdata[key]; else mdata[key] = parseFloat(v);
+
+  // 廃棄扱い選択時: 紐づく部品の消費数を0で手動上書き保存
+  if (discardChoice === 'none') {
+    const prod = products.find(p => p.id === pid);
+    const linkedParts = partsRelMap[prod?.code] || [];
+    if (linkedParts.length) {
+      showLoad(true);
+      for (const partSeiban of linkedParts) {
+        const partProd = products.find(p => p.code === partSeiban && p.itemType === 'part');
+        if (!partProd) continue;
+        const partKey = `${partProd.id}_part_shohi_${d}`;
+        mdata[partKey] = 0;
+        await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
+                    productId:partProd.id, rowType:'part_shohi', day:parseInt(d), value:0 });
+      }
+      showLoad(false);
+      showToast('部品消費数を 0 で保存しました');
+    }
+  }
+
+  renderTableOnly();
+  showLoad(true);
+  const saveVal = (v === '' || v === undefined) ? '' : parseFloat(v);
+  console.log('[confirmDiscard送信]', { productId:pid, rowType:rt, day:parseInt(d), value:saveVal, selCid, year:viewYear, month:viewMonth });
+  const saveRes = await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
+              productId:pid, rowType:rt, day:parseInt(d), value:saveVal });
+  console.log('[confirmDiscard結果]', JSON.stringify(saveRes));
+  showLoad(false);
+  if (saveRes && saveRes.ok === false) {
+    showToast('⚠️ 保存失敗: ' + (saveRes.error || '不明なエラー'));
+  } else {
+    showToast('保存しました');
+  }
+}
+
+// ============================================================
+//  セル変更
+// ============================================================
+async function onCell(e) {
+  const { pid, rt, d } = e.target.dataset;
+  const v   = e.target.value;
+  const key = `${pid}_${rt}_${d}`;
+
+  // 消費数セルの空入力 → 自動計算に戻す
+  if (rt === 'part_shohi' && v === '') {
+    delete mdata[key];
+    renderTableOnly();
+    showLoad(true);
+    await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
+                productId:pid, rowType:rt, day:parseInt(d), value:'' });
+    showLoad(false);
+    showToast('自動計算に戻しました');
+    return;
+  }
+
+  // seikei行でマイナス値 → 廃棄確認ダイアログ
+  if (rt === 'seikei' && v !== '' && parseFloat(v) < 0) {
+    const prod = products.find(p => p.id === pid);
+    const linkedParts = partsRelMap[prod?.code] || [];
+    if (linkedParts.length) {
+      // input参照ではなく値のみ保持（DOM再生成でinputが消えても大丈夫なように）
+      discardPending = { pid, rt, d, v };
+      discardChoice  = 'consume';
+      selectDiscardOpt('consume');
+      const day = parseInt(d);
+      const dt  = new Date(viewYear, viewMonth-1, day);
+      document.getElementById('discard-msg').textContent =
+        `${dt.getMonth()+1}/${day} の成形数: ${v}（${prod?.name || prod?.code}）　紐づく部品: ${linkedParts.join('、')}`;
+      document.getElementById('discard-overlay').style.display = 'flex';
+      return;
+    }
+    // 部品紐づきなし → そのまま保存（マイナスでもダイアログなし）
+  }
+
+  if (v==='') delete mdata[key]; else mdata[key]=parseFloat(v);
+  renderTableOnly();
+  showLoad(true);
+  const saveVal = (v === '' || v === undefined) ? '' : parseFloat(v);
+  console.log('[saveCell送信]', { productId:pid, rowType:rt, day:parseInt(d), value:saveVal });
+  const saveRes = await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
+              productId:pid, rowType:rt, day:parseInt(d), value:saveVal });
+  console.log('[saveCell結果]', saveRes);
+  showLoad(false);
+  if (saveRes && saveRes.ok === false) {
+    showToast('⚠️ 保存失敗: ' + (saveRes.error || '不明なエラー'));
+  } else {
+    showToast('保存しました');
+  }
+}
+
+async function onDelProd(pid) {
+  showLoad(true);
+  await api({ action:'deleteProduct', clientId:selCid, productId:pid });
+  products = products.filter(p => p.id !== pid);
+  showLoad(false); renderAll();
+  showToast('削除しました');
+}
+
+// ============================================================
+//  編集モーダル
+// ============================================================
+function openEditModal(pid) {
+  const p = products.find(x => x.id === pid);
+  if (!p) return;
+  document.getElementById('me-code').value  = p.code||'';
+  document.getElementById('me-name').value  = p.name||'';
+  document.getElementById('me-unit').value  = p.unit||'';
+  document.getElementById('me-type').value  = p.itemType||'product';
+  document.getElementById('me-group').value = p.group||'';
+  document.getElementById('me-pid').value   = pid;
+  document.getElementById('modal-edit').style.display = 'flex';
+  document.getElementById('me-code').focus();
+}
+document.getElementById('me-cancel').addEventListener('click', () => { document.getElementById('modal-edit').style.display='none'; });
+document.getElementById('me-ok').addEventListener('click', async () => {
+  const pid      = document.getElementById('me-pid').value;
+  const code     = document.getElementById('me-code').value.trim();
+  if (!code) { document.getElementById('me-code').focus(); return; }
+  const name     = document.getElementById('me-name').value.trim();
+  const unit     = document.getElementById('me-unit').value.trim();
+  const itemType = document.getElementById('me-type').value;
+  const group    = document.getElementById('me-group').value;
+  document.getElementById('modal-edit').style.display = 'none';
+  const p = products.find(x => x.id === pid);
+  if (p) { p.code=code; p.name=name; p.unit=unit; p.itemType=itemType; p.group=group; }
+  renderAll();
+  if (GAS_URL && selCid) {
+    showLoad(true);
+    try {
+      await api({ action:'updateProduct', clientId:selCid, productId:pid, name, unit, code, itemType, group });
+      showToast('情報を更新しました');
+    } catch(err) { showToast('保存失敗: '+err.message); }
+    showLoad(false);
+  } else {
+    showToast('更新しました（デモ）');
+  }
+});
+['me-code','me-name','me-unit'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('me-ok').click(); });
+});
+
+// ============================================================
+//  製品追加モーダル
+// ============================================================
+let pendingCode='', pendingUnit='', pendingItemType='product';
+
+function openAddModal() {
+  pendingCode=''; pendingUnit=''; pendingItemType='product';
+  document.getElementById('ma-search').value='';
+  document.getElementById('ma-results').style.display='none';
+  document.getElementById('ma-results').innerHTML='';
+  document.getElementById('ma-search-status').textContent='';
+  document.getElementById('ma-code-manual').value='';
+  document.getElementById('ma-unit-manual').value='';
+  document.getElementById('ma-type-manual').value='product';
+  document.getElementById('ma-name').value='';
+  document.getElementById('step-search').style.display='block';
+  document.getElementById('step-confirm').style.display='none';
+  document.getElementById('step-search-btns').style.display='flex';
+  document.getElementById('modal-add').style.display='flex';
+  document.getElementById('ma-search').focus();
+}
+
+function goConfirmStep(code, unit, name, itemType) {
+  pendingCode     = code;
+  pendingUnit     = unit;
+  pendingItemType = itemType || 'product';
+  document.getElementById('confirm-code').textContent  = code;
+  document.getElementById('confirm-pname').textContent = name || '—';
+  document.getElementById('confirm-unit').textContent  = unit ? unit+'個入' : '—';
+  // 種別セレクトの初期値を設定
+  document.getElementById('confirm-item-type').value = pendingItemType;
+  // グループセレクトを現在のタブに合わせる
+  const grpSel = document.getElementById('confirm-group');
+  if (grpSel) grpSel.value = (selGroupId !== 'all' && selGroupId !== 'unset') ? selGroupId : '';
+  document.getElementById('ma-name').value='';
+  document.getElementById('step-search').style.display='none';
+  document.getElementById('step-confirm').style.display='block';
+  document.getElementById('step-search-btns').style.display='none';
+  document.getElementById('ma-name').focus();
+}
+
+document.getElementById('add-prod-btn').addEventListener('click', openAddModal);
+
+async function doSearch() {
+  const q = document.getElementById('ma-search').value.trim();
+  if (!q) { document.getElementById('ma-search').focus(); return; }
+  const status  = document.getElementById('ma-search-status');
+  const results = document.getElementById('ma-results');
+  status.textContent='検索中…';
+  results.style.display='none';
+  results.innerHTML='';
+  try {
+    let items = [];
+    if (GAS_URL) {
+      const r = await api({ action:'searchProducts', q });
+      if (r.error) throw new Error(r.error);
+      items = r.products || [];
+    } else {
+      items = [
+        { code:'55046-42020', name:'51-14（大）', unit:'6',  itemType:'product' },
+        { code:'55045-42041', name:'51-13（小）', unit:'16', itemType:'product' },
+        { code:'90467-05171', name:'155D部品',    unit:'',   itemType:'part'    },
+      ].filter(p => p.code.includes(q) || p.name.includes(q));
+    }
+    if (!items.length) {
+      status.textContent=`「${q}」に一致する品番が見つかりません。手動入力を使用してください。`;
+      return;
+    }
+    status.textContent=`${items.length}件見つかりました`;
+    results.style.display='block';
+    results.innerHTML = items.map(p =>
+      `<div class="search-result-item"
+          data-code="${escH(p.code)}" data-unit="${escH(p.unit||'')}"
+          data-name="${escH(p.name||'')}">
+        <span style="flex:1;min-width:0">
+          <span class="sr-code">${escH(p.code)}</span>
+          ${p.name ? `<span class="sr-name">${escH(p.name)}</span>` : ''}
+          <span style="display:flex;gap:6px;margin-top:2px">
+            ${p.unit ? `<span class="sr-unit">${escH(p.unit)}個入</span>` : ''}
+          </span>
+        </span>
+        <span class="sr-arrow">選択</span>
+      </div>`
+    ).join('');
+    results.querySelectorAll('.search-result-item').forEach(el => {
+      el.addEventListener('click', () =>
+        goConfirmStep(el.dataset.code, el.dataset.unit, el.dataset.name, 'product'));
+    });
+  } catch(e) {
+    status.textContent='検索失敗: '+e.message;
+  }
+}
+
+document.getElementById('ma-search-btn').addEventListener('click', doSearch);
+document.getElementById('ma-search').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+
+document.getElementById('ma-manual-set').addEventListener('click', () => {
+  const code = document.getElementById('ma-code-manual').value.trim();
+  if (!code) { document.getElementById('ma-code-manual').focus(); return; }
+  const unit     = document.getElementById('ma-unit-manual').value.trim();
+  const itemType = document.getElementById('ma-type-manual').value;
+  goConfirmStep(code, unit, '', itemType);
+});
+
+document.getElementById('ma-back').addEventListener('click', () => {
+  document.getElementById('step-search').style.display='block';
+  document.getElementById('step-confirm').style.display='none';
+  document.getElementById('step-search-btns').style.display='flex';
+});
+document.getElementById('ma-cancel').addEventListener('click',  () => { document.getElementById('modal-add').style.display='none'; });
+document.getElementById('ma-cancel2').addEventListener('click', () => { document.getElementById('modal-add').style.display='none'; });
+
+document.getElementById('ma-ok').addEventListener('click', async () => {
+  if (!pendingCode) return;
+  const name     = document.getElementById('ma-name').value.trim();
+  // 確認画面のセレクトから種別を取得（ユーザーが変更可能）
+  pendingItemType = document.getElementById('confirm-item-type').value;
+  const pendingGroup = document.getElementById('confirm-group')?.value || '';
+  document.getElementById('modal-add').style.display='none';
+  showLoad(true);
+  const res = await api({ action:'addProduct', clientId:selCid, name,
+                          unit:pendingUnit, code:pendingCode, sub:'', itemType:pendingItemType, group:pendingGroup });
+  products.push({ id:res.id, name, unit:pendingUnit, code:pendingCode, sub:'', itemType:pendingItemType, group:pendingGroup, order:res.order || 9999 });
+  products.sort((a, b) => (a.order || 9999) - (b.order || 9999));
+  showLoad(false); renderAll(); showToast('追加しました');
+});
+document.getElementById('ma-name').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('ma-ok').click(); });
+
+// ============================================================
+//  月切り替え
+// ============================================================
+document.getElementById('prev-m').addEventListener('click', async () => {
+  viewMonth--; if(viewMonth<1){viewMonth=12;viewYear--;}
+  await switchMonth();
+});
+document.getElementById('next-m').addEventListener('click', async () => {
+  viewMonth++; if(viewMonth>12){viewMonth=1;viewYear++;}
+  await switchMonth();
+});
+async function switchMonth() {
+  mdata={}; initStock={}; autoConsumeCache={};
+  showLoad(true); await loadMonth(); showLoad(false);
+  resetInitPanel(); renderAll();
+}
+
+document.getElementById('btn-back').addEventListener('click', () => {
+  sendOnlineStatus('leave');
+  try {
+    window.close();
+    // window.close()が効かない場合（ブラウザ仕様で閉じれないタブ）への対応
+    setTimeout(() => {
+      if (!window.closed) {
+        if (PORTAL_URL) { location.href = PORTAL_URL; }
+        else { showToast('このタブは閉じられません。手動でタブを閉じてください'); }
+      }
+    }, 300);
+  } catch (e) {
+    if (PORTAL_URL) location.href = PORTAL_URL;
+  }
+});
+
+// ============================================================
+//  ユーティリティ
+// ============================================================
+function showLoad(v) { document.getElementById('save-ind').style.display=v?'flex':'none'; }
+
+function showPageLoad(msg) {
+  document.getElementById('page-loading-msg').textContent = msg || '読み込み中...';
+  document.getElementById('page-loading').classList.remove('hidden');
+}
+function hidePageLoad() {
+  document.getElementById('page-loading').classList.add('hidden');
+}
+function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let toastT;
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+// ============================================================
+//  起動
+// ============================================================
+// 警告モーダル
+document.getElementById('warn-modal-close').addEventListener('click', () => {
+  document.getElementById('modal-warn').style.display = 'none';
+});
+function openWarnModal() {
+  if (!warnItems.length) return;
+  const list = document.getElementById('warn-list');
+  list.innerHTML = warnItems.map(w => {
+    const dt  = new Date(viewYear, viewMonth-1, w.day);
+    const dow = ['日','月','火','水','木','金','土'][dt.getDay()];
+    const typeLabel = w.isPart
+      ? '<span style="font-size:10px;font-weight:700;color:#6a1b9a;background:#f3e5ff;padding:1px 5px;border-radius:8px;margin-right:4px">🔩 部品</span>'
+      : '<span style="font-size:10px;font-weight:700;color:#0a6644;background:#e3f6ed;padding:1px 5px;border-radius:8px;margin-right:4px">🟢 製品</span>';
+    const badgeLabel = w.isPart ? '入荷未入力' : '計画未入力';
+    return `<div class="warn-item">
+      <span class="warn-item-date">${viewMonth}/${w.day}（${dow}）</span>
+      <span class="warn-item-prod">${typeLabel}${escH(w.prodCode)}<br><span style="font-size:10px;color:#888">${escH(w.prodName)}</span></span>
+      <span class="warn-item-stock">${w.stock.toLocaleString()}</span>
+      <span class="warn-item-badge">${badgeLabel}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('modal-warn').style.display = 'flex';
+}
+
+// 警告チェック: 品番ごとに「最初にマイナスになる日」だけを収集（製品・部品共通）
+function checkWarnItems() {
+  const days = daysInMonth(viewYear, viewMonth);
+  warnItems = [];
+
+  products.forEach(prod => {
+    const isPart = prod.itemType === 'part';
+    for (let d = 1; d <= days; d++) {
+      const dt  = new Date(viewYear, viewMonth-1, d);
+      const dow = dt.getDay();
+      if (dow === 0 || dow === 6) continue;
+
+      const stock = isPart ? calcPartStock(prod.id, d) : calcStock(prod.id, d);
+      if (stock >= 0) continue;
+
+      if (isPart) {
+        // 部品: 入荷予定数または入荷数があれば警告なし
+        const nyuukaVal     = mdata[`${prod.id}_part_nyuuka_${d}`];
+        const nyuukaPlanVal = mdata[`${prod.id}_part_nyuuka_plan_${d}`];
+        const hasNyuuka     = nyuukaVal     !== undefined && nyuukaVal     !== '' && parseFloat(nyuukaVal)     > 0;
+        const hasPlan       = nyuukaPlanVal !== undefined && nyuukaPlanVal !== '' && parseFloat(nyuukaPlanVal) > 0;
+        if (!hasNyuuka && !hasPlan) {
+          if (!warnItems.find(w => w.prodId === prod.id)) {
+            warnItems.push({ prodId:prod.id, prodCode:prod.code, prodName:prod.name, day:d, stock, isPart:true });
+          }
+          break;
+        }
+      } else {
+        // 製品: 計画・成形数が入っていれば警告なし
+        const seikeiVal  = mdata[`${prod.id}_seikei_${d}`];
+        const keikakuVal = mdata[`${prod.id}_keikaku_${d}`];
+        const hasSeikei  = seikeiVal  !== undefined && seikeiVal  !== '' && parseFloat(seikeiVal)  > 0;
+        const hasKeikaku = keikakuVal !== undefined && keikakuVal !== '' && parseFloat(keikakuVal) > 0;
+        if (!hasSeikei && !hasKeikaku) {
+          if (!warnItems.find(w => w.prodId === prod.id)) {
+            warnItems.push({ prodId:prod.id, prodCode:prod.code, prodName:prod.name, day:d, stock, isPart:false });
+          }
+          break;
+        }
+      }
+    }
+  });
+  // バナー更新
+  const banner = document.getElementById('warn-banner');
+  const msg    = document.getElementById('warn-banner-msg');
+  if (warnItems.length) {
+    const prodNames = [...new Set(warnItems.map(w => w.prodCode))].slice(0, 3).join('、');
+    const more = [...new Set(warnItems.map(w => w.prodCode))].length > 3 ? '…他' : '';
+    msg.textContent = `⚠️ 在庫マイナスあり（計画未入力）: ${prodNames}${more} — ${warnItems.length}件`;
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+async function boot() {
+  showPageLoad('在庫データを読み込み中...');
+  try {
+    await loadClients();
+    await Promise.all([loadMonth(), loadGroups(), loadPartsRel()]);
+    renderAll();
+    checkWarnItems();
+    if (warnItems.length) openWarnModal();
+    startOnlineHeartbeat();
+  } catch(e) {
+    document.getElementById('tab-bar').innerHTML=
+      `<div style="padding:10px 16px;font-size:12px;color:#e24b4a">接続エラー: ${e.message}</div>`;
+  } finally {
+    hidePageLoad();
+  }
+}
+
+// ── 起動: 認証チェック ──
+if (initAuth()) {
+  updateUserBadge();
+  boot();
+} else {
+  showLoginScreen();
+}
+</script>
+
+</body>
+</html>

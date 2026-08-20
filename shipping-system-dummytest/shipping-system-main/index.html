@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>出荷照合システム(カナモリ向け)</title>
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACc0lEQVR4nL1XPWgTYRh+LvQgaWPvgnFoTEMIVFChCUUbq4M/6CCZpIjQIaCDg0t1csrk5OiSsUMX6aSDXaSC0khsFaHgD1Yol6RtCAR6tcWGtKkO6V3v++6+++ld71ne732/983z3Pv9XI4DBXm79Y+OeQkxHOS0fsBPciOOAGvCLxGcF+SxVMZ0fmhyRB1/mJxSx2I4yHFuySfuP8b84jfmfOphAqG4oPo7q5uEiIBRkVfQkpfzRZTzRYTiAq6+eKDm9HhB9Ce6UzeKZ4ABrT82/UiX44mA/mZowCieOrDlfFG1tAjXeyAWS5nODz29hlBcUMnpPeCJgL83+k1z0hcPT8Hv5++xvr6i+p4sgRWWPn9Vx73UnKtT0PPzh5vy7m9YJbRK47oYv7YPAOgc+AlMzNoh22s3cjJe2RegJVdIAWD3tPPG7bUbOaM4U4BC7pbYCjoBrdI4+LV98A5IqyNvoza4FgCgt4QsU0Bn5o4p8ZfFhVkAuDCaNWznUUAIqPe1Dx2ZXdSUW4Qf+5TOMlJ1kLFC+LoliBR3mcURnOs++Rw7xylcX0SZ0csQ+zqQN5oQI1FTu7W1jZNnh4n6Y30d0xhMJHUxXQfGJMmwuFKpbBrFPwIYvnRbGEwknwGAGOkeCJYFUNDWEx2Qlpds3WhaXLl1VwAAeaNZAIDaqTphlbhiafi6BJYCkmfSrs/3iWWesNcbvwhLQ7cHWGt9XCD+kKy+yeH8vTnHArSb0Aq1qlSYf/da9XUd+D5zU6BjCpRNql8qHrWqZLjJrBCgv9WOgpdP7N+M2qcXw0FOJffz00whBzSnwItOOCUnBPglgub4Dxaa44PD4JhWAAAAAElFTkSuQmCC">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAJ5UlEQVR4nO3dT4hd1R3A8d/ESUxsTGYgIs3EJCgGYiDR1kZtAhloRUohIEFEF4WKuHCTduWidOXKlWbjIi0KLpSslKEuAgoTOtIa22IK0ZJAyUtmIpLBmTFDZzSZpIvxDu/dd+97957zO3/ned8PiMnMe+fd4NeT8859974bhATm79Y+OeQkxHOS0fsBPciOOAGvCLxGcF+SxVMZ0fmhyRB1/mJxSx2I4yHFuySfuP8b84jfmfOphAqG4oPo7q5uEiIBRkVfQkpfzRZTzRYTiAq6+eKDm9HhB9Ce6UzeKZ4ABrT82/UiX44mA/mZowCieOrDlfFG1tAjXeyAWS5nODz29hlBcUMnpPeCJgL83+k1z0hcPT8Hv5++xvr6i+p4sgRWWPn9Vx73UnKtT0PPzh5vy7m9YJbRK47oYv7YPAOgc+AlMzNoh22s3cjJe2RegJVdIAWD3tPPG7bUbOaM4U4BC7pbYCjoBrdI4+LV98A5IqyNvoza4FgCgt4QsU0Bn5o4p8ZfFhVkAuDCaNWznUUAIqPe1Dx2ZXdSUW4Qf+5TOMlJ1kLFC+LoliBR3mcURnOs++Rw7xylcX0SZ0csQ+zqQN5oQI1FTu7W1jZNnh4n6Y30d0xhMJHUxXQfGJMmwuFKpbBrFPwIYvnRbGEwknwGAGOkeCJYFUNDWEx2Qlpds3WhaXLl1VwAAeaNZAIDaqTphlbhiafi6BJYCkmfSrs/3iWWesNcbvwhLQ7cHWGt9XCD+kKy+yeH8vTnHArSb0Aq1qlSYf/da9XUd+D5zU6BjCpRNql8qHrWqZLjJrBCgv9WOgpdP7N+M2qcXw0FOJffz00whBzSnwItOOCUnBPglgub4Dxaa44PD4JhWAAAAAElFTkSuQmCC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="出荷照合">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Meiryo','Hiragino Sans',sans-serif;background:#f5f5f2;color:#1a1a18;min-height:100vh}
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(160deg,#0d1b2e 0%,#1a2f4e 50%,#0d2340 100%);position:relative}
+#login-screen>*{position:relative;z-index:1}
+.login-logo{width:64px;height:64px;border-radius:50%;border:2px solid rgba(180,145,70,0.6);display:flex;align-items:center;justify-content:center;margin-bottom:20px;background:rgba(180,145,70,0.1)}
+.login-logo svg{width:32px;height:32px}
+.login-company{font-size:18px;font-weight:700;color:#fff;text-align:center;margin-bottom:4px;letter-spacing:.05em}
+.login-greeting{font-size:13px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:28px;letter-spacing:.03em}
+.login-card{background:rgba(255,255,255,0.97);border-radius:16px;padding:24px 24px 28px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,0.4)}
+.login-tabs{display:flex;border-radius:8px;overflow:hidden;border:1px solid #e0e0da;margin-bottom:22px}
+.login-tab{flex:1;padding:10px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .2s;background:#f5f5f2;color:#888}
+.login-tab.active{background:#fff;color:#1a1a18;box-shadow:inset 0 -2px 0 #1a2f4e}
+.login-tab:first-child{border-right:1px solid #e0e0da}
+.login-field{margin-bottom:14px}
+.login-label{font-size:11px;color:#888;margin-bottom:5px;font-weight:600;letter-spacing:.04em}
+.login-input{width:100%;font-size:15px;padding:11px 13px;border:1.5px solid #e5e5e0;border-radius:8px;outline:none;font-family:inherit;transition:border-color .2s;background:#fafafa}
+.login-input:focus{border-color:#1a2f4e;background:#fff}
+.login-btn{width:100%;padding:13px;background:#1a2f4e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;letter-spacing:.05em;transition:background .2s}
+.login-btn:active{background:#0d1b2e}
+.login-error{font-size:12px;color:#c0392b;margin-top:8px;text-align:center;display:none;font-weight:600}
+.login-hint{font-size:11px;color:#aaa;text-align:center;margin-top:10px;line-height:1.7}
+.login-footer{font-size:11px;color:rgba(255,255,255,0.25);text-align:center;margin-top:20px}
+#main-screen{display:none}
+.top-bar{background:#1a1a18;color:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.top-bar-row1{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.top-bar h1{font-size:15px;font-weight:600;white-space:nowrap;margin:0}
+.top-bar-user{font-size:12px;color:rgba(255,255,255,0.75);font-weight:600}
+@media(min-width:768px){.top-bar{flex-direction:row;align-items:center;flex-wrap:wrap}.top-bar-row1{flex:1}}
+.top-bar h1{font-size:16px;font-weight:600;white-space:nowrap}
+.top-btns{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.top-btn{font-size:13px;font-weight:600;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.18);color:#fff;padding:8px 14px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.top-btn:hover{background:rgba(255,255,255,0.27)}
+.top-btn.danger{background:rgba(220,60,60,0.55);border-color:rgba(255,120,120,0.4)}
+.top-btn.danger:hover{background:rgba(220,60,60,0.75)}
+.top-btn.exit{background:#b4913e;border-color:#d4b860;color:#1a1a18;font-weight:700}
+.top-btn.exit:hover{background:#c9a64f}
+.more-wrap{position:relative}
+.more-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#26261f;border:1px solid rgba(255,255,255,0.15);border-radius:9px;box-shadow:0 10px 28px rgba(0,0,0,0.45);padding:6px;min-width:170px;max-width:calc(100vw - 16px);flex-direction:column;gap:4px;z-index:200;box-sizing:border-box}
+.more-menu.show{display:flex}
+.more-item{font-size:13px;font-weight:600;background:transparent;border:none;color:#fff;padding:9px 12px;border-radius:6px;cursor:pointer;text-align:left;white-space:normal;word-break:keep-all}
+.more-item:hover{background:rgba(255,255,255,0.12)}
+.more-item.danger{color:#ff8a8a}
+.more-item.danger:hover{background:rgba(220,60,60,0.25)}
+.container{padding:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.stat{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:12px 14px}
+.stat-label{font-size:11px;color:#888;margin-bottom:4px}
+.stat-value{font-size:26px;font-weight:700}
+.stat-value.done{color:#1e8a55}
+.stat-value.remain{color:#b56e00}
+.progress-bar{height:6px;background:#e5e5e0;border-radius:99px;overflow:hidden;margin-bottom:14px}
+.progress-fill{height:100%;background:#1e8a55;border-radius:99px;transition:width .4s}
+.card{background:#fff;border:1px solid #e5e5e0;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:700;color:#aaa;margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase}
+.scan-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.scan-label{font-size:12px;color:#555;margin-bottom:6px;font-weight:600}
+.scan-status{font-size:12px;margin-top:6px;color:#aaa;min-height:18px}
+.scan-status.active{color:#1e8a55;font-weight:700}
+input[type=text],input[type=password]{width:100%;font-size:14px;padding:10px 12px;border:1px solid #ccc;border-radius:8px;outline:none;font-family:inherit}
+input[type=text]{font-family:'Courier New',monospace}
+input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
+#hinban-input:focus{border-color:#1e8a55;box-shadow:0 0 0 3px rgba(30,138,85,0.15);background:#f0fff8}
+#scan-input:focus{border-color:#3a7bdc;box-shadow:0 0 0 3px rgba(58,123,220,0.15);background:#f0f5ff}
+.btn{display:block;width:100%;padding:10px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;text-align:center}
+.btn-dark{background:#1a1a18;color:#fff}
+.btn-dark:active{background:#333}
+.feedback{margin-top:10px;font-size:13px;padding:10px 12px;border-radius:8px;display:none;font-weight:500;line-height:1.5}
+.feedback.ok{display:block;background:#ecf9f2;color:#1e8a55;border:1px solid #a8d9be}
+.feedback.err{display:block;background:#fdecea;color:#c0392b;border:1px solid #f5b7b1}
+.feedback.warn{display:block;background:#fff8ec;color:#b56e00;border:1px solid #f5d98b}
+.tabs{display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid #e5e5e0}
+.tab{font-size:13px;padding:8px 14px;border:none;background:none;cursor:pointer;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:600}
+.tab.active{color:#1a1a18;border-bottom-color:#1a1a18}
+.filter-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.filter-btn{font-size:11px;padding:5px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#555}
+.filter-btn.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.search-box{flex:1;min-width:100px;font-size:12px;padding:5px 10px;border:1px solid #ccc;border-radius:6px;outline:none;font-family:inherit}
+.list-item{background:#fff;border:1px solid #e5e5e0;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.list-item.done{opacity:.45}
+.list-item.adjusted-mae{border-left:3px solid #3a7bdc}
+.list-item.adjusted-ato{border-left:3px solid #c0392b}
+.list-item.cancelled{border-left:3px solid #aaa;background:#f5f5f5;opacity:.5}
+.list-item.cancelled .item-hinban{text-decoration:line-through;color:#aaa}
+.list-item.cancelled .item-bc{text-decoration:line-through}
+.item-body{flex:1;min-width:0}
+.item-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px}
+.item-hinban{font-weight:700;font-size:14px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-bc{font-family:monospace;font-size:11px;color:#888;margin-bottom:4px}
+.item-meta{font-size:11px;color:#aaa;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;white-space:nowrap}
+.badge-pending{background:#fff3d6;color:#b56e00}
+.badge-done{background:#d6f5e8;color:#1e8a55}
+.badge-adj-mae{background:#dceeff;color:#1a5fb4}
+.badge-adj-ato{background:#fdecea;color:#c0392b}
+.badge-cancel{background:#e5e5e0;color:#888}
+.file-chips-wrap{margin-bottom:10px}
+.section-title{font-size:11px;font-weight:700;color:#aaa;margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase}
+.file-chip{display:inline-flex;align-items:center;gap:4px;background:#f0f0ed;border-radius:99px;padding:3px 10px;font-size:11px;margin:2px;color:#555}
+.empty{text-align:center;color:#aaa;padding:32px;font-size:14px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:14px}
+.modal-field{margin-bottom:12px}
+.modal-label{font-size:12px;color:#888;margin-bottom:4px}
+.modal-val{font-size:13px;font-weight:600}
+select,input[type=date]{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px;font-family:inherit;outline:none}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions button{flex:1;padding:10px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer}
+.btn-cancel{background:#f0f0ed;color:#555}
+.btn-ok{background:#1a1a18;color:#fff}
+.pw-hint{font-size:11px;color:#aaa;margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="login-screen">
+  <div class="login-logo">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 20a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#b4913e" stroke-width="1.8" fill="none"/>
+      <path d="M26.7 13.1l-1.8-.5a9.1 9.1 0 0 0-.8-1.9l1-1.6a.8.8 0 0 0-.1-1l-1.1-1.1a.8.8 0 0 0-1-.1l-1.6 1a9.1 9.1 0 0 0-1.9-.8l-.5-1.8A.8.8 0 0 0 18 5h-1.6a.8.8 0 0 0-.8.6l-.5 1.8a9.1 9.1 0 0 0-1.9.8l-1.6-1a.8.8 0 0 0-1 .1L9.5 8.4a.8.8 0 0 0-.1 1l1 1.6a9.1 9.1 0 0 0-.8 1.9l-1.8.5A.8.8 0 0 0 7 14v1.6c0 .4.3.7.6.8l1.8.5c.2.7.5 1.3.8 1.9l-1 1.6a.8.8 0 0 0 .1 1l1.1 1.1a.8.8 0 0 0 1 .1l1.6-1c.6.3 1.2.6 1.9.8l.5 1.8c.1.4.4.6.8.6H16a.8.8 0 0 0 .8-.6l.5-1.8a9.1 9.1 0 0 0 1.9-.8l1.6 1a.8.8 0 0 0 1-.1l1.1-1.1a.8.8 0 0 0 .1-1l-1-1.6c.3-.6.6-1.2.8-1.9l1.8-.5a.8.8 0 0 0 .6-.8V14a.8.8 0 0 0-.5-.9z" stroke="#b4913e" stroke-width="1.5" fill="none"/>
+    </svg>
+  </div>
+  <div class="login-company">関ケ原プラ工業(株)</div>
+  <div class="login-greeting">従業員の皆様、ようこそ</div>
+  <div class="login-card">
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-admin" onclick="switchLoginTab('admin')">管理者ログイン</button>
+      <button class="login-tab" id="tab-staff" onclick="switchLoginTab('staff')">従業員ログイン</button>
+    </div>
+    <div class="login-field">
+      <div class="login-label">ユーザーID</div>
+      <input type="text" class="login-input" id="login-id" placeholder="" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <div class="login-label">パスワード</div>
+      <input type="password" class="login-input" id="login-pw" placeholder="パスワード" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">ログイン</button>
+    <div class="login-error" id="login-error">IDまたはパスワードが違います</div>
+    <div class="login-hint" id="login-hint" style="display:none"></div>
+  </div>
+  <div class="login-footer">© 関ケ原プラ工業株式会社</div>
+</div>
+
+<!-- メイン画面 -->
+<div id="main-screen">
+<div class="top-bar">
+  <div class="top-bar-row1">
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+      <h1>出荷照合システム（カナモリ）</h1>
+      <div id="user-name-display" class="top-bar-user"></div>
+    </div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.4);white-space:nowrap" id="save-indicator"></div>
+  </div>
+  <div class="top-btns">
+    <button class="top-btn exit" onclick="closeTab()">✕ タブを閉じる</button>
+    <button class="top-btn" onclick="showCsvModal()">📂 CSVを開く</button>
+    <button class="top-btn" onclick="exportCSVByStatus()">📤 CSV書き出し</button>
+    <button class="top-btn danger" onclick="clearAll()">リセット</button>
+    <div class="more-wrap">
+      <button class="top-btn" id="more-btn" onclick="toggleMoreMenu()">⋯ その他 ▾</button>
+      <div class="more-menu" id="more-menu">
+        <button class="more-item" id="refresh-btn" onclick="manualRefresh();closeMoreMenu()">🔄 更新</button>
+        <button class="more-item" onclick="loadFromCloud();closeMoreMenu()" title="クラウドからデータを復元">☁️ クラウド復元</button>
+        <button class="more-item" id="auto-refresh-btn" onclick="toggleAutoRefresh()">⏱ 自動更新 OFF</button>
+        <button class="more-item danger" onclick="doLogout();closeMoreMenu()">ログアウト</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="container">
+  <div id="file-chips-wrap" class="file-chips-wrap" style="display:none">
+    <div class="section-title">読み込み済みCSV</div>
+    <div id="chip-list"></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">総件数</div><div class="stat-value" id="s-total">0</div></div>
+    <div class="stat"><div class="stat-label">消込済</div><div class="stat-value done" id="s-done">0</div></div>
+    <div class="stat"><div class="stat-label">未消込</div><div class="stat-value remain" id="s-remain">0</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="card">
+    <div class="card-title">QRスキャン照合</div>
+    <div class="scan-grid">
+      <div>
+        <div class="scan-label">① 現品票 品番</div>
+        <input type="text" id="hinban-input" placeholder="品番をスキャン（Enter）">
+        <div class="scan-status" id="hinban-status">未スキャン</div>
+      </div>
+      <div id="scan-area" style="display:none">
+        <div class="scan-label">② 納品ラベル QR</div>
+        <input type="text" id="scan-input" placeholder="QRをスキャン（Enter）">
+        <button class="btn btn-dark" onclick="doScan()">照合・消込</button>
+      </div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('list',this)">出荷リスト</button>
+    <button class="tab" onclick="switchTab('log',this)">消込履歴</button>
+  </div>
+  <div id="tab-list">
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
+      <button class="filter-btn" onclick="setFilter('pending',this)">未消込</button>
+      <button class="filter-btn" onclick="setFilter('done',this)">消込済</button>
+      <button class="filter-btn" onclick="setFilter('adjusted',this)">納期調整</button>
+      <button class="filter-btn" onclick="setFilter('cancelled',this)">キャンセル</button>
+      <input type="text" class="search-box" id="search-box" placeholder="品番・BC検索" oninput="renderList()">
+    </div>
+    <div id="list-body"><div class="empty">CSVを読み込んでください<br><small style="font-size:11px;margin-top:8px;display:block">複数ファイルを同時に選択できます</small></div></div>
+  </div>
+  <div id="tab-log" style="display:none">
+    <div id="log-body"><div class="empty">消込履歴なし</div></div>
+  </div>
+</div>
+</div>
+
+<!-- CSVを開くモーダル -->
+<div class="modal-overlay" id="url-modal">
+  <div class="modal" style="display:flex;flex-direction:column;max-height:90vh;padding:0;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #e5e5e0;flex-shrink:0">
+      <div class="modal-title" style="margin:0">📂 CSVを開く</div>
+      <button onclick="closeUrlModal()" style="padding:6px 14px;background:#e5e5e0;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✕ 閉じる</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:14px">
+      <div class="modal-field" style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px">
+        <div class="modal-label" style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:8px">☁️ ドライブから選ぶ</div>
+        <div style="font-size:11px;color:#888;margin-bottom:10px">Googleドライブのフォルダからファイルを選択</div>
+        <button style="width:100%;padding:10px;background:#3a7bdc;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px" onclick="loadDriveFileList()">📋 ファイル一覧を取得</button>
+        <div id="drive-file-list" style="display:none;border:1px solid #e5e5e0;border-radius:8px"></div>
+      </div>
+      <div class="modal-field" style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px">
+        <div class="modal-label" style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:8px">📁 ファイルから選ぶ</div>
+        <div style="font-size:11px;color:#888;margin-bottom:10px">iPhone・PC・タブレット向け</div>
+        <label style="display:block;width:100%;padding:12px;background:#1a1a18;color:#fff;border-radius:8px;text-align:center;font-size:14px;font-weight:700;cursor:pointer">
+          ファイルを選択
+          <input type="file" accept=".csv,.CSV" multiple style="display:none" onchange="loadCSVFromFile(this)">
+        </label>
+      </div>
+      <div id="url-feedback" style="margin-top:4px;font-size:12px;display:none;white-space:pre-wrap;line-height:1.6;padding:8px 10px;border-radius:6px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// GAS設定
+// ============================================================
+const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbxvxOoOGVKi_L9U9BG6aZI8fL9hP-O1EExPQsshppITG7BkpHsFNUbDwv9gs5nbI4wJ-w/exec';
+const GAS_URL = GAS_DEPLOY_URL;
+
+// ============================================================
+// 設定
+// ============================================================
+const SAVE_KEY       = 'shipping_data_v1';
+const SAVE_KEY_FILES = 'shipping_files_v1';
+const SAVE_KEY_LOG   = 'shipping_log_v1';
+
+const USERS = [
+  { id: 'admin',  pw: '435511spk', name: '管理者',   admin: true  },
+  { id: 'kouki',  pw: 'admin',     name: '安田光輝', admin: false },
+  { id: 'ryota',  pw: 'admin1',    name: '吉村亮汰', admin: false },
+  { id: 'tomoki', pw: 'admin2',    name: '安田智貴', admin: false },
+];
+const SESSION_KEY = 'shipping_session_v1';
+
+let records          = [];
+let filterMode       = 'all';
+let filterHinban     = '';
+let expandedGroups   = {};
+let currentHinban    = '';
+let loadedFiles      = [];
+let sourceFileName   = '';
+let logEntries       = [];
+let autoSaveTimer    = null;
+let cloudSaveTimer   = null;
+let autoRefreshTimer = null;
+let autoRefreshInterval = 300;
+let autoRefreshEnabled  = false;
+
+function getBaseFileName(filename) {
+  var name = filename.replace(/\.(csv|CSV)$/i, '');
+  var prev;
+  do { prev = name; name = name.replace(/[_　]*(未完了|完了済|キャンセル)$/, ''); } while (name !== prev);
+  return name;
+}
+
+function currentUserName() {
+  try {
+    const sess = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    return sess ? sess.name : '不明';
+  } catch(e) { return '不明'; }
+}
+
+// ============================================================
+// アラート音
+// ============================================================
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx || _audioCtx.state === 'closed') {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+function playSound(type) {
+  try {
+    const ctx = getAudioCtx();
+    const t   = ctx.currentTime;
+    function beep(freq, startTime, duration, oscType) {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const comp = ctx.createDynamicsCompressor();
+      osc.connect(gain); gain.connect(comp); comp.connect(ctx.destination);
+      osc.type = oscType || 'square';
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(2.0, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.start(startTime); osc.stop(startTime + duration);
+    }
+    if (type === 'ok') { beep(1200, t, 0.15, 'sine'); beep(1600, t + 0.2, 0.2, 'sine'); }
+    else { beep(200, t, 0.2, 'square'); beep(200, t + 0.25, 0.2, 'square'); beep(200, t + 0.5, 0.2, 'square'); }
+  } catch(e) { console.warn('音声再生失敗:', e); }
+}
+
+// ============================================================
+// 手動・自動更新
+// ============================================================
+async function manualRefresh() {
+  const btn = document.getElementById('refresh-btn');
+  btn.textContent = '🔄 更新中...';
+  restoreData();
+  if (GAS_DEPLOY_URL && GAS_DEPLOY_URL !== 'YOUR_DEPLOY_URL') {
+    try {
+      const res  = await fetch(GAS_DEPLOY_URL + '?action=loadShippingData');
+      const data = await res.json();
+      if (data.ok && data.records && data.records.length > 0) {
+        const cloudMap = {};
+        data.records.forEach(function(r) { cloudMap[r['バーコード番号']] = r; });
+        records = records.map(function(r) {
+          const bc = r['バーコード番号'];
+          if (cloudMap[bc]) {
+            r['消込済']   = cloudMap[bc]['消込済']   || r['消込済'];
+            r['消込日時'] = cloudMap[bc]['消込日時'] || r['消込日時'];
+            r['納品調整'] = cloudMap[bc]['納品調整'] || r['納品調整'];
+          }
+          return r;
+        });
+        updateStats(); renderList(); autoSave();
+        showFB('ok', '☁️ クラウドと同期しました');
+      }
+    } catch(err) { console.warn('クラウド同期失敗:', err.message); }
+  }
+  btn.textContent = '✅ 更新済';
+  setTimeout(function() { btn.textContent = '🔄 更新'; }, 1500);
+}
+
+function toggleAutoRefresh() {
+  autoRefreshEnabled = !autoRefreshEnabled;
+  const btn = document.getElementById('auto-refresh-btn');
+  if (autoRefreshEnabled) {
+    btn.textContent = '⏱ 自動更新 5分';
+    btn.style.background = 'rgba(30,138,85,0.6)';
+    startAutoRefresh();
+    showFB('ok', '自動更新をONにしました（5分ごと）');
+  } else {
+    btn.textContent = '⏱ 自動更新 OFF';
+    btn.style.background = '';
+    stopAutoRefresh();
+    showFB('warn', '自動更新をOFFにしました');
+  }
+}
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  autoRefreshTimer = setInterval(() => { restoreData(); }, autoRefreshInterval * 1000);
+  let countdown = autoRefreshInterval;
+  const countTimer = setInterval(() => {
+    if (!autoRefreshEnabled) { clearInterval(countTimer); return; }
+    countdown--;
+    if (countdown <= 0) countdown = autoRefreshInterval;
+    const btn = document.getElementById('auto-refresh-btn');
+    const mins = Math.ceil(countdown / 60);
+    const secs = countdown % 60;
+    if (btn) btn.textContent = `⏱ 自動更新 ${mins}分${secs > 0 ? secs + '秒' : ''}`;
+  }, 1000);
+}
+
+function stopAutoRefresh() {
+  if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const loginIdEl = document.getElementById('login-id');
+  const loginPwEl = document.getElementById('login-pw');
+  if (loginIdEl) loginIdEl.addEventListener('keydown', e => { if(e.key==='Enter') { if(loginPwEl) loginPwEl.focus(); } });
+  if (loginPwEl) loginPwEl.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  const hinbanEl = document.getElementById('hinban-input');
+  if (hinbanEl) hinbanEl.addEventListener('keydown', e => { if(e.key==='Enter') { e.preventDefault(); setHinban(); } });
+  const scanEl = document.getElementById('scan-input');
+  if (scanEl) scanEl.addEventListener('keydown', e => { if(e.key==='Enter') { e.preventDefault(); doScan(); } });
+});
+
+// ============================================================
+// 自動保存・復元
+// ============================================================
+function autoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(records));
+      localStorage.setItem(SAVE_KEY_FILES, JSON.stringify(loadedFiles));
+      localStorage.setItem(SAVE_KEY_LOG, JSON.stringify(logEntries));
+      const el = document.getElementById('save-indicator');
+      if (el) { el.textContent = '💾 保存済 ' + nowStr().slice(11,16); el.style.opacity='1'; setTimeout(()=>el.style.opacity='.4',2000); }
+    } catch(e) { console.warn('自動保存失敗:', e); }
+    saveToCloud();
+  }, 800);
+}
+
+async function saveToCloud() {
+  if (!GAS_DEPLOY_URL || GAS_DEPLOY_URL.includes('YOUR_DEPLOY_URL')) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(async () => {
+    try {
+      const payload = { action: 'saveShippingData', records: records, logEntries: logEntries, savedAt: nowStr() };
+      const res = await fetch(GAS_DEPLOY_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.ok) {
+        const el = document.getElementById('save-indicator');
+        if (el) { el.textContent = '☁️ クラウド保存済 ' + nowStr().slice(11,16); el.style.opacity='1'; setTimeout(()=>el.style.opacity='.4',3000); }
+      }
+    } catch(e) { console.warn('クラウド保存失敗:', e.message); }
+  }, 1500);
+}
+
+async function loadFromCloud() {
+  if (!GAS_DEPLOY_URL || GAS_DEPLOY_URL.includes('YOUR_DEPLOY_URL')) { showFB('warn', 'GAS_DEPLOY_URLが未設定です'); return; }
+  try {
+    const res = await fetch(GAS_DEPLOY_URL + '?action=loadShippingData');
+    const data = await res.json();
+    if (data.ok && data.records && data.records.length > 0) {
+      records = data.records; logEntries = data.logEntries || [];
+      updateStats(); renderList();
+      showFB('ok', '☁️ クラウドから復元しました（' + records.length + '件）');
+      autoSave();
+    } else { showFB('warn', 'クラウドにデータがありません'); }
+  } catch(e) { showFB('err', 'クラウド読込失敗: ' + e.message); }
+}
+
+function restoreData() {
+  try {
+    const saved      = localStorage.getItem(SAVE_KEY);
+    const savedFiles = localStorage.getItem(SAVE_KEY_FILES);
+    const savedLog   = localStorage.getItem(SAVE_KEY_LOG);
+    if (saved) {
+      const newRecords = JSON.parse(saved);
+      const prevDone   = records.filter(r=>isDone(r)).length;
+      records     = newRecords;
+      loadedFiles = savedFiles ? JSON.parse(savedFiles) : [];
+      logEntries  = savedLog   ? JSON.parse(savedLog)   : [];
+      const newDone = records.filter(r=>isDone(r)).length;
+      updateStats(); renderList(); renderHinbanFilter(); updateChips();
+      const el = document.getElementById('save-indicator');
+      if (el) { el.textContent = '🔄 ' + nowStr().slice(11,16) + ' 更新'; el.style.opacity='1'; setTimeout(()=>el.style.opacity='.4',3000); }
+      if (prevDone > 0 && newDone !== prevDone) showFB('ok', `データが更新されました（消込済: ${prevDone}→${newDone}件）`);
+    }
+  } catch(e) { console.warn('復元失敗:', e); }
+}
+
+// ============================================================
+// CSV読み込み
+// ============================================================
+function loadCSVFiles(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  let pending = files.length;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      let text = e.target.result;
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      const lines   = text.trim().split('\n');
+      const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+      const newRecs = lines.slice(1).map(line => {
+        const cols = splitCSV(line); const obj = {};
+        headers.forEach((h, i) => {
+          let v = (cols[i]||'').trim().replace(/^"|"$/g,'').replace(/^=?"?([^"]*)"?$/, '$1').replace(/^=/,'');
+          obj[h] = v;
+        });
+        if (obj['品番']) obj['品番'] = obj['品番'].replace(/-/g,'');
+        if (!obj['消込済'])   obj['消込済']   = '未';
+        if (!obj['消込日時']) obj['消込日時'] = '';
+        if (!obj['納品調整']) obj['納品調整'] = '';
+        return obj;
+      }).filter(r => r['品番'] && r['バーコード番号']);
+      const existingBCs = new Set(records.map(r => r['バーコード番号']));
+      let added = 0, skipped = 0;
+      newRecs.forEach(r => {
+        const bc = r['バーコード番号'];
+        if (existingBCs.has(bc)) { skipped++; } else { records.push(r); existingBCs.add(bc); added++; }
+      });
+      if (!loadedFiles.includes(file.name)) loadedFiles.push(file.name);
+      if (!sourceFileName) sourceFileName = getBaseFileName(file.name);
+      showFB('ok', `${file.name}：追加 ${added}件 / 重複スキップ ${skipped}件`);
+      pending--;
+      if (pending === 0) { updateStats(); renderList(); renderHinbanFilter(); updateChips(); autoSave(); }
+    };
+    reader.readAsText(file, 'utf-8');
+  });
+  input.value = '';
+}
+
+function loadCSVFromFile(input) { loadCSVFiles(input); }
+
+function splitCSV(line) {
+  const cols = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c==='"') inQ=!inQ;
+    else if (c===',' && !inQ) { cols.push(cur); cur=''; }
+    else cur+=c;
+  }
+  cols.push(cur);
+  return cols;
+}
+
+function updateChips() {
+  const wrap = document.getElementById('file-chips-wrap');
+  wrap.style.display = loadedFiles.length ? 'block' : 'none';
+  document.getElementById('chip-list').innerHTML = loadedFiles.map(f => `<span class="file-chip">${f}</span>`).join('');
+}
+
+function clearAll() {
+  if (!confirm('ページをリセットしますか？\n（読み込んだCSVデータはすべて消去されます）')) return;
+  try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(SAVE_KEY_FILES); localStorage.removeItem(SAVE_KEY_LOG); } catch(e) {}
+  sourceFileName = '';
+  location.reload();
+}
+
+// ============================================================
+// 品番セット・QR照合
+// ============================================================
+function setHinban() {
+  const inp = document.getElementById('hinban-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  currentHinban = (val.length >= 20 ? val.slice(0,11).trim() : val).replace(/[-\s]/g,'');
+  const st = document.getElementById('hinban-status');
+  st.className = 'scan-status active';
+  st.textContent = '品番セット: ' + currentHinban;
+  inp.value = '';
+  const area = document.getElementById('scan-area');
+  const scan = document.getElementById('scan-input');
+  area.style.display = 'block';
+  scan.value = '';
+  setTimeout(() => scan.focus(), 80);
+  showFB('ok','品番「'+currentHinban+'」をセット。②の納品ラベルQRをスキャンしてください');
+}
+
+function resetHinban() {
+  currentHinban = '';
+  const st = document.getElementById('hinban-status');
+  st.className = 'scan-status';
+  st.textContent = '未スキャン';
+  const area  = document.getElementById('scan-area');
+  const scanEl = document.getElementById('scan-input');
+  if (area)   area.style.display = 'none';
+  if (scanEl) scanEl.value = '';
+  setTimeout(() => { const el = document.getElementById('hinban-input'); if (el) { el.value = ''; el.focus(); } }, 100);
+}
+
+function parseQR(raw) {
+  raw = raw.trim();
+  if (raw.length >= 64) return { hinban: raw.slice(0,11).trim().replace(/[-\s]/g,''), barcode: raw.slice(44,64).trim().replace(/^KE/,''), full: true };
+  const m = raw.match(/(\d{18})/);
+  return { hinban:'', barcode: m ? m[1] : raw, full: false };
+}
+
+function doScan() {
+  const inp = document.getElementById('scan-input');
+  const raw = inp.value.trim();
+  if (!raw) return;
+  if (!records.length) { playSound('err'); showFB('err','まずCSVを読み込んでください'); inp.value=''; return; }
+  if (!currentHinban) { playSound('err'); showFB('warn','①で現品票の品番をスキャンしてください'); inp.value=''; document.getElementById('hinban-input').focus(); return; }
+  const parsed = parseQR(raw);
+  if (parsed.full && parsed.hinban && parsed.hinban !== currentHinban) {
+    playSound('err'); showFB('err','品番不一致！現品票:「'+currentHinban+'」 QR:「'+parsed.hinban+'」');
+    inp.value=''; resetHinban(); return;
+  }
+  const bc  = parsed.barcode;
+  const idx = records.findIndex(r => r['バーコード番号']===bc);
+  if (idx===-1) {
+    playSound('err'); showFB('err','不一致：バーコード「'+bc+'」はリストにありません');
+    inp.value=''; resetHinban(); return;
+  } else if (records[idx]['消込済']==='済' && records[idx]['納品調整']!=='後ろ倒し') {
+    playSound('err'); showFB('warn','警告：既に消込済です（'+records[idx]['品番']+' / '+bc+'）');
+    inp.value=''; resetHinban(); return;
+  } else {
+    const csvHinban = (records[idx]['品番']||'').replace(/[-\s]/g,'');
+    if (currentHinban && csvHinban !== currentHinban) {
+      playSound('err'); showFB('err','品番不一致！現品票:「'+currentHinban+'」 CSV:「'+records[idx]['品番']+'」');
+      inp.value=''; resetHinban(); return;
+    }
+    const ts = nowStr();
+    records[idx]['消込済']='済'; records[idx]['消込日時']=ts;
+    if (records[idx]['納品調整']==='後ろ倒し') records[idx]['納品調整']='';
+    logEntries.push({ts, 品番:records[idx]['品番'], バーコード番号:bc, 発注番号:records[idx]['発注番号']||'', 納品先:records[idx]['納品先']||'', 連番:records[idx]['連番']||'', 総数:records[idx]['総数']||''});
+    playSound('ok'); showFB('ok','✓ 消込完了：品番 '+records[idx]['品番']+' / '+bc);
+    inp.value='';
+    const area = document.getElementById('scan-area');
+    if (area) area.style.display = 'none';
+    currentHinban = '';
+    document.getElementById('hinban-status').className  = 'scan-status';
+    document.getElementById('hinban-status').textContent = '未スキャン';
+    const hinbanEl = document.getElementById('hinban-input');
+    if (hinbanEl) { hinbanEl.value = ''; hinbanEl.focus(); }
+    setTimeout(() => { updateStats(); renderList(); autoSave(); }, 50);
+    return;
+  }
+  inp.value=''; resetHinban();
+}
+
+function updateStats() {
+  const active    = records.filter(r=>!isCancelled(r));
+  const total     = active.length;
+  const done      = active.filter(r=>isDone(r)).length;
+  const cancelCnt = records.filter(r=>isCancelled(r)).length;
+  document.getElementById('s-total').textContent  = total + (cancelCnt > 0 ? ` (取消${cancelCnt})` : '');
+  document.getElementById('s-done').textContent   = done;
+  document.getElementById('s-remain').textContent = active.filter(r=>isPending(r)).length;
+  document.getElementById('prog').style.width     = (total > 0 ? Math.round(done/total*100) : 0) + '%';
+}
+
+// ============================================================
+// リスト描画
+// ============================================================
+function setFilter(mode,btn) {
+  filterMode=mode;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderList();
+}
+
+function renderHinbanFilter() {
+  const wrap = document.getElementById('hinban-filter-wrap');
+  if (wrap) wrap.style.display = 'none';
+}
+
+function toggleGroup(hn) { expandedGroups[hn] = !expandedGroups[hn]; renderList(); }
+
+function renderList() {
+  const body   = document.getElementById('list-body');
+  const search = (document.getElementById('search-box').value || '').toLowerCase();
+  let list = filterMode==='pending'   ? records.filter(r=>isPending(r))
+           : filterMode==='done'      ? records.filter(r=>isDone(r))
+           : filterMode==='adjusted'  ? records.filter(r=>r['納品調整'] && !isCancelled(r))
+           : filterMode==='cancelled' ? records.filter(r=>isCancelled(r))
+           : records;
+  if (filterHinban) list = list.filter(r => (r['品番']||'').replace(/-/g,'') === filterHinban);
+  if (search) list = list.filter(r => (r['品番']||'').toLowerCase().includes(search) || (r['バーコード番号']||'').includes(search) || (r['発注番号']||'').toLowerCase().includes(search));
+  if (!list.length) { body.innerHTML='<div class="empty">該当なし</div>'; return; }
+  const groups = {}; const order = [];
+  list.forEach(function(r) {
+    const hn = (r['品番']||'').replace(/-/g,'') || '(不明)';
+    if (!groups[hn]) { groups[hn] = []; order.push(hn); }
+    groups[hn].push(r);
+  });
+  const rows = [];
+  order.forEach(function(hn) {
+    const grp       = groups[hn];
+    const doneCount = grp.filter(r => isDone(r)).length;
+    const total     = grp.length;
+    const color     = doneCount === total ? '#1e8a55' : '#e8a000';
+    const mukouMap  = {};
+    grp.forEach(function(r) {
+      const mk = (r['行先コード'] || '').trim();
+      if (!mk) return;
+      if (!mukouMap[mk]) mukouMap[mk] = { total: 0, done: 0 };
+      mukouMap[mk].total++;
+      if (isDone(r)) mukouMap[mk].done++;
+    });
+    const mukouKeys = Object.keys(mukouMap).sort();
+    let mukouHtml = '';
+    if (mukouKeys.length > 0) {
+      mukouHtml = '<span style="font-size:11px;font-weight:400;margin-left:8px;color:#555;white-space:nowrap">';
+      mukouKeys.forEach(function(mk) {
+        const info = mukouMap[mk];
+        const mc   = info.done === info.total ? '#1e8a55' : '#e8a000';
+        mukouHtml += mk + ':<span style="color:' + mc + '">' + info.done + '/' + info.total + '</span>　';
+      });
+      mukouHtml += '</span>';
+    }
+    const isOpen = expandedGroups[hn] === true;
+    const arrow  = isOpen ? '▲' : '▼';
+    rows.push('<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:2px;padding:7px 12px;background:#f0f0ea;border-left:4px solid ' + color + ';border-radius:6px;margin-top:12px;font-size:13px;font-weight:700;cursor:pointer" data-grp="' + hn + '" onclick="toggleGroup(this.dataset.grp)"><span>' + hn + ' <span style="font-size:11px;color:#999;font-weight:400">' + arrow + '</span>' + mukouHtml + '</span><span style="color:' + color + ';font-size:12px;flex-shrink:0">' + doneCount + ' / ' + total + '</span></div>');
+    if (!isOpen) return;
+    grp.forEach(function(r) {
+      const done      = isDone(r);
+      const cancelled = isCancelled(r);
+      const adj       = r['納品調整'] || '';
+      const bc        = r['バーコード番号'] || '';
+      const adjClass  = cancelled ? 'cancelled' : adj==='前倒し' ? 'adjusted-mae' : adj==='後ろ倒し' ? 'adjusted-ato' : '';
+      const badgeAdj  = adj==='前倒し' ? 'badge-adj-mae' : adj==='後ろ倒し' ? 'badge-adj-ato' : 'badge-cancel';
+      rows.push('<div class="list-item ' + (done?'done':'') + ' ' + adjClass + '" id="item-' + bc + '" style="border-radius:0;border-top:none"><div style="width:0;flex-shrink:0"></div><div class="item-body"><div class="item-top"><span class="item-hinban">' + (r['品番']||'') + '</span><span style="display:flex;gap:4px;align-items:center;flex-shrink:0">' + (adj ? '<span class="badge ' + badgeAdj + '">' + adj + '</span>' : '') + '<span class="badge ' + (done?'badge-done':cancelled?'badge-cancel':'badge-pending') + '">' + (done?'済':cancelled?'取消':'未') + '</span></span></div><div class="item-bc">' + bc + '</div><div class="item-meta"><span>数量:' + (r['数量']||'') + '</span><span>連番:' + (r['連番']||'') + '/' + (r['総数']||'') + '</span><span>納品日:' + (r['納品日']||'') + '</span><span>発注:' + (r['発注番号']||'') + '</span>' + (done ? '<span style="color:#1e8a55">消込:' + (r['消込日時']||'') + '</span>' : '') + '</div></div></div>');
+    });
+  });
+  body.innerHTML = rows.join('');
+}
+
+function switchTab(tab,btn) {
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-list').style.display   = tab==='list'   ? 'block' : 'none';
+  document.getElementById('tab-log').style.display    = tab==='log'    ? 'block' : 'none';
+  if (tab==='log') renderLog();
+}
+
+function renderLog() {
+  const body = document.getElementById('log-body');
+  if (!logEntries.length) { body.innerHTML='<div class="empty">消込履歴なし</div>'; return; }
+  body.innerHTML = [...logEntries].reverse().map(r=>`<div class="list-item"><div style="width:16px;flex-shrink:0"></div><div class="item-body"><div class="item-top"><span class="item-hinban">${r['品番']||''}</span><span style="font-size:11px;color:#aaa">${r['ts']||''}</span></div><div class="item-bc">${r['バーコード番号']||''}</div><div class="item-meta"><span>${r['納品先']||''}</span><span>連番:${r['連番']||''}/${r['総数']||''}</span></div></div></div>`).join('');
+}
+
+// ============================================================
+// CSV書き出し
+// ============================================================
+async function exportCSVByStatus() {
+  if (!records.length) { showFB('err', 'データがありません'); return; }
+  const today = todayStr();
+  if (GAS_DEPLOY_URL && GAS_DEPLOY_URL !== 'YOUR_DEPLOY_URL') {
+    showFB('ok', '📤 CSV書き出し中...');
+    try {
+      const baseName = sourceFileName || ('出荷指示_' + today);
+      const res = await fetch(GAS_DEPLOY_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'saveCSVByStatus', records: records, today: today, baseName: baseName, tanto: currentUserName(), sourceFileNames: loadedFiles })
+      });
+      const resText = await res.text();
+      let data;
+      try { data = JSON.parse(resText); } catch(e) { throw new Error('JSONパース失敗: ' + resText.slice(0,100)); }
+      if (!data.ok) throw new Error(data.message);
+      const msgs = [];
+      data.results.forEach(function(r) {
+        if (r.type === 'pending') msgs.push('未完了フォルダ: ' + r.count + '件');
+        if (r.type === 'done')    msgs.push('完了フォルダ: '   + r.count + '件');
+        if (r.type === 'cancel')  msgs.push('キャンセルフォルダ: ' + r.count + '件');
+      });
+      showFB('ok', '☁️ Googleドライブに保存しました\n' + msgs.join('\n'));
+    } catch(err) { showFB('err', '書き出し失敗: ' + err.message); }
+  } else {
+    const pending   = records.filter(function(r) { return isPending(r); });
+    const done      = records.filter(function(r) { return isDone(r); });
+    const cancelled = records.filter(function(r) { return isCancelled(r); });
+    const baseName2 = sourceFileName || ('出荷指示_' + today);
+    if (pending.length)   downloadCSV(makeCSV(pending),   baseName2 + '_未完了.csv');
+    if (done.length)      downloadCSV(makeCSV(done),      baseName2 + '_完了済.csv');
+    if (cancelled.length) downloadCSV(makeCSV(cancelled), baseName2 + '_キャンセル.csv');
+    showFB('ok', 'CSVをダウンロードしました（未完了:' + pending.length + '件 完了:' + done.length + '件 キャンセル:' + cancelled.length + '件）');
+  }
+}
+
+function makeCSV(data) {
+  const keys = ['品番','数量','バーコード番号','発注番号','納品先','荷姿','行先コード','連番','総数','出荷日','納品日','納品調整','発送元','消込済','消込日時'];
+  let csv = '\uFEFF' + keys.join(',') + '\n';
+  data.forEach(r => {
+    csv += keys.map(k => {
+      let v = r[k] || '';
+      if (k==='消込済'   && r['納品調整']==='後ろ倒し') v = '未';
+      if (k==='消込日時' && r['納品調整']==='後ろ倒し') v = '';
+      if (k==='バーコード番号') return '="' + v + '"';
+      return v.includes(',') ? '"' + v + '"' : v;
+    }).join(',') + '\n';
+  });
+  return csv;
+}
+
+function downloadCSV(csv, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = filename;
+  a.click();
+}
+
+// ============================================================
+// ユーティリティ
+// ============================================================
+function todayStr()     { const d=new Date(); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate()); }
+function isCancelled(r) { return r['納品調整'] === 'キャンセル'; }
+function isPending(r)   { if (isCancelled(r)) return false; return r['消込済'] !== '済' || r['納品調整'] === '後ろ倒し'; }
+function isDone(r)      { if (isCancelled(r)) return false; return r['消込済'] === '済' && r['納品調整'] !== '後ろ倒し'; }
+function nowStr()       { const d=new Date(); return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
+function pad(n)         { return String(n).padStart(2,'0'); }
+function showFB(type,msg) { const fb=document.getElementById('feedback'); fb.className='feedback '+type; fb.textContent=msg; }
+
+// ============================================================
+// 「その他」ドロップダウンメニュー
+// ============================================================
+function toggleMoreMenu() {
+  const menu = document.getElementById('more-menu');
+  const opening = !menu.classList.contains('show');
+  menu.classList.toggle('show');
+  if (opening) positionMoreMenu();
+}
+function closeMoreMenu() {
+  document.getElementById('more-menu').classList.remove('show');
+}
+function positionMoreMenu() {
+  const menu = document.getElementById('more-menu');
+  const wrap = document.querySelector('.more-wrap');
+  if (!menu || !wrap) return;
+  // いったん基準位置（右端揃え）に戻して幅を計測
+  menu.style.left  = 'auto';
+  menu.style.right = '0';
+  const margin   = 8;
+  const wrapRect = wrap.getBoundingClientRect();
+  const menuRect = menu.getBoundingClientRect();
+  if (menuRect.left < margin) {
+    // 画面左端からはみ出す場合はボタンの左端に揃えて右側に開く
+    menu.style.right = 'auto';
+    menu.style.left  = (margin - wrapRect.left) + 'px';
+  }
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.more-wrap');
+  if (wrap && !wrap.contains(e.target)) closeMoreMenu();
+});
+
+restoreData();
+
+// ============================================================
+// ログイン機能
+// ============================================================
+function switchLoginTab(type) {
+  const tabAdmin = document.getElementById('tab-admin');
+  const tabStaff = document.getElementById('tab-staff');
+  if (type === 'admin') { tabAdmin.classList.add('active'); tabStaff.classList.remove('active'); }
+  else { tabStaff.classList.add('active'); tabAdmin.classList.remove('active'); }
+  document.getElementById('login-id').value = '';
+  document.getElementById('login-pw').value = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function doLogin() {
+  const id    = document.getElementById('login-id').value.trim();
+  const pw    = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  const user  = USERS.find(u => u.id === id && u.pw === pw);
+  if (!user) { errEl.style.display = 'block'; document.getElementById('login-pw').value = ''; return; }
+  errEl.style.display = 'none';
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id: user.id, name: user.name, admin: user.admin })); } catch(e){}
+  showMainScreen(user);
+}
+
+function showMainScreen(user) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display  = 'block';
+  const nameEl = document.getElementById('user-name-display');
+  if (nameEl) nameEl.textContent = '👤 ' + user.name + ' さん';
+  restoreData();
+}
+
+function notifyOfflineShipping() {
+  try {
+    const sess = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if (!sess || !GAS_DEPLOY_URL || GAS_DEPLOY_URL === 'YOUR_DEPLOY_URL') return;
+    const url = GAS_DEPLOY_URL + '?action=setOnlineStatus&appId=shipping&userId=' + encodeURIComponent(sess.id) + '&userName=' + encodeURIComponent(sess.name) + '&action2=logout';
+    if (navigator.sendBeacon) { navigator.sendBeacon(url); }
+    else { fetch(url, { keepalive: true, redirect: 'follow' }).catch(() => {}); }
+  } catch(e) {}
+}
+window.addEventListener('beforeunload', notifyOfflineShipping);
+window.addEventListener('pagehide',     notifyOfflineShipping);
+
+function doLogout() {
+  if (!confirm('ログアウトしますか？')) return;
+  notifyOfflineShipping();
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(e){}
+  stopAutoRefresh();
+  document.getElementById('main-screen').style.display  = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-id').value = '';
+  document.getElementById('login-pw').value = '';
+}
+
+// ポータルへ戻る既定URL（ポータルからの起動時はportal_urlパラメータが優先される）
+const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/AKfycbzAB87ZCwdp3mgVTMe8kS-bAgQAEleWotqJGS72GJCx3UkNKoLu-i2r2WBgibzpN9sU/exec';
+
+function closeTab() {
+  notifyOfflineShipping();
+  try { window.close(); } catch(e) {}
+  // window.close()が効かない場合（タブがスクリプト経由で開かれていない等）のフォールバック
+  setTimeout(function() {
+    const portalUrl = new URLSearchParams(window.location.search).get('portal_url');
+    window.location.href = portalUrl ? decodeURIComponent(portalUrl) : DEFAULT_PORTAL_URL;
+  }, 300);
+}
+
+// SSO
+(function() {
+  function parseSSOToken(token) {
+    try {
+      const decoded = atob(token.split('').reverse().join(''));
+      const data    = JSON.parse(decoded);
+      if (Date.now() - data.ts > 5 * 60 * 1000) return null;
+      return data;
+    } catch(e) { return null; }
+  }
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('sso');
+  if (token) {
+    const data = parseSSOToken(token);
+    if (data) {
+      window.history.replaceState({}, '', window.location.pathname);
+      let name = data.name || '';
+      try { name = decodeURIComponent(escape(name)); } catch(e) {}
+      const user = { id: data.id, name: name, admin: data.role === 'admin' || data.role === 'master' };
+      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(user)); } catch(e) {}
+      showMainScreen(user);
+      return;
+    }
+  }
+  try {
+    const sess = sessionStorage.getItem(SESSION_KEY);
+    if (sess) { const user = JSON.parse(sess); showMainScreen(user); return; }
+  } catch(e) {}
+  document.getElementById('login-screen').style.display = 'flex';
+})();
+
+// ============================================================
+// ドライブ ファイル一覧取得
+// ============================================================
+function showCsvModal() {
+  const fb = document.getElementById('url-feedback');
+  if (fb) { fb.style.display = 'none'; fb.textContent = ''; }
+  const fileList = document.getElementById('drive-file-list');
+  if (fileList) fileList.style.display = 'none';
+  document.getElementById('url-modal').classList.add('show');
+}
+
+function closeUrlModal() {
+  document.getElementById('url-modal').classList.remove('show');
+  const fb = document.getElementById('url-feedback');
+  if (fb) { fb.style.display = 'none'; fb.textContent = ''; }
+  const fileList = document.getElementById('drive-file-list');
+  if (fileList) fileList.style.display = 'none';
+}
+
+async function loadDriveFileList() {
+  if (!GAS_DEPLOY_URL || GAS_DEPLOY_URL === 'YOUR_DEPLOY_URL') { showUrlFb('GAS_DEPLOY_URLが未設定です', 'err'); return; }
+  showUrlFb('ファイル一覧を取得中...', 'info');
+  try {
+    const res  = await fetch(GAS_DEPLOY_URL + '?action=getFileList');
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { showUrlFb('GASの応答がJSONではありません\n' + text.slice(0, 100), 'err'); return; }
+    if (!data.ok) throw new Error(data.message || '取得失敗');
+    if (!data.files || data.files.length === 0) { showUrlFb('フォルダにCSVファイルがありません', 'warn'); return; }
+    const listEl = document.getElementById('drive-file-list');
+    listEl.style.display = 'block';
+    data.files.sort(function(a, b) {
+      if (a.folder === 'pending' && b.folder !== 'pending') return -1;
+      if (a.folder !== 'pending' && b.folder === 'pending') return 1;
+      return new Date(a.updated) - new Date(b.updated);
+    });
+    const pendingFiles = data.files.filter(function(f) { return f.folder === 'pending'; });
+    const sourceFiles  = data.files.filter(function(f) { return f.folder !== 'pending'; });
+    var html2 = '<div style="padding:8px 12px;border-bottom:2px solid #e5e5e0;display:flex;justify-content:space-between;align-items:center;background:#f9f9f7"><span style="font-size:11px;color:#888">' + data.files.length + '件（複数選択可）</span><button onclick="loadSelectedFiles()" style="padding:6px 16px;background:#1e8a55;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">選択して読込</button></div>';
+    if (pendingFiles.length > 0) {
+      html2 += '<div style="padding:6px 12px;background:#fff8ec;font-size:11px;font-weight:700;color:#b56e00;border-bottom:1px solid #f0e8cc">🔄 作業中（未完了フォルダ）</div>';
+      pendingFiles.forEach(function(f) {
+        var safeName = f.name.replace(/'/g, "\'");
+        var labelColor = f.label && f.label.includes('前倒し') ? '#1a5fb4' : f.label && f.label.includes('後ろ倒し') ? '#c0392b' : '#b56e00';
+        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fffdf5"><input type="checkbox" value="' + f.id + '" data-name="' + safeName + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#e8a000"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + f.name + '</div><div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center"><span style="color:' + labelColor + ';font-weight:600">' + (f.label||'') + '</span><span style="color:#888">' + f.updated + '</span></div></div></label>';
+      });
+    }
+    if (sourceFiles.length > 0) {
+      html2 += '<div style="padding:6px 12px;background:#f0f5ff;font-size:11px;font-weight:700;color:#3a7bdc;border-bottom:1px solid #dce8ff">🆕 新規（読込元フォルダ）</div>';
+      sourceFiles.forEach(function(f) {
+        var safeName = f.name.replace(/'/g, "\'");
+        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" value="' + f.id + '" data-name="' + safeName + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#3a7bdc"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + f.name + '</div><div style="font-size:11px;color:#888;margin-top:3px">' + f.updated + '</div></div></label>';
+      });
+    }
+    listEl.innerHTML = html2;
+    showUrlFb(data.files.length + '件見つかりました（作業中:' + pendingFiles.length + '件 / 新規:' + sourceFiles.length + '件）', 'ok');
+  } catch(err) { showUrlFb('エラー: ' + err.message, 'err'); }
+}
+
+async function loadSelectedFiles() {
+  const checkboxes = document.querySelectorAll('#drive-file-list input[type=checkbox]:checked');
+  if (checkboxes.length === 0) { showUrlFb('ファイルを1つ以上選択してください', 'warn'); return; }
+  document.getElementById('drive-file-list').style.display = 'none';
+  let totalAdded = 0, totalSkipped = 0;
+  const movedFileIds = [];
+  for (let i = 0; i < checkboxes.length; i++) {
+    const cb = checkboxes[i]; const fileId = cb.value; const fileName = cb.dataset.name;
+    showUrlFb('(' + (i+1) + '/' + checkboxes.length + ') ' + fileName + ' 読込中...', 'info');
+    try {
+      const res = await fetch(GAS_DEPLOY_URL + '?action=getCSV&fileId=' + fileId);
+      let text = await res.text();
+      if (text.trim().startsWith('{')) { const d = JSON.parse(text); if (!d.ok) throw new Error(d.message); }
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      const lines = text.trim().split('\n');
+      if (lines.length < 2) continue;
+      const headers = lines[0].split(',').map(function(h) { return h.replace(/^"|"$/g,'').trim(); });
+      const newRecs = lines.slice(1).map(function(line) {
+        const cols = splitCSV(line); const obj = {};
+        headers.forEach(function(h,i) { let v=(cols[i]||'').trim().replace(/^"|"$/g,'').replace(/^=?"?([^"]*)"?$/,'$1').replace(/^=/,''); obj[h]=v; });
+        if(obj['品番']) obj['品番']=obj['品番'].replace(/-/g,'');
+        if(!obj['消込済'])   obj['消込済']='未';
+        if(!obj['消込日時']) obj['消込日時']='';
+        if(!obj['納品調整']) obj['納品調整']='';
+        return obj;
+      }).filter(function(r) { return r['品番'] && r['バーコード番号']; });
+      const existingBCs = new Set(records.map(function(r) { return r['バーコード番号']; }));
+      newRecs.forEach(function(r) {
+        if(existingBCs.has(r['バーコード番号'])) { totalSkipped++; } else { records.push(r); existingBCs.add(r['バーコード番号']); totalAdded++; }
+      });
+      if(!loadedFiles.includes(fileName)) loadedFiles.push(fileName);
+      movedFileIds.push(fileId);
+      if(!sourceFileName) sourceFileName = getBaseFileName(fileName);
+    } catch(err) { showUrlFb('❌ ' + fileName + ': ' + err.message, 'err'); }
+  }
+  updateStats(); renderList(); renderHinbanFilter(); updateChips(); autoSave();
+  showUrlFb('✅ 読込完了！追加 ' + totalAdded + '件 / 重複スキップ ' + totalSkipped + '件', 'ok');
+  if (GAS_DEPLOY_URL && GAS_DEPLOY_URL !== 'YOUR_DEPLOY_URL') {
+    for (var mi = 0; mi < movedFileIds.length; mi++) {
+      try {
+        await fetch(GAS_DEPLOY_URL, { method: 'POST', body: JSON.stringify({ action: 'recordLoadedFileId', fileId: movedFileIds[mi] }) });
+      } catch(e) { console.warn('記録失敗:', e); }
+    }
+  }
+  setTimeout(function() { closeUrlModal(); }, 2500);
+}
+
+function showUrlFb(msg, type) {
+  const fb = document.getElementById('url-feedback');
+  fb.style.display      = 'block';
+  fb.style.padding      = '8px 10px';
+  fb.style.borderRadius = '6px';
+  fb.style.background   = type==='ok' ? '#ecf9f2' : type==='err' ? '#fdecea' : '#fff8ec';
+  fb.style.color        = type==='ok' ? '#1e8a55' : type==='err' ? '#c0392b' : '#b56e00';
+  fb.textContent = msg;
+}
+</script>
+</body>
+</html>
