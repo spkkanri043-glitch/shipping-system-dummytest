@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>実習生勉強会の議事録 | 関ケ原プラ工業(株)</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --pr: #1a3a5c; --prl: #2a5a8c; --ac: #e8a020;
+  --bg: #edf1f6; --sf: #fff; --sf2: #f2f6fb; --sf3: #e8edf4;
+  --tx: #1a2332; --tx2: #5a6a7a; --tx3: #9aabb8;
+  --bd: #cfd9e6; --bd2: #adbace;
+  --g: #0b7a3d; --gbg: #e3f6ed;
+  --a: #b07000; --abg: #fff7db;
+  --r: #b53030; --rbg: #fce8e8;
+  --b: #1655b0; --bbg: #e5effe;
+  --rad: 10px; --rads: 7px;
+}
+html { -webkit-text-size-adjust: 100%; }
+.hid { display: none !important; }
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--tx); font-size: 14px; -webkit-font-smoothing: antialiased; padding-bottom: 40px; }
+
+.topbar { background: var(--pr); padding: 0 14px; height: 48px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,.28); position: sticky; top: 0; z-index: 100; gap: 8px; }
+.tbl { display: flex; align-items: center; gap: 8px; min-width: 0; flex-shrink: 1; }
+.tbic { width: 30px; height: 30px; border-radius: 50%; background: rgba(232,160,32,.2); border: 1px solid rgba(232,160,32,.4); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.tbco { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbmd { font-size: 10px; color: rgba(255,255,255,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbr { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.user-name { font-size: 11px; color: rgba(255,255,255,.85); white-space: nowrap; }
+.badge-role { padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.22); white-space: nowrap; flex-shrink: 0; }
+#btn-close-tab { white-space: nowrap; flex-shrink: 0; }
+
+.content { padding: 14px; max-width: 900px; margin: 0 auto; }
+.notice-card { background: var(--abg); border: 1px solid rgba(176,112,0,.25); border-radius: var(--rad); padding: 12px 14px; margin-bottom: 14px; font-size: 12px; color: var(--tx2); line-height: 1.7; }
+.notice-card b { color: var(--a); }
+
+.toolbar-top { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; justify-content: space-between; }
+.toolbar-top h1 { font-size: 16px; color: var(--pr); }
+
+.card { background: var(--sf); border: 1px solid var(--bd); border-radius: var(--rad); padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+.card-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--bd); color: var(--pr); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.list-item { background: var(--sf); border: 1px solid var(--bd); border-radius: var(--rad); padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.04); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.list-item:active { background: var(--sf2); }
+.list-item-title { font-size: 14px; font-weight: 700; color: var(--pr); }
+.list-item-sub { font-size: 11px; color: var(--tx2); margin-top: 4px; }
+.list-item-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: var(--gbg); color: var(--g); white-space: nowrap; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+.form-grid.full { grid-template-columns: 1fr; }
+.fg { margin-bottom: 2px; }
+.fl { font-size: 12px; color: var(--tx2); display: block; margin-bottom: 4px; font-weight: 500; }
+.fl.req::after { content: ' *'; color: var(--r); }
+.fi { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid var(--bd2); border-radius: var(--rads); background: #f8fafc; color: var(--tx); outline: none; font-family: inherit; -webkit-appearance: none; appearance: none; }
+.fi:focus { border-color: var(--pr); }
+textarea.fi { resize: vertical; min-height: 80px; }
+
+.btn { padding: 9px 16px; font-size: 13px; font-weight: 600; border-radius: var(--rads); cursor: pointer; border: 1px solid var(--bd2); background: var(--sf2); color: var(--tx); font-family: inherit; -webkit-appearance: none; }
+.btn.pri { background: var(--pr); color: #fff; border-color: transparent; }
+.btn.pri:active { background: var(--prl); }
+.btn.gold { background: var(--ac); color: #fff; border-color: transparent; }
+.btn.danger { background: var(--r); color: #fff; border-color: transparent; }
+.btn.sm { padding: 6px 12px; font-size: 12px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.chip-picker { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1px solid var(--bd2); border-radius: var(--rads); background: #f8fafc; max-height: 160px; overflow-y: auto; }
+.chip { font-size: 12px; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--bd2); background: var(--sf); cursor: pointer; user-select: none; white-space: nowrap; }
+.chip.on { background: var(--pr); color: #fff; border-color: var(--pr); }
+
+.attend-box { background: var(--gbg); border: 1px solid rgba(11,122,61,.25); border-radius: var(--rad); padding: 14px 16px; margin-bottom: 14px; }
+.attend-box-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.attend-box-head h3 { font-size: 13px; color: var(--g); }
+.attend-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.attend-pill { font-size: 11.5px; padding: 4px 10px; border-radius: 20px; background: var(--sf); border: 1px solid rgba(11,122,61,.3); color: var(--tx); }
+.attend-pill b { color: var(--g); }
+.attend-empty { font-size: 12px; color: var(--tx2); }
+
+.detail-block { margin-bottom: 14px; }
+.detail-label { font-size: 11px; color: var(--tx3); font-weight: 700; margin-bottom: 4px; letter-spacing: .04em; }
+.detail-body { font-size: 13.5px; white-space: pre-wrap; line-height: 1.7; color: var(--tx); }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 6px; }
+.photo-grid a img { width: 100%; height: 90px; object-fit: cover; border-radius: var(--rads); border: 1px solid var(--bd); }
+.file-link { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--b); }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--tx); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; opacity: 0; transition: all .25s; z-index: 999; pointer-events: none; max-width: 90vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--r); }
+.toast.success { background: var(--g); }
+
+#loading { position: fixed; inset: 0; background: rgba(255,255,255,.75); display: flex; align-items: center; justify-content: center; z-index: 1000; font-size: 13px; color: var(--pr); font-weight: 700; }
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tbl">
+    <div class="tbic">📖</div>
+    <div>
+      <div class="tbco">実習生勉強会の議事録</div>
+      <div class="tbmd">関ケ原プラ工業(株)</div>
+    </div>
+  </div>
+  <div class="tbr">
+    <span class="user-name" id="disp-name">未ログイン(単独プレビュー)</span>
+    <span class="badge-role" id="disp-role"></span>
+    <button class="btn sm hid" id="btn-close-tab" onclick="closeTab()">閉じる</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ============ 一覧画面 ============ -->
+  <div id="view-list">
+    <div class="notice-card">
+      打ち合わせの議事録を共有するアプリです。議事録の作成・更新のほか、各自「参加する」ボタンで参加ログを残せます。
+    </div>
+    <div class="toolbar-top">
+      <h1>実習生勉強会 一覧</h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn sm" onclick="document.getElementById('csv-import-input').click()">📥 CSV取込</button>
+        <input type="file" id="csv-import-input" accept=".csv" class="hid" onchange="handleCsvImportFile(this.files[0])">
+        <button class="btn sm" onclick="exportCsv()">📤 CSV書き出し</button>
+        <button class="btn pri sm" onclick="openNewForm()">＋ 新規作成</button>
+      </div>
+    </div>
+    <div id="list-container"><div class="attend-empty">読み込み中...</div></div>
+  </div>
+
+  <!-- ============ 詳細/編集画面 ============ -->
+  <div id="view-detail" class="hid">
+    <button class="btn sm" style="margin-bottom:12px" onclick="backToList()">← 一覧に戻る</button>
+
+    <!-- 表示モード -->
+    <div id="detail-view-mode">
+      <div class="card">
+        <div class="card-title">
+          <span id="d-title">-</span>
+          <button class="btn sm" id="btn-edit" onclick="openEditForm()">編集</button>
+        </div>
+        <div class="detail-block"><div class="detail-label">開催日時 〜 終了日時</div><div class="detail-body" id="d-datetime">-</div></div>
+        <div class="detail-block"><div class="detail-label">作成者</div><div class="detail-body" id="d-creator">-</div></div>
+        <div class="detail-block"><div class="detail-label">参加者(手動選択)</div><div class="detail-body" id="d-participants">-</div></div>
+        <div class="detail-block"><div class="detail-label">参加者以外の通知先</div><div class="detail-body" id="d-notify">-</div></div>
+        <div class="detail-block"><div class="detail-label">内容</div><div class="detail-body" id="d-content">-</div></div>
+        <div class="detail-block"><div class="detail-label">決定事項</div><div class="detail-body" id="d-decisions">-</div></div>
+        <div class="detail-block"><div class="detail-label">課題・困りごと</div><div class="detail-body" id="d-issues">-</div></div>
+        <div class="detail-block"><div class="detail-label">改善状況写真</div><div class="photo-grid" id="d-photos"></div></div>
+        <div class="detail-block"><div class="detail-label">勉強会資料 / 勉強会の様子</div><div class="detail-body" id="d-files">-</div></div>
+        <div class="detail-block"><div class="detail-label">次回予定日</div><div class="detail-body" id="d-nextdate">-</div></div>
+      </div>
+
+      <!-- 参加ログ(自己申告) -->
+      <div class="attend-box">
+        <div class="attend-box-head">
+          <h3>参加ログ(自己申告)</h3>
+          <button class="btn gold sm" id="btn-checkin" onclick="doCheckIn()">参加する</button>
+        </div>
+        <div class="attend-list" id="attend-list"><span class="attend-empty">まだ参加登録がありません</span></div>
+      </div>
+    </div>
+
+    <!-- 編集/新規作成フォーム -->
+    <div id="detail-edit-mode" class="hid">
+      <div class="card">
+        <div class="card-title" id="edit-form-title">議事録の編集</div>
+        <div class="form-grid full">
+          <div class="fg"><label class="fl">タイトル</label><input class="fi" id="f-title" placeholder="例: 2026年7月20日　実習生勉強会"></div>
+        </div>
+        <div class="form-grid" style="margin-top:12px">
+          <div class="fg"><label class="fl req">開催日時</label><input class="fi" type="datetime-local" id="f-createdAt"></div>
+          <div class="fg"><label class="fl req">終了日時</label><input class="fi" type="datetime-local" id="f-endAt"></div>
+        </div>
+
+        <div class="fg" style="margin-top:12px">
+          <label class="fl">参加者(手動選択)</label>
+          <div class="chip-picker" id="picker-participants"></div>
+        </div>
+        <div class="fg" style="margin-top:12px">
+          <label class="fl">参加者以外の通知先</label>
+          <div class="chip-picker" id="picker-notify"></div>
+        </div>
+
+        <div class="form-grid full" style="margin-top:12px">
+          <div class="fg"><label class="fl">内容</label><textarea class="fi" id="f-content"></textarea></div>
+          <div class="fg"><label class="fl">決定事項</label><textarea class="fi" id="f-decisions"></textarea></div>
+          <div class="fg"><label class="fl">課題・困りごと</label><textarea class="fi" id="f-issues"></textarea></div>
+        </div>
+
+        <div class="form-grid" style="margin-top:12px">
+          <div class="fg"><label class="fl">改善状況写真1</label><input class="fi" type="file" accept="image/*" id="f-photo1"></div>
+          <div class="fg"><label class="fl">改善状況写真2</label><input class="fi" type="file" accept="image/*" id="f-photo2"></div>
+          <div class="fg"><label class="fl">改善状況写真3</label><input class="fi" type="file" accept="image/*" id="f-photo3"></div>
+          <div class="fg"><label class="fl">勉強会資料</label><input class="fi" type="file" id="f-material"></div>
+          <div class="fg"><label class="fl">勉強会の様子</label><input class="fi" type="file" accept="image/*" id="f-scene"></div>
+          <div class="fg"><label class="fl req">次回予定日</label><input class="fi" type="date" id="f-nextDate"></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn pri" onclick="saveForm()">保存</button>
+          <button class="btn" onclick="cancelEdit()">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="loading" class="hid">処理中...</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ==============================================================
+// SSOトークン・GASバックエンドURLの取得(他アプリと同じ方式)
+// ==============================================================
+let currentUser = null, employees = [];
+let BENKYOKAI_GAS_URL = '';
+(function initFromPortal() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const sso = params.get('sso') || '';
+    BENKYOKAI_GAS_URL = params.get('benkyokai_gas_url') || '';
+    if (sso) {
+      const b64 = sso.split('').reverse().join('');
+      const payload = JSON.parse(decodeURIComponent(escape(atob(b64))));
+      currentUser = payload;
+    }
+  } catch (e) { console.error('SSO解析エラー:', e); }
+})();
+
+function renderTopbar() {
+  document.getElementById('disp-name').textContent = currentUser ? currentUser.name : '未ログイン(単独プレビュー)';
+  document.getElementById('disp-role').textContent = currentUser ? currentUser.role : '';
+  if (currentUser) document.getElementById('btn-close-tab').classList.remove('hid');
+}
+
+function closeTab() {
+  try { window.close(); } catch (e) {}
+  setTimeout(() => { showToast('このタブは手動で閉じてください', ''); }, 300);
+}
+
+// ==============================================================
+// GASバックエンド呼び出し(fetch経由。他アプリと同じAPI方式)
+// ==============================================================
+async function gasGet(action, extraParams) {
+  if (!BENKYOKAI_GAS_URL) return null;
+  const qs = new URLSearchParams({ action, ...(extraParams || {}) });
+  const res = await fetch(BENKYOKAI_GAS_URL + '?' + qs.toString());
+  return res.json();
+}
+async function gasPost(action, payload) {
+  if (!BENKYOKAI_GAS_URL) return null;
+  const res = await fetch(BENKYOKAI_GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, ...(payload || {}) })
+  });
+  return res.json();
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast' + (type ? ' ' + type : '');
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800);
+}
+function showLoading(msg) { document.getElementById('loading').textContent = msg || '処理中...'; document.getElementById('loading').classList.remove('hid'); }
+function hideLoading() { document.getElementById('loading').classList.add('hid'); }
+function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+
+// ==============================================================
+// 従業員マスター読み込み(参加者選択チップ用)
+// ==============================================================
+function loadEmployeeMaster() {
+  return gasGet('getEmployeeMaster').then(res => {
+    if (res && res.ok) employees = res.data;
+  }).catch(err => console.error('従業員マスター取得エラー:', err));
+}
+
+let selectedParticipants = [];
+let selectedNotify = [];
+
+function renderPicker(containerId, selectedArr) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = employees.map(e => {
+    const on = selectedArr.some(s => s.id === e.id);
+    return `<span class="chip ${on ? 'on' : ''}" data-id="${escapeHtml(e.id)}" data-name="${escapeHtml(e.name)}" onclick="toggleChip(this,'${containerId}')">${escapeHtml(e.name)}</span>`;
+  }).join('');
+}
+function toggleChip(el, containerId) {
+  el.classList.toggle('on');
+  const arr = containerId === 'picker-participants' ? selectedParticipants : selectedNotify;
+  const id = el.dataset.id, name = el.dataset.name;
+  const idx = arr.findIndex(a => a.id === id);
+  if (el.classList.contains('on')) { if (idx < 0) arr.push({ id, name }); }
+  else { if (idx >= 0) arr.splice(idx, 1); }
+}
+
+// ==============================================================
+// 一覧画面
+// ==============================================================
+function backToList() {
+  document.getElementById('view-detail').classList.add('hid');
+  document.getElementById('view-list').classList.remove('hid');
+  loadList();
+}
+
+function loadList() {
+  const c = document.getElementById('list-container');
+  c.innerHTML = '<div class="attend-empty">読み込み中...</div>';
+  gasGet('getMinutesList').then(res => {
+    if (!res || !res.ok) { c.innerHTML = '<div class="attend-empty">読み込みエラー: ' + escapeHtml(res && res.message) + '</div>'; return; }
+    if (!res.data.length) { c.innerHTML = '<div class="attend-empty">まだ議事録がありません</div>'; return; }
+    c.innerHTML = res.data.map(m => `
+      <div class="list-item" onclick="openDetail('${escapeHtml(m.id)}')">
+        <div>
+          <div class="list-item-title">${escapeHtml(m.title || '(無題)')}</div>
+          <div class="list-item-sub">開催: ${escapeHtml(m.createdAt || '-')}　次回予定: ${escapeHtml(m.nextDate || '-')}　作成者: ${escapeHtml(m.creatorName || '-')}</div>
+        </div>
+        <div class="list-item-badge">参加 ${m.attendanceCount}人</div>
+      </div>`).join('');
+  }).catch(err => { c.innerHTML = '<div class="attend-empty">読み込みエラー: ' + escapeHtml(err.message) + '</div>'; });
+}
+
+// ==============================================================
+// 詳細画面
+// ==============================================================
+let currentDetail = null;
+let currentAttendance = [];
+
+function openDetail(id) {
+  document.getElementById('view-list').classList.add('hid');
+  document.getElementById('view-detail').classList.remove('hid');
+  document.getElementById('detail-view-mode').classList.remove('hid');
+  document.getElementById('detail-edit-mode').classList.add('hid');
+  showLoading('読み込み中...');
+  gasGet('getMinutesDetail', { id }).then(res => {
+    hideLoading();
+    if (!res || !res.ok) { showToast('読み込みエラー: ' + (res && res.message), 'error'); return; }
+    currentDetail = res.data;
+    currentAttendance = res.attendance || [];
+    renderDetail();
+  }).catch(err => { hideLoading(); showToast('読み込みエラー: ' + err.message, 'error'); });
+}
+
+function renderDetail() {
+  const d = currentDetail;
+  document.getElementById('d-title').textContent = d.title || '(無題)';
+  document.getElementById('d-datetime').textContent = (d.createdAt || '-') + '　〜　' + (d.endAt || '-');
+  document.getElementById('d-creator').textContent = d.creatorName || '-';
+  document.getElementById('d-participants').textContent = (d.participants || []).map(p => p.name).join('、') || '(未設定)';
+  document.getElementById('d-notify').textContent = (d.notifyOthers || []).map(p => p.name).join('、') || '(未設定)';
+  document.getElementById('d-content').textContent = d.content || '(未記入)';
+  document.getElementById('d-decisions').textContent = d.decisions || '(未記入)';
+  document.getElementById('d-issues').textContent = d.issues || '(未記入)';
+  document.getElementById('d-nextdate').textContent = d.nextDate || '-';
+
+  const photos = [d.photo1Url, d.photo2Url, d.photo3Url].filter(Boolean);
+  document.getElementById('d-photos').innerHTML = photos.length
+    ? photos.map(u => `<a href="${escapeHtml(u)}" target="_blank"><img src="${escapeHtml(u)}" alt="改善状況写真"></a>`).join('')
+    : '<span class="attend-empty">添付なし</span>';
+
+  const files = [];
+  if (d.materialUrl) files.push(`<a class="file-link" href="${escapeHtml(d.materialUrl)}" target="_blank">📄 勉強会資料</a>`);
+  if (d.sceneUrl) files.push(`<a class="file-link" href="${escapeHtml(d.sceneUrl)}" target="_blank">🖼️ 勉強会の様子</a>`);
+  document.getElementById('d-files').innerHTML = files.length ? files.join('　') : '(添付なし)';
+
+  renderAttendance();
+}
+
+function renderAttendance() {
+  const list = document.getElementById('attend-list');
+  list.innerHTML = currentAttendance.length
+    ? currentAttendance.map(a => {
+        let t = a.checkedInAt || '';
+        try { const dt = new Date(t); if (!isNaN(dt.getTime())) t = dt.toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+        return `<span class="attend-pill"><b>${escapeHtml(a.empName)}</b>　${escapeHtml(t)}</span>`;
+      }).join('')
+    : '<span class="attend-empty">まだ参加登録がありません</span>';
+
+  const btn = document.getElementById('btn-checkin');
+  if (!currentUser) { btn.disabled = true; btn.textContent = 'ポータル経由でログインしてください'; return; }
+  const already = currentAttendance.some(a => String(a.empId) === String(currentUser.id));
+  btn.disabled = already;
+  btn.textContent = already ? '参加済み ✓' : '参加する';
+}
+
+function doCheckIn() {
+  if (!currentUser || !currentDetail) return;
+  showLoading('登録中...');
+  gasPost('checkIn', { minutesId: currentDetail.id, empId: currentUser.id, empName: currentUser.name }).then(res => {
+    hideLoading();
+    if (!res || !res.ok) { showToast('エラー: ' + (res && res.message), 'error'); return; }
+    showToast(res.already ? 'すでに参加登録済みです' : '参加を記録しました', 'success');
+    openDetail(currentDetail.id);
+  }).catch(err => { hideLoading(); showToast('エラー: ' + err.message, 'error'); });
+}
+
+// ==============================================================
+// 新規作成・編集フォーム
+// ==============================================================
+function toLocalInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+function openNewForm() {
+  currentDetail = null; currentAttendance = [];
+  document.getElementById('view-list').classList.add('hid');
+  document.getElementById('view-detail').classList.remove('hid');
+  document.getElementById('detail-view-mode').classList.add('hid');
+  document.getElementById('detail-edit-mode').classList.remove('hid');
+  document.getElementById('edit-form-title').textContent = '新規作成';
+  ['title','content','decisions','issues'].forEach(k => document.getElementById('f-' + k).value = '');
+  document.getElementById('f-createdAt').value = toLocalInput(new Date().toISOString());
+  document.getElementById('f-endAt').value = '';
+  document.getElementById('f-nextDate').value = '';
+  ['f-photo1','f-photo2','f-photo3','f-material','f-scene'].forEach(id => document.getElementById(id).value = '');
+  selectedParticipants = currentUser ? [{ id: currentUser.id, name: currentUser.name }] : [];
+  selectedNotify = [];
+  renderPicker('picker-participants', selectedParticipants);
+  renderPicker('picker-notify', selectedNotify);
+}
+
+function openEditForm() {
+  const d = currentDetail;
+  document.getElementById('view-detail').scrollIntoView();
+  document.getElementById('detail-view-mode').classList.add('hid');
+  document.getElementById('detail-edit-mode').classList.remove('hid');
+  document.getElementById('edit-form-title').textContent = '議事録の編集';
+  document.getElementById('f-title').value = d.title || '';
+  document.getElementById('f-createdAt').value = toLocalInput(d.createdAt);
+  document.getElementById('f-endAt').value = toLocalInput(d.endAt);
+  document.getElementById('f-content').value = d.content || '';
+  document.getElementById('f-decisions').value = d.decisions || '';
+  document.getElementById('f-issues').value = d.issues || '';
+  document.getElementById('f-nextDate').value = d.nextDate || '';
+  ['f-photo1','f-photo2','f-photo3','f-material','f-scene'].forEach(id => document.getElementById(id).value = '');
+  selectedParticipants = (d.participants || []).slice();
+  selectedNotify = (d.notifyOthers || []).slice();
+  renderPicker('picker-participants', selectedParticipants);
+  renderPicker('picker-notify', selectedNotify);
+}
+
+function cancelEdit() {
+  if (currentDetail) {
+    document.getElementById('detail-edit-mode').classList.add('hid');
+    document.getElementById('detail-view-mode').classList.remove('hid');
+  } else {
+    backToList();
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadIfPresent(inputId, minutesId, field) {
+  const input = document.getElementById(inputId);
+  if (!input.files || !input.files[0]) return null;
+  const file = input.files[0];
+  const base64 = await fileToBase64(file);
+  const res = await gasPost('uploadPhoto', { minutesId, field, filename: file.name, mimeType: file.type, base64 });
+  if (!res || !res.ok) throw new Error((res && res.message) || (field + 'のアップロードに失敗しました'));
+  return res.url;
+}
+
+async function saveForm() {
+  const nextDate = document.getElementById('f-nextDate').value;
+  const createdAt = document.getElementById('f-createdAt').value;
+  const endAt = document.getElementById('f-endAt').value;
+  if (!createdAt || !endAt) { showToast('開催日時・終了日時は必須です', 'error'); return; }
+  if (!nextDate) { showToast('次回予定日は必須です', 'error'); return; }
+
+  showLoading('保存中...');
+  try {
+    const record = {
+      id: currentDetail ? currentDetail.id : undefined,
+      title: document.getElementById('f-title').value.trim() || undefined,
+      createdAt: new Date(createdAt).toISOString(),
+      endAt: new Date(endAt).toISOString(),
+      creatorId: currentDetail ? undefined : (currentUser ? currentUser.id : ''),
+      creatorName: currentDetail ? undefined : (currentUser ? currentUser.name : ''),
+      participants_json: JSON.stringify(selectedParticipants),
+      notifyOthers_json: JSON.stringify(selectedNotify),
+      content: document.getElementById('f-content').value,
+      decisions: document.getElementById('f-decisions').value,
+      issues: document.getElementById('f-issues').value,
+      nextDate: nextDate,
+      updatedBy: currentUser ? currentUser.name : ''
+    };
+    Object.keys(record).forEach(k => record[k] === undefined && delete record[k]);
+
+    const res = await gasPost('saveMinutes', { record });
+    if (!res || !res.ok) throw new Error((res && res.message) || '保存に失敗しました');
+    const id = res.id;
+
+    const uploads = await Promise.all([
+      uploadIfPresent('f-photo1', id, 'photo1Url'),
+      uploadIfPresent('f-photo2', id, 'photo2Url'),
+      uploadIfPresent('f-photo3', id, 'photo3Url'),
+      uploadIfPresent('f-material', id, 'materialUrl'),
+      uploadIfPresent('f-scene', id, 'sceneUrl')
+    ]);
+    const fields = ['photo1Url', 'photo2Url', 'photo3Url', 'materialUrl', 'sceneUrl'];
+    const updateRecord = { id };
+    let hasUpload = false;
+    uploads.forEach((url, i) => { if (url) { updateRecord[fields[i]] = url; hasUpload = true; } });
+    if (hasUpload) await gasPost('saveMinutes', { record: updateRecord });
+
+    hideLoading();
+    showToast('保存しました', 'success');
+    openDetail(id);
+  } catch (e) {
+    hideLoading();
+    showToast('エラー: ' + e.message, 'error');
+  }
+}
+
+// ==============================================================
+// CSV取込(kintoneからのエクスポートCSVをそのまま読み込む)
+// ==============================================================
+function parseCsvText(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else { inQuotes = false; }
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\r') { /* \r\n の \r は無視 */ }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function parseKintoneDateTime(s) {
+  if (!s) return new Date().toISOString();
+  const m = String(s).trim().match(/(\d{4})\/(\d{1,2})\/(\d{1,2})[ T]?(\d{1,2})?:?(\d{1,2})?/);
+  if (!m) return new Date().toISOString();
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4] || 0), Number(m[5] || 0));
+  return d.toISOString();
+}
+function parseKintoneDateOnly(s) {
+  if (!s) return '';
+  const m = String(s).trim().match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (!m) return '';
+  const p = n => String(n).padStart(2, '0');
+  return m[1] + '-' + p(m[2]) + '-' + p(m[3]);
+}
+
+async function handleCsvImportFile(file) {
+  if (!file) return;
+  showLoading('CSVを読み込み中...');
+  try {
+    const buf = await file.arrayBuffer();
+    // kintoneの標準エクスポートはShift-JIS。文字化けが多ければUTF-8として読み直す。
+    let text = new TextDecoder('shift_jis').decode(buf);
+    if ((text.match(/\uFFFD/g) || []).length > 5) text = new TextDecoder('utf-8').decode(buf);
+
+    const rows = parseCsvText(text).filter(r => r.some(v => v && v.trim()));
+    if (rows.length < 2) { hideLoading(); showToast('取り込めるデータが見つかりません', 'error'); return; }
+
+    const headers = rows[0].map(h => h.trim());
+    const col = name => headers.indexOf(name);
+    const idx = {
+      title: col('タイトル'), creator: col('作成者'),
+      createdAt: col('作成日時'), endAt: col('終了日時'),
+      participants: col('参加者'), notify: col('参加者以外の通知先'),
+      decisions: col('決定事項'), content: col('内容'), issues: col('課題・困りごと'),
+      nextDate: col('次回予定日')
+    };
+    if (idx.title < 0 || idx.content < 0) {
+      hideLoading();
+      showToast('CSVの列構成が想定と異なります(タイトル・内容列が見つかりません)', 'error');
+      return;
+    }
+    const splitLines = s => String(s || '').split('\n').map(x => x.trim()).filter(Boolean);
+    const dataRows = rows.slice(1);
+    let ok = 0, fail = 0;
+
+    for (let i = 0; i < dataRows.length; i++) {
+      const r = dataRows[i];
+      if (!r.some(v => v && v.trim())) continue;
+      showLoading(`CSV取込中... (${i + 1}/${dataRows.length}件)`);
+      const record = {
+        title: r[idx.title] || '',
+        creatorId: '',
+        creatorName: idx.creator >= 0 ? (r[idx.creator] || '').split('\n')[0].trim() : '',
+        createdAt: parseKintoneDateTime(r[idx.createdAt]),
+        endAt: parseKintoneDateTime(r[idx.endAt]),
+        participants_json: JSON.stringify(splitLines(r[idx.participants]).map(name => ({ id: '', name }))),
+        notifyOthers_json: JSON.stringify(splitLines(r[idx.notify]).map(name => ({ id: '', name }))),
+        decisions: idx.decisions >= 0 ? (r[idx.decisions] || '') : '',
+        content: r[idx.content] || '',
+        issues: idx.issues >= 0 ? (r[idx.issues] || '') : '',
+        nextDate: parseKintoneDateOnly(r[idx.nextDate]),
+        updatedBy: 'CSV取込'
+      };
+      try {
+        const res = await gasPost('saveMinutes', { record });
+        if (res && res.ok) ok++; else fail++;
+      } catch (e) { fail++; }
+    }
+
+    hideLoading();
+    showToast(`CSV取込完了: 成功${ok}件${fail ? ' / 失敗' + fail + '件' : ''}`, fail ? 'error' : 'success');
+    document.getElementById('csv-import-input').value = '';
+    loadList();
+  } catch (e) {
+    hideLoading();
+    showToast('CSV取込エラー: ' + e.message, 'error');
+  }
+}
+
+// ==============================================================
+// CSV書き出し
+// ==============================================================
+async function exportCsv() {
+  showLoading('CSVを作成中...');
+  try {
+    const res = await gasGet('getMinutesExport');
+    if (!res || !res.ok) throw new Error((res && res.message) || 'エクスポートに失敗しました');
+
+    const headers = ['タイトル', '開催日時', '終了日時', '作成者', '参加者(手動)', '参加者以外の通知先',
+      '内容', '決定事項', '課題・困りごと', '次回予定日', '参加ログ(自己申告)',
+      '改善状況写真1', '改善状況写真2', '改善状況写真3', '勉強会資料', '勉強会の様子'];
+    const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const lines = [headers.map(esc).join(',')];
+    (res.data || []).forEach(d => {
+      lines.push([
+        d.title, d.createdAt, d.endAt, d.creatorName, d.participants, d.notifyOthers,
+        d.content, d.decisions, d.issues, d.nextDate, d.attendanceLog,
+        d.photo1Url, d.photo2Url, d.photo3Url, d.materialUrl, d.sceneUrl
+      ].map(esc).join(','));
+    });
+
+    const csv = '\uFEFF' + lines.join('\r\n'); // UTF-8 BOM付き(Excelでの文字化け防止)
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '実習生勉強会の議事録_' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    hideLoading();
+    showToast('CSVを書き出しました', 'success');
+  } catch (e) {
+    hideLoading();
+    showToast('エラー: ' + e.message, 'error');
+  }
+}
+
+// ==============================================================
+// 初期化
+// ==============================================================
+(async function init() {
+  renderTopbar();
+  if (!BENKYOKAI_GAS_URL) {
+    showToast('GASのURLが渡されていません。ポータル経由で開いてください', 'error');
+  }
+  await loadEmployeeMaster();
+  loadList();
+})();
+</script>
+</body>
+</html>

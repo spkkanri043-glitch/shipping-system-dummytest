@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>不具合集計ダッシュボード | 関ケ原プラ工業(株)</title>
+<style>
+:root {
+  --pr:#1a3a5c; --prl:#2a5a8c;
+  --ac:#e8a020;
+  --bg:#edf1f6; --sf:#fff; --sf2:#f2f6fb; --sf3:#e8edf4;
+  --tx:#1a2332; --tx2:#5a6a7a; --tx3:#9aabb8;
+  --bd:#cfd9e6; --bd2:#adbace;
+  --g:#0b7a3d; --gbg:#e3f6ed;
+  --a:#b07000; --abg:#fff7db;
+  --r:#b53030; --rbg:#fce8e8;
+  --rad:10px; --rads:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;}
+
+.header{height:52px;background:var(--pr);display:flex;align-items:center;padding:0 16px;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.25);position:sticky;top:0;z-index:100;}
+.hic{width:32px;height:32px;background:rgba(232,160,32,.2);border:1px solid rgba(232,160,32,.4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.htitle{color:#fff;font-size:16px;font-weight:700;flex:1;}
+.hco{color:rgba(255,255,255,.55);font-size:11px;}
+
+.setup{background:var(--abg);border:1px solid #fcd34d;border-radius:var(--rad);padding:14px 16px;margin:14px 14px 0;display:flex;flex-direction:column;gap:10px;}
+.setup.hid{display:none;}
+.setup-title{font-size:13px;font-weight:700;color:var(--a);}
+.setup-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.setup-label{font-size:12px;color:var(--tx2);min-width:140px;font-weight:600;}
+.setup-input{flex:1;min-width:260px;border:1px solid var(--bd2);border-radius:6px;padding:8px 11px;font-size:13px;background:#fff;outline:none;}
+.setup-input:focus{border-color:var(--pr);}
+.btn-primary{background:var(--pr);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;}
+
+.main{padding:12px 14px;}
+
+/* フィルターパネル */
+.filter-panel{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rad);padding:14px 16px;margin-bottom:12px;}
+.filter-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.filter-label{font-size:12px;font-weight:700;color:var(--tx2);white-space:nowrap;}
+.period-btn{padding:6px 13px;font-size:12px;font-weight:600;border:1px solid var(--bd2);border-radius:20px;background:var(--sf2);color:var(--tx2);cursor:pointer;white-space:nowrap;}
+.period-btn.on{background:var(--pr);color:#fff;border-color:var(--pr);}
+.date-inputs{display:flex;gap:5px;align-items:center;}
+.date-input{border:1px solid var(--bd2);border-radius:6px;padding:6px 9px;font-size:12px;background:#fff;outline:none;color:var(--tx);}
+.btn-reload{padding:6px 13px;font-size:12px;font-weight:600;border:1px solid var(--bd2);border-radius:6px;background:var(--sf);color:var(--tx2);cursor:pointer;display:flex;align-items:center;gap:4px;margin-left:auto;}
+.btn-reload:hover{background:var(--sf2);}
+
+/* 絞り込みフィルター行 */
+.filter-selects{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+@media(min-width:600px){.filter-selects{grid-template-columns:repeat(4,1fr);}}
+.filter-group{display:flex;flex-direction:column;gap:4px;}
+.filter-group label{font-size:11px;font-weight:700;color:var(--tx2);}
+.filter-select{width:100%;border:1px solid var(--bd2);border-radius:6px;padding:7px 9px;font-size:12px;background:#fff;outline:none;color:var(--tx);cursor:pointer;}
+.filter-select:focus{border-color:var(--pr);}
+.btn-clear{padding:6px 12px;font-size:12px;font-weight:600;border:1px solid var(--bd2);border-radius:6px;background:var(--sf2);color:var(--tx2);cursor:pointer;align-self:flex-end;height:34px;}
+.active-filters{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.filter-tag{display:inline-flex;align-items:center;gap:5px;background:var(--pr);color:#fff;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:600;}
+.filter-tag-del{cursor:pointer;opacity:.7;font-size:13px;line-height:1;}
+.filter-tag-del:hover{opacity:1;}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;}
+@media(min-width:600px){.kpi-grid{grid-template-columns:repeat(4,1fr);}}
+.kpi-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rad);padding:13px 15px;position:relative;overflow:hidden;}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px;}
+.kpi-card.blue::before{background:var(--pr);}
+.kpi-card.red::before{background:var(--r);}
+.kpi-card.amber::before{background:var(--ac);}
+.kpi-card.green::before{background:var(--g);}
+.kpi-label{font-size:11px;color:var(--tx2);margin-bottom:4px;}
+.kpi-value{font-size:24px;font-weight:700;}
+.kpi-card.blue .kpi-value{color:var(--pr);}
+.kpi-card.red .kpi-value{color:var(--r);}
+.kpi-card.amber .kpi-value{color:var(--ac);}
+.kpi-card.green .kpi-value{color:var(--g);}
+.kpi-sub{font-size:11px;color:var(--tx3);margin-top:3px;}
+
+/* セクション */
+.sec{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rad);padding:15px 16px;margin-bottom:12px;}
+.sec-title{font-size:13px;font-weight:700;color:var(--pr);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:6px;}
+.sec-2col{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px;}
+@media(min-width:700px){.sec-2col{grid-template-columns:1fr 1fr;}}
+.sec-3col{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px;}
+@media(min-width:700px){.sec-3col{grid-template-columns:1fr 1fr 1fr;}}
+
+/* テーブル */
+.rank-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rank-table th{font-size:11px;color:var(--tx2);font-weight:700;text-align:left;padding:6px 8px;border-bottom:2px solid var(--bd);white-space:nowrap;}
+.rank-table td{padding:7px 8px;border-bottom:1px solid var(--bd);vertical-align:middle;}
+.rank-table tr:last-child td{border-bottom:none;}
+.rank-table tbody tr:hover td{background:var(--accent-light,#e8f0fe);cursor:pointer;}
+.rank-table tbody tr.rank-empty:hover td{background:transparent;cursor:default;}
+.rank-num{font-weight:700;color:var(--pr);width:24px;text-align:center;}
+.bar-bg{background:var(--sf3);border-radius:4px;height:7px;overflow:hidden;min-width:40px;}
+.bar-fill{height:100%;border-radius:4px;}
+.bar-r{background:var(--r);}
+.bar-b{background:var(--pr);}
+.bar-a{background:var(--ac);}
+.bar-g{background:var(--g);}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;}
+.badge-r{background:var(--rbg);color:var(--r);}
+.badge-g{background:var(--gbg);color:var(--g);}
+.badge-b{background:#e8f0fe;color:var(--pr);}
+.badge-a{background:var(--abg);color:var(--a);}
+
+/* タブ */
+.tabs{display:flex;gap:6px;margin-bottom:10px;}
+.tab{padding:5px 12px;font-size:12px;font-weight:600;border:1px solid var(--bd2);border-radius:20px;background:var(--sf2);color:var(--tx2);cursor:pointer;}
+.tab.on{background:var(--pr);color:#fff;border-color:var(--pr);}
+
+/* チャート */
+.chart-wrap{position:relative;width:100%;}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:30px;color:var(--tx2);gap:8px;}
+.spinner{width:24px;height:24px;border:3px solid var(--bd);border-top-color:var(--pr);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:24px;color:var(--tx3);font-size:13px;}
+
+/* モーダル（レコード一覧） */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:12px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--sf);border-radius:12px;width:100%;max-width:720px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.modal-header{padding:14px 18px 12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--sf);z-index:1;}
+.modal-title{font-size:15px;font-weight:700;}
+.modal-close{background:none;border:none;font-size:20px;color:var(--tx2);cursor:pointer;padding:2px 8px;border-radius:6px;}
+.modal-body{padding:14px 18px;}
+.detail-table{width:100%;border-collapse:collapse;font-size:12px;}
+.detail-table th{font-size:11px;color:var(--tx2);font-weight:700;text-align:left;padding:6px 8px;border-bottom:2px solid var(--bd);background:var(--sf2);white-space:nowrap;}
+.detail-table td{padding:7px 8px;border-bottom:1px solid var(--bd);font-size:12px;}
+.detail-table tbody tr:hover td{background:var(--sf2);}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a2332;color:#fff;padding:10px 22px;border-radius:999px;font-size:13px;font-weight:600;z-index:999;transition:transform .3s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.ok{background:var(--g);}
+.toast.err{background:var(--r);}
+
+/* ページナビ */
+.page-nav{display:flex;gap:0;background:var(--pr);padding:0 14px;border-bottom:1px solid rgba(255,255,255,.15);}
+.page-nav-btn{padding:10px 18px;font-size:13px;font-weight:600;color:rgba(255,255,255,.6);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.page-nav-btn:hover{color:#fff;}
+.page-nav-btn.on{color:#fff;border-bottom-color:var(--ac);}
+.page{display:none;}
+.page.on{display:block;}
+
+/* 分析セクション共通 */
+.analysis-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rad);padding:16px;margin-bottom:12px;}
+.analysis-title{font-size:13px;font-weight:700;color:var(--pr);margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+.analysis-desc{font-size:11px;color:var(--tx2);margin-bottom:14px;}
+
+/* パターン検出 */
+.pattern-item{border:1px solid var(--bd);border-radius:var(--rads);padding:12px 14px;margin-bottom:8px;position:relative;overflow:hidden;}
+.pattern-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;}
+.pattern-item.high::before{background:var(--r);}
+.pattern-item.mid::before{background:var(--ac);}
+.pattern-item.low::before{background:var(--g);}
+.pattern-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.pattern-key{font-size:13px;font-weight:700;flex:1;}
+.pattern-badge{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;}
+.pattern-badge.high{background:var(--rbg);color:var(--r);}
+.pattern-badge.mid{background:var(--abg);color:var(--a);}
+.pattern-badge.low{background:var(--gbg);color:var(--g);}
+.pattern-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--tx2);}
+.pattern-meta span{display:flex;align-items:center;gap:3px;}
+.pattern-spark{height:32px;margin-top:8px;}
+
+/* 人別比較 */
+.person-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.person-card{border:1px solid var(--bd);border-radius:var(--rads);padding:12px 14px;}
+.person-name{font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.person-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;}
+.person-stat{background:var(--sf2);border-radius:5px;padding:6px 8px;text-align:center;}
+.person-stat-val{font-size:16px;font-weight:700;color:var(--pr);}
+.person-stat-val.red{color:var(--r);}
+.person-stat-lbl{font-size:10px;color:var(--tx3);margin-top:2px;}
+.person-type-list{display:flex;flex-wrap:wrap;gap:4px;}
+.person-type-tag{padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;background:var(--rbg);color:var(--r);}
+
+/* リスク評価 */
+.risk-matrix{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;}
+.risk-card{border:1px solid var(--bd);border-radius:var(--rads);padding:12px 14px;position:relative;}
+.risk-card.risk-high{border-color:rgba(181,48,48,.4);background:#fffafa;}
+.risk-card.risk-mid{border-color:rgba(176,112,0,.35);background:#fffdf5;}
+.risk-card.risk-low{border-color:rgba(11,122,61,.3);background:#f9fffc;}
+.risk-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.risk-label{flex:1;font-size:12px;font-weight:700;word-break:break-all;}
+.risk-score-badge{padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.risk-card.risk-high .risk-score-badge{background:var(--r);color:#fff;}
+.risk-card.risk-mid  .risk-score-badge{background:var(--ac);color:#fff;}
+.risk-card.risk-low  .risk-score-badge{background:var(--g);color:#fff;}
+.risk-bars{display:flex;flex-direction:column;gap:5px;}
+.risk-bar-row{display:flex;align-items:center;gap:6px;font-size:11px;}
+.risk-bar-lbl{width:60px;color:var(--tx2);flex-shrink:0;}
+.risk-bar-wrap{flex:1;background:var(--sf3);border-radius:3px;height:6px;overflow:hidden;}
+.risk-bar-fill{height:100%;border-radius:3px;}
+.risk-bar-val{width:28px;text-align:right;color:var(--tx);font-weight:600;flex-shrink:0;}
+.risk-footer{margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);font-size:11px;color:var(--tx2);}
+
+/* ランキングテーブル 展開/折りたたみ */
+.rank-table tr.rank-empty td{color:var(--tx3);font-size:12px;}
+.rank-table tr.rank-extra{display:none;}
+.rank-table tr.rank-extra.shown{display:table-row;}
+.type-pie-legend-row:hover{background:var(--sf2);border-radius:6px;}
+.rank-more-row td{padding:0 !important;border:none !important;}
+.btn-rank-more{width:100%;padding:8px;font-size:12px;font-weight:600;color:var(--pr);background:var(--sf2);border:none;border-top:1px solid var(--bd);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border-radius:0 0 var(--rads) var(--rads);}
+.btn-rank-more:hover{background:var(--sf3);}
+.btn-rank-more .arrow{display:inline-block;transition:transform .2s;font-style:normal;}
+.btn-rank-more.open .arrow{transform:rotate(180deg);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="hic">⚠️</div>
+  <div class="htitle">不具合集計ダッシュボード</div>
+  <div class="hco">関ケ原プラ工業(株)</div>
+</div>
+
+<!-- ページナビ -->
+<nav class="page-nav">
+  <button class="page-nav-btn on" onclick="switchPage('dashboard')">📊 集計</button>
+  <button class="page-nav-btn"    onclick="switchPage('analysis')">🔍 分析</button>
+</nav>
+
+<!-- GAS URL設定 -->
+<div class="setup" id="setup">
+  <div class="setup-title">⚙️ 不具合展開GASのURLを設定してください</div>
+  <div class="setup-row">
+    <span class="setup-label">不具合展開 GAS URL</span>
+    <input class="setup-input" id="defect-url" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+  </div>
+  <div><button class="btn-primary" onclick="saveUrl()">接続する</button></div>
+</div>
+
+<div class="main">
+<div class="page on" id="page-dashboard">
+
+  <!-- フィルターパネル -->
+  <div class="filter-panel">
+    <!-- 期間 -->
+    <div class="filter-top">
+      <span class="filter-label">期間:</span>
+      <button class="period-btn" id="p-7"  onclick="setPeriod(7)">直近7日</button>
+      <button class="period-btn on" id="p-30" onclick="setPeriod(30)">直近30日</button>
+      <button class="period-btn" id="p-90" onclick="setPeriod(90)">直近3ヶ月</button>
+      <button class="period-btn" id="p-0"  onclick="setPeriod(0)">全期間</button>
+      <div class="date-inputs">
+        <input class="date-input" type="date" id="date-from" onchange="clearPeriodBtn(); applyFilter()">
+        <span style="color:var(--tx3);font-size:12px">〜</span>
+        <input class="date-input" type="date" id="date-to" onchange="clearPeriodBtn(); applyFilter()">
+      </div>
+      <button class="btn-reload" onclick="loadData()">🔄 更新</button>
+    </div>
+
+    <!-- 絞り込みセレクト -->
+    <div class="filter-selects">
+      <div class="filter-group">
+        <label>👤 担当者（報告者）</label>
+        <select class="filter-select" id="f-worker" onchange="applyFilter()">
+          <option value="">すべて</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>🔧 不具合作業者</label>
+        <select class="filter-select" id="f-defect-worker" onchange="applyFilter()">
+          <option value="">すべて</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>📦 品番</label>
+        <select class="filter-select" id="f-part" onchange="applyFilter()">
+          <option value="">すべて</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>🏭 取引先</label>
+        <select class="filter-select" id="f-customer" onchange="applyFilter()">
+          <option value="">すべて</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- アクティブフィルタータグ -->
+    <div class="active-filters" id="active-filters"></div>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-grid">
+    <div class="kpi-card blue"><div class="kpi-label">不具合 件数</div><div class="kpi-value" id="kpi-cnt">—</div><div class="kpi-sub">件</div></div>
+    <div class="kpi-card red"><div class="kpi-label">不良数 合計</div><div class="kpi-value" id="kpi-total">—</div><div class="kpi-sub">個</div></div>
+    <div class="kpi-card amber"><div class="kpi-label">対象品番数</div><div class="kpi-value" id="kpi-parts">—</div><div class="kpi-sub">品番</div></div>
+    <div class="kpi-card green"><div class="kpi-label">対象担当者数</div><div class="kpi-value" id="kpi-workers">—</div><div class="kpi-sub">名</div></div>
+  </div>
+
+  <!-- トレンドチャート -->
+  <div class="sec">
+    <div class="sec-title">📈 日別トレンド</div>
+    <div class="tabs">
+      <button class="tab on" id="tt-cnt"   onclick="switchTrend('cnt')">不具合件数</button>
+      <button class="tab"    id="tt-count" onclick="switchTrend('count')">不良数</button>
+    </div>
+    <div class="chart-wrap" style="height:220px;">
+      <canvas id="trend-chart" role="img" aria-label="日別トレンドチャート">日別不具合推移</canvas>
+    </div>
+  </div>
+
+  <!-- 日別・週別・月別集計 -->
+  <div class="sec">
+    <div class="sec-title">📅 日別・週別・月別 集計</div>
+    <div class="tabs">
+      <button class="tab"    id="at-day"   onclick="switchAgg('day')">日別</button>
+      <button class="tab on" id="at-week"  onclick="switchAgg('week')">週別</button>
+      <button class="tab"    id="at-month" onclick="switchAgg('month')">月別</button>
+    </div>
+    <div class="chart-wrap" style="height:240px;">
+      <canvas id="agg-chart" role="img" aria-label="日別週別月別集計チャート">日別・週別・月別集計</canvas>
+    </div>
+  </div>
+
+  <!-- 不具合事象別 割合（円グラフ） -->
+  <div class="sec">
+    <div class="sec-title">🥧 不具合事象別 割合</div>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:5px;text-align:right">
+      💡 グラフまたは項目をクリックすると詳細集計を表示
+    </div>
+    <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+      <div class="chart-wrap" style="height:260px; flex:1 1 260px; max-width:320px;">
+        <canvas id="type-pie-chart" role="img" aria-label="不具合事象別割合円グラフ">不具合事象別割合</canvas>
+      </div>
+      <div id="type-pie-legend" style="flex:1 1 240px; font-size:13px;"></div>
+    </div>
+  </div>
+
+  <!-- ランキング 上段 -->
+  <div class="sec-3col">
+    <div class="sec">
+      <div class="sec-title">⚠️ 不具合種類 ランキング</div>
+      <div id="type-area"><div class="loading"><div class="spinner"></div>読み込み中</div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">📦 品番別 不具合ランキング</div>
+      <div id="part-area"><div class="loading"><div class="spinner"></div>読み込み中</div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">🏭 取引先別 ランキング</div>
+      <div id="customer-area"><div class="loading"><div class="spinner"></div>読み込み中</div></div>
+    </div>
+  </div>
+
+  <!-- ランキング 下段 -->
+  <div class="sec-2col">
+    <div class="sec">
+      <div class="sec-title">👤 担当者別（報告者）実績</div>
+      <div id="worker-area"><div class="loading"><div class="spinner"></div>読み込み中</div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">🔧 不具合作業者別 実績</div>
+      <div id="defect-worker-area"><div class="loading"><div class="spinner"></div>読み込み中</div></div>
+    </div>
+  </div>
+
+  <!-- レコード一覧 -->
+  <div class="sec">
+    <div class="sec-title" style="justify-content:space-between;">
+      <span>📋 不具合レコード一覧</span>
+      <span id="record-count-label" style="font-size:11px;color:var(--tx2);font-weight:400;"></span>
+    </div>
+    <div id="record-area"><div class="loading"><div class="spinner"></div>読み込み中</div></div>
+  </div>
+
+</div><!-- /page-dashboard -->
+
+<!-- ============ 分析ページ ============ -->
+<div class="page" id="page-analysis">
+
+  <!-- ① 繰り返しパターン検出 -->
+  <div class="analysis-card">
+    <div class="analysis-title">🔁 繰り返し発生パターン検出</div>
+    <div class="analysis-desc">同じ「不具合種類×品番」の組み合わせで繰り返し発生している不具合を重要度順に表示します。</div>
+    <div class="tabs">
+      <button class="tab on" id="pat-tab-type-part"     onclick="switchPattern('type-part')">種類×品番</button>
+      <button class="tab"    id="pat-tab-type-worker"   onclick="switchPattern('type-worker')">種類×作業者</button>
+      <button class="tab"    id="pat-tab-part-customer" onclick="switchPattern('part-customer')">品番×取引先</button>
+    </div>
+    <div id="pattern-area"><div class="loading"><div class="spinner"></div>分析中</div></div>
+  </div>
+
+  <!-- ② 人別不具合傾向比較 -->
+  <div class="analysis-card">
+    <div class="analysis-title">👥 担当者・作業者別 不具合傾向比較</div>
+    <div class="analysis-desc">各担当者・作業者の不具合件数・不良率・主な不具合種類を比較します。</div>
+    <div class="tabs">
+      <button class="tab on" id="per-tab-worker"        onclick="switchPerson('worker')">担当者（報告者）</button>
+      <button class="tab"    id="per-tab-defect-worker" onclick="switchPerson('defect-worker')">不具合作業者</button>
+    </div>
+    <div id="person-area"><div class="loading"><div class="spinner"></div>分析中</div></div>
+  </div>
+
+  <!-- ③ リスク評価 -->
+  <div class="analysis-card">
+    <div class="analysis-title">🎯 品番・取引先別 リスク評価</div>
+    <div class="analysis-desc">件数・不良数・直近トレンドの3軸でリスクスコアを算出。<span style="color:var(--r);font-weight:700">高リスク</span>・<span style="color:var(--a);font-weight:700">中リスク</span>・<span style="color:var(--g);font-weight:700">低リスク</span>に分類します。</div>
+    <div class="tabs">
+      <button class="tab on" id="risk-tab-part"     onclick="switchRisk('part')">品番別</button>
+      <button class="tab"    id="risk-tab-customer" onclick="switchRisk('customer')">取引先別</button>
+    </div>
+    <div id="risk-area"><div class="loading"><div class="spinner"></div>分析中</div></div>
+  </div>
+
+</div><!-- /page-analysis -->
+
+</div><!-- /main -->
+
+<!-- モーダル（詳細） -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">詳細</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const LS_KEY = 'defect_dash_url';
+let defectUrl = localStorage.getItem(LS_KEY) || '';
+
+const _qp = new URLSearchParams(location.search);
+const _paramGasUrl = _qp.get('fuguai_gas_url');
+if (_paramGasUrl) {
+  defectUrl = _paramGasUrl;
+  localStorage.setItem(LS_KEY, defectUrl);
+}
+  
+let allRecords = [];
+let filtered = [];
+let trendMode = 'cnt';
+let aggMode = 'week';
+let trendChart = null;
+let aggChart = null;
+let typePieChart = null;
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('defect-url').value = defectUrl;
+  if (defectUrl) document.getElementById('setup').classList.add('hid');
+  setPeriodDates(30);
+  if (defectUrl) loadData();
+});
+
+function saveUrl() {
+  const v = document.getElementById('defect-url').value.trim();
+  if (!v) { showToast('URLを入力してください', 'err'); return; }
+  defectUrl = v;
+  localStorage.setItem(LS_KEY, v);
+  document.getElementById('setup').classList.add('hid');
+  showToast('接続しました', 'ok');
+  loadData();
+}
+
+async function loadData() {
+  if (!defectUrl) { showToast('GAS URLを設定してください', 'err'); return; }
+  showLoadingAll();
+  try {
+    const res = await fetch(`${defectUrl}?action=getDefects`);
+    const d = await res.json();
+    // 担当者（報告者）と不具合作業者のデータが入れ替わって届くため、ここでスワップして正しい項目に割り当てる
+    allRecords = (d.records || []).map(r => ({
+      ...r,
+      worker: r.defectWorker || r.workerId || '',
+      defectWorker: r.worker || '',
+      workerId: ''
+    }));
+    buildFilterOptions();
+    applyFilter();
+  } catch(e) {
+    showToast('データ取得失敗: ' + e.message, 'err');
+  }
+}
+
+function showLoadingAll() {
+  ['type-area','part-area','customer-area','worker-area','defect-worker-area','record-area','type-pie-legend'].forEach(id => {
+    document.getElementById(id).innerHTML = '<div class="loading"><div class="spinner"></div>読み込み中</div>';
+  });
+}
+
+// === フィルターオプション構築 ===
+function buildFilterOptions() {
+  const workers = [...new Set(allRecords.map(r => r.worker).filter(Boolean))].sort();
+  // 不具合作業者を取得 — defectWorker フィールドが必要。GASの列構成に依存。
+  // 不具合展開シートのD列=担当者ID E列=担当者(worker) → defectWorkerはGAS側で別途必要
+  // 今回は workerIdフィールドを流用して、worker列を担当者として扱い
+  // 別途 defectWorkerフィールドが来た場合に対応
+  const defectWorkers = [...new Set(allRecords.map(r => r.defectWorker || r.workerId).filter(v => v && v.length > 1))].sort();
+  const parts = [...new Set(allRecords.map(r => r.part).filter(Boolean))].sort();
+  const customers = [...new Set(allRecords.map(r => r.customer).filter(Boolean))].sort();
+
+  fillSelect('f-worker', workers);
+  fillSelect('f-defect-worker', defectWorkers);
+  fillSelect('f-part', parts);
+  fillSelect('f-customer', customers);
+}
+
+function fillSelect(id, opts) {
+  const sel = document.getElementById(id);
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">すべて</option>';
+  opts.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o; opt.textContent = o;
+    if (o === cur) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+// === 期間 ===
+function setPeriod(days) {
+  ['7','30','90','0'].forEach(d => {
+    document.getElementById('p-'+d).classList.toggle('on', String(days) === d);
+  });
+  setPeriodDates(days);
+  applyFilter();
+}
+
+function clearPeriodBtn() {
+  ['7','30','90','0'].forEach(d => document.getElementById('p-'+d).classList.remove('on'));
+}
+
+function setPeriodDates(days) {
+  const to = new Date();
+  const from = new Date();
+  if (days > 0) from.setDate(to.getDate() - days);
+  else from.setFullYear(2020, 0, 1);
+  document.getElementById('date-to').value = fmtDate(to);
+  document.getElementById('date-from').value = fmtDate(from);
+}
+
+function fmtDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// === フィルター適用 ===
+function applyFilter() {
+  _rankId = 0;
+  const from = document.getElementById('date-from').value;
+  const to   = document.getElementById('date-to').value;
+  const fromD = from ? new Date(from) : new Date('2020-01-01');
+  const toD   = to   ? new Date(to + 'T23:59:59') : new Date();
+  const fWorker       = document.getElementById('f-worker').value;
+  const fDefectWorker = document.getElementById('f-defect-worker').value;
+  const fPart         = document.getElementById('f-part').value;
+  const fCustomer     = document.getElementById('f-customer').value;
+
+  filtered = allRecords.filter(r => {
+    const d = new Date(String(r.date).replace(/\//g,'-'));
+    if (isNaN(d) || d < fromD || d > toD) return false;
+    if (fWorker       && r.worker !== fWorker) return false;
+    if (fDefectWorker) {
+      const dw = r.defectWorker || r.workerId || '';
+      if (dw !== fDefectWorker) return false;
+    }
+    if (fPart     && r.part !== fPart) return false;
+    if (fCustomer && r.customer !== fCustomer) return false;
+    return true;
+  });
+
+  renderActiveTags({fWorker, fDefectWorker, fPart, fCustomer});
+  renderKpi();
+  renderTrend();
+  renderAgg();
+  renderTypeRank();
+  renderTypePie();
+  renderPartRank();
+  renderCustomerRank();
+  renderWorkerRank();
+  renderDefectWorkerRank();
+  renderRecordList();
+  // 分析ページが表示中なら分析も再描画
+  if (document.getElementById('page-analysis').classList.contains('on')) renderAllAnalysis();
+}
+
+function renderActiveTags({fWorker, fDefectWorker, fPart, fCustomer}) {
+  const tags = [];
+  if (fWorker)       tags.push({label:'担当者: '+fWorker,       clear:()=>{ document.getElementById('f-worker').value=''; applyFilter(); }});
+  if (fDefectWorker) tags.push({label:'作業者: '+fDefectWorker, clear:()=>{ document.getElementById('f-defect-worker').value=''; applyFilter(); }});
+  if (fPart)         tags.push({label:'品番: '+fPart,           clear:()=>{ document.getElementById('f-part').value=''; applyFilter(); }});
+  if (fCustomer)     tags.push({label:'取引先: '+fCustomer,     clear:()=>{ document.getElementById('f-customer').value=''; applyFilter(); }});
+  const el = document.getElementById('active-filters');
+  el.innerHTML = tags.map((t,i) =>
+    `<span class="filter-tag">${t.label}<span class="filter-tag-del" onclick="clearTag(${i})">✕</span></span>`
+  ).join('');
+  // クロージャを保存
+  window._tagClears = tags.map(t => t.clear);
+}
+function clearTag(i) { window._tagClears[i](); }
+
+// === KPI ===
+function renderKpi() {
+  const cnt     = filtered.length;
+  const total   = filtered.reduce((s,r) => s + (Number(r.defectCount)||0), 0);
+  const parts   = new Set(filtered.map(r=>r.part).filter(Boolean)).size;
+  const workers = new Set(filtered.map(r=>r.worker).filter(Boolean)).size;
+  document.getElementById('kpi-cnt').textContent    = cnt.toLocaleString();
+  document.getElementById('kpi-total').textContent  = total.toLocaleString();
+  document.getElementById('kpi-parts').textContent  = parts;
+  document.getElementById('kpi-workers').textContent = workers;
+}
+
+// === トレンド ===
+function switchTrend(mode) {
+  trendMode = mode;
+  document.getElementById('tt-cnt').classList.toggle('on', mode==='cnt');
+  document.getElementById('tt-count').classList.toggle('on', mode==='count');
+  renderTrend();
+}
+
+function renderTrend() {
+  const map = {};
+  filtered.forEach(r => {
+    const d = String(r.date).slice(0,10).replace(/\//g,'-');
+    if (!map[d]) map[d] = {cnt:0,count:0};
+    map[d].cnt++;
+    map[d].count += Number(r.defectCount)||0;
+  });
+  const labels = Object.keys(map).sort();
+  const vals = labels.map(l => trendMode==='cnt' ? map[l].cnt : map[l].count);
+  const color = trendMode==='cnt' ? '#1a3a5c' : '#b53030';
+
+  if (trendChart) trendChart.destroy();
+  const ctx = document.getElementById('trend-chart').getContext('2d');
+  trendChart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: labels.map(l=>l.slice(5)),
+      datasets:[{
+        label: trendMode==='cnt'?'不具合件数':'不良数',
+        data: vals,
+        borderColor: color,
+        backgroundColor: color+'22',
+        borderWidth:2,
+        pointRadius: labels.length>60?0:3,
+        fill:true, tension:0.3
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{maxTicksLimit:14,maxRotation:45,font:{size:11}},grid:{color:'#dde1e7'}},
+        y:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}},grid:{color:'#dde1e7'}}
+      }
+    }
+  });
+}
+
+// === 日別・週別・月別 ===
+function switchAgg(mode) {
+  aggMode = mode;
+  document.getElementById('at-day').classList.toggle('on',   mode==='day');
+  document.getElementById('at-week').classList.toggle('on',  mode==='week');
+  document.getElementById('at-month').classList.toggle('on', mode==='month');
+  renderAgg();
+}
+
+function renderAgg() {
+  const map = {};
+  filtered.forEach(r => {
+    const d = new Date(String(r.date).replace(/\//g,'-'));
+    let key;
+    if (aggMode==='day') {
+      key = String(r.date).replace(/\//g,'-').slice(0,10);
+    } else if (aggMode==='week') {
+      const mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay()+6)%7));
+      key = mon.toISOString().slice(0,10);
+    } else {
+      key = String(r.date).slice(0,7).replace(/\//g,'-');
+      if (key.length < 7) key = String(r.date).replace(/\//g,'-').slice(0,7);
+    }
+    if (key && key !== 'NaN-aN-aN') {
+      if (!map[key]) map[key] = {cnt:0,count:0};
+      map[key].cnt++;
+      map[key].count += Number(r.defectCount)||0;
+    }
+  });
+  const labels = Object.keys(map).sort();
+
+  // 日別はラベルを MM/DD 形式に短縮
+  const dispLabels = labels.map(l => {
+    if (aggMode==='month') return l.slice(0,7);
+    return l.slice(5); // MM-DD → MM-DD (週・日共通)
+  });
+
+  if (aggChart) aggChart.destroy();
+  const ctx = document.getElementById('agg-chart').getContext('2d');
+
+  // 日別はデータ点が多い場合ラインチャートに切替
+  const useLineForBar = aggMode==='day' && labels.length > 45;
+
+  aggChart = new Chart(ctx, {
+    type: useLineForBar ? 'line' : 'bar',
+    data:{
+      labels: dispLabels,
+      datasets:[
+        {
+          label:'不具合件数',
+          data:labels.map(l=>map[l].cnt),
+          backgroundColor: useLineForBar ? '#1a3a5c22' : '#1a3a5c',
+          borderColor:'#1a3a5c',
+          borderWidth: useLineForBar ? 2 : 0,
+          borderRadius: useLineForBar ? 0 : 4,
+          pointRadius: useLineForBar ? (labels.length > 90 ? 0 : 2) : 0,
+          fill: useLineForBar,
+          tension: useLineForBar ? 0.3 : 0,
+          yAxisID:'y1'
+        },
+        {
+          label:'不良数',
+          data:labels.map(l=>map[l].count),
+          type:'line',
+          borderColor:'#b53030',
+          backgroundColor:'#b5303022',
+          borderWidth:1.5,
+          pointRadius: labels.length > 90 ? 0 : 3,
+          fill: aggMode !== 'day',
+          tension:0.3,
+          yAxisID:'y2'
+        }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title: items => {
+              const raw = labels[items[0].dataIndex] || '';
+              if (aggMode==='week') return `週: ${raw} 〜`;
+              if (aggMode==='month') return `月: ${raw}`;
+              return raw;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{
+            maxTicksLimit: aggMode==='day' ? 20 : 16,
+            maxRotation:45,
+            font:{size:11}
+          },
+          grid:{color:'#dde1e7'}
+        },
+        y1:{beginAtZero:true,position:'left', ticks:{stepSize:1,font:{size:11}},grid:{color:'#dde1e7'}},
+        y2:{beginAtZero:true,position:'right',ticks:{font:{size:11}},grid:{drawOnChartArea:false}}
+      }
+    }
+  });
+}
+
+// === 汎用ランキングテーブル（常に10行表示・11件目以降は展開・行クリックでドリルダウン） ===
+let _rankId = 0;
+
+// filterKey: 'defectType' | 'part' | 'customer' | 'worker' | 'defectWorker'
+function buildRankHtml(rows, nameFn, valLabel, barClass, filterKey) {
+  if (!rows.length) return '<div class="empty">データなし</div>';
+  const uid = 'rank' + (++_rankId);
+  const max = rows[0].v || 1;
+  const SHOW = 10;
+
+  const rowHtml = (r, idx, isExtra) => {
+    const clsExtra = isExtra ? `class="rank-extra" data-uid="${uid}"` : '';
+    const rawKey = r.k.replace(/'/g, "\\'");
+    return `<tr ${clsExtra} style="cursor:pointer" title="クリックしてこの項目を集計"
+        onclick="rankDrilldown('${filterKey}','${rawKey}')">
+      <td class="rank-num">${idx+1}</td>
+      <td>${nameFn(r)}</td>
+      <td><span class="badge badge-r">${r.v}</span></td>
+      <td>${r.count}</td>
+      <td style="width:80px"><div class="bar-bg"><div class="bar-fill ${barClass}" style="width:${Math.round(r.v/max*100)}%"></div></div></td>
+    </tr>`;
+  };
+
+  const topRows = [];
+  for (let i = 0; i < SHOW; i++) {
+    const r = rows[i];
+    if (r) {
+      topRows.push(rowHtml(r, i, false));
+    } else {
+      topRows.push(`<tr class="rank-empty">
+        <td class="rank-num" style="color:var(--bd)">—</td>
+        <td colspan="4" style="color:var(--bd);font-size:11px">—</td>
+      </tr>`);
+    }
+  }
+
+  const extraRows = rows.slice(SHOW).map((r, i) => rowHtml(r, SHOW+i, true)).join('');
+
+  const moreBtn = rows.length > SHOW
+    ? `<tr class="rank-more-row"><td colspan="5">
+        <button class="btn-rank-more" id="btn-${uid}" onclick="toggleRank('${uid}')">
+          <i class="arrow">▼</i> 残り ${rows.length - SHOW} 件を表示
+        </button>
+      </td></tr>`
+    : '';
+
+  return `<div style="font-size:11px;color:var(--tx3);margin-bottom:5px;text-align:right">
+      💡 行をクリックすると詳細集計を表示
+    </div>
+    <table class="rank-table">
+      <thead><tr><th>#</th><th>名称</th><th>${valLabel}</th><th>不良数</th><th></th></tr></thead>
+      <tbody>
+        ${topRows.join('')}
+        ${extraRows}
+        ${moreBtn}
+      </tbody>
+    </table>`;
+}
+
+// ランキング行クリック → ドリルダウンモーダル
+function rankDrilldown(filterKey, keyVal) {
+  // 対象レコードを絞り込む
+  const keyFnMap = {
+    defectType:   r => r.defectType || '不明',
+    part:         r => r.part || '不明',
+    customer:     r => r.customer || '不明',
+    worker:       r => r.worker || '不明',
+    defectWorker: r => r.defectWorker || r.workerId || '不明',
+  };
+  const keyFn = keyFnMap[filterKey];
+  if (!keyFn) return;
+
+  const target = filtered.filter(r => keyFn(r) === keyVal);
+  if (!target.length) return;
+
+  const labelMap = {
+    defectType:'不具合種類', part:'品番', customer:'取引先',
+    worker:'担当者（報告者）', defectWorker:'不具合作業者'
+  };
+
+  // クロス集計（他軸でグルーピング）
+  const crossKeys = Object.keys(keyFnMap).filter(k => k !== filterKey);
+  const crossLabels = {defectType:'不具合種類', part:'品番', customer:'取引先', worker:'担当者', defectWorker:'作業者'};
+  const crossTitles = {
+    defectType: '⚠️ 不具合種類別',
+    part:       '📦 品番別',
+    customer:   '🏭 取引先別',
+    worker:     '👤 担当者別（報告者）',
+    defectWorker: '🔧 不具合作業者別'
+  };
+
+  const crossHtml = crossKeys.map(ck => {
+    const cm = {};
+    target.forEach(r => {
+      const v = keyFnMap[ck](r);
+      if (!cm[v]) cm[v] = {cnt:0, count:0};
+      cm[v].cnt++;
+      cm[v].count += Number(r.defectCount)||0;
+    });
+    const crows = Object.entries(cm).sort((a,b)=>b[1].cnt-a[1].cnt).slice(0,5);
+    if (!crows.length) return '';
+    const cmax = crows[0][1].cnt || 1;
+    return `<div style="margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--pr);margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--pr);display:flex;align-items:center;gap:6px;">${crossTitles[ck]}</div>
+      <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px">
+        <colgroup>
+          <col style="width:46%">
+          <col style="width:16%">
+          <col style="width:16%">
+          <col style="width:22%">
+        </colgroup>
+        <thead><tr>
+          <th style="text-align:left;padding:4px 6px;border-bottom:1px solid var(--bd);color:var(--tx2);font-size:11px">${crossLabels[ck]}</th>
+          <th style="text-align:center;padding:4px 6px;border-bottom:1px solid var(--bd);color:var(--tx2);font-size:11px">件数</th>
+          <th style="text-align:center;padding:4px 6px;border-bottom:1px solid var(--bd);color:var(--tx2);font-size:11px">不良数</th>
+          <th style="padding:4px 6px;border-bottom:1px solid var(--bd)"></th>
+        </tr></thead>
+        <tbody>
+          ${crows.map(([v,d]) => `<tr>
+            <td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${v}">${v}</td>
+            <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--bd)"><span class="badge badge-r">${d.cnt}</span></td>
+            <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--bd)">${d.count}</td>
+            <td style="padding:5px 6px;border-bottom:1px solid var(--bd)">
+              <div class="bar-bg"><div class="bar-fill bar-b" style="width:${Math.round(d.cnt/cmax*100)}%"></div></div>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }).join('');
+
+  // 日別推移（簡易）
+  const dayMap = {};
+  target.forEach(r => {
+    const d = String(r.date).replace(/\//g,'-').slice(0,10);
+    if (d) { dayMap[d] = (dayMap[d]||0)+1; }
+  });
+  const dayKeys = Object.keys(dayMap).sort();
+  const dayMax = Math.max(...Object.values(dayMap), 1);
+  const sparkHtml = dayKeys.length > 1
+    ? `<div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:6px">日別発生推移</div>
+        <div style="display:flex;align-items:flex-end;gap:3px;height:50px;overflow-x:auto;padding-bottom:2px">
+          ${dayKeys.map(d => {
+            const h = Math.max(4, Math.round(dayMap[d]/dayMax*46));
+            return `<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+              <div title="${d}: ${dayMap[d]}件" style="width:18px;height:${h}px;background:var(--r);border-radius:3px 3px 0 0;opacity:.85"></div>
+              <div style="font-size:9px;color:var(--tx3);writing-mode:vertical-rl;transform:rotate(180deg);margin-top:2px">${d.slice(5)}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`
+    : '';
+
+  // レコード一覧
+  const recordRows = target.slice(0,50).map((r,i) => `
+    <tr onclick="openDetail2(${i})" style="cursor:pointer">
+      <td>${String(r.date||'').slice(0,10)}</td>
+      <td>${r.worker||'—'}</td>
+      <td style="font-size:11px;font-family:monospace">${r.part||'—'}</td>
+      <td>${r.defectType||'—'}</td>
+      <td style="text-align:center;font-weight:700;color:var(--r)">${r.defectCount||0}</td>
+    </tr>`).join('');
+
+  window._drillRecords = target;
+
+  document.getElementById('modal-title').textContent =
+    `🔍 ${labelMap[filterKey]}: ${keyVal}（${target.length}件）`;
+
+  document.getElementById('modal-body').innerHTML = `
+    <!-- サマリーKPI -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div style="background:var(--sf2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:var(--r)">${target.length}</div>
+        <div style="font-size:11px;color:var(--tx2)">不具合件数</div>
+      </div>
+      <div style="background:var(--sf2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:var(--ac)">${target.reduce((s,r)=>s+(Number(r.defectCount)||0),0)}</div>
+        <div style="font-size:11px;color:var(--tx2)">不良数合計</div>
+      </div>
+      <div style="background:var(--sf2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:var(--pr)">${new Set(target.map(r=>r.part).filter(Boolean)).size}</div>
+        <div style="font-size:11px;color:var(--tx2)">関連品番数</div>
+      </div>
+    </div>
+
+    ${sparkHtml}
+    ${crossHtml}
+
+    <!-- レコード一覧 -->
+    <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:6px">
+      レコード一覧（上位50件）
+    </div>
+    <div style="overflow-x:auto;margin-bottom:14px">
+      <table class="detail-table">
+        <thead><tr><th>発生日</th><th>担当者</th><th>品番</th><th>不具合種類</th><th>不良数</th></tr></thead>
+        <tbody>${recordRows}</tbody>
+      </table>
+    </div>
+
+    <!-- フィルタ適用ボタン -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-primary" style="font-size:12px;padding:7px 14px"
+        onclick="applyDrillFilter('${filterKey}','${keyVal.replace(/'/g,"\\'")}')">
+        🔍 この条件でフィルターを適用する
+      </button>
+    </div>
+  `;
+
+  document.getElementById('modal').classList.add('open');
+}
+
+function openDetail2(idx) {
+  const recs = window._drillRecords || [];
+  if (!recs[idx]) return;
+  const i = filtered.indexOf(recs[idx]);
+  if (i >= 0) openDetail(i);
+}
+
+function applyDrillFilter(filterKey, keyVal) {
+  const idMap = {
+    defectType:'f-defect-type', part:'f-part',
+    customer:'f-customer', worker:'f-worker', defectWorker:'f-defect-worker'
+  };
+  const selId = idMap[filterKey];
+  if (selId) {
+    const sel = document.getElementById(selId);
+    if (sel) sel.value = keyVal;
+  }
+  closeModal();
+  applyFilter();
+  // レコード一覧へスクロール
+  setTimeout(() => {
+    const el = document.getElementById('record-area');
+    if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 300);
+}
+
+function toggleRank(uid) {
+  const btn = document.getElementById('btn-' + uid);
+  const extras = document.querySelectorAll(`tr[data-uid="${uid}"]`);
+  const isOpen = btn.classList.contains('open');
+  extras.forEach(el => el.classList.toggle('shown', !isOpen));
+  btn.classList.toggle('open', !isOpen);
+  btn.innerHTML = isOpen
+    ? `<i class="arrow">▼</i> 残り ${extras.length} 件を表示`
+    : `<i class="arrow">▲</i> 折りたたむ`;
+}
+
+function groupBy(records, keyFn) {
+  const map = {};
+  records.forEach(r => {
+    const k = keyFn(r) || '不明';
+    if (!map[k]) map[k] = {v:0, count:0};
+    map[k].v++;
+    map[k].count += Number(r.defectCount)||0;
+  });
+  return Object.entries(map).map(([k,d]) => ({k, ...d})).sort((a,b) => b.v-a.v);
+}
+
+function renderTypeRank() {
+  const rows = groupBy(filtered, r => r.defectType);
+  document.getElementById('type-area').innerHTML = buildRankHtml(rows, r=>r.k, '件数', 'bar-r', 'defectType');
+}
+
+const PIE_COLORS = ['#1a3a5c','#b53030','#d99a2b','#3a8a5c','#6a4c93','#2b8ba3','#c46a1a','#8a8f99','#a35c8f','#4c7ab5'];
+
+function renderTypePie() {
+  const rows = groupBy(filtered, r => r.defectType || '不明');
+  const total = rows.reduce((s,r) => s + r.v, 0);
+
+  const canvas = document.getElementById('type-pie-chart');
+  const legendEl = document.getElementById('type-pie-legend');
+
+  if (!total) {
+    if (typePieChart) { typePieChart.destroy(); typePieChart = null; }
+    legendEl.innerHTML = '<div style="color:#8a8f99;padding:8px;">データがありません</div>';
+    return;
+  }
+
+  const labels = rows.map(r => r.k);
+  const values = rows.map(r => r.v);
+  const colors = labels.map((_,i) => PIE_COLORS[i % PIE_COLORS.length]);
+
+  if (typePieChart) typePieChart.destroy();
+  const ctx = canvas.getContext('2d');
+  typePieChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor: colors, borderColor:'#fff', borderWidth:1 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      onHover: (evt, els) => { evt.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+      onClick: (evt, els) => {
+        if (!els.length) return;
+        const idx = els[0].index;
+        rankDrilldown('defectType', labels[idx]);
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed;
+              const pct = total ? (v/total*100).toFixed(1) : '0.0';
+              return `${ctx.label}: ${v}件 (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  legendEl.innerHTML = rows.map((r,i) => {
+    const pct = (r.v/total*100).toFixed(1);
+    const rawKey = r.k.replace(/'/g, "\\'");
+    return `<div class="type-pie-legend-row" title="クリックしてこの項目を集計"
+        onclick="rankDrilldown('defectType','${rawKey}')"
+        style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #eef0f3;cursor:pointer;">
+      <span style="width:11px;height:11px;border-radius:3px;background:${colors[i]};flex:none;"></span>
+      <span style="flex:1;">${r.k}</span>
+      <span style="color:#5a5f6a;">${r.v}件</span>
+      <span style="font-weight:600;min-width:48px;text-align:right;">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+function renderPartRank() {
+  const rows = groupBy(filtered, r => r.part);
+  document.getElementById('part-area').innerHTML = buildRankHtml(rows, r=>`<span style="font-size:11px;font-family:monospace">${r.k}</span>`, '件数', 'bar-a', 'part');
+}
+function renderCustomerRank() {
+  const rows = groupBy(filtered, r => r.customer);
+  document.getElementById('customer-area').innerHTML = buildRankHtml(rows, r=>r.k, '件数', 'bar-b', 'customer');
+}
+function renderWorkerRank() {
+  const rows = groupBy(filtered, r => r.worker);
+  document.getElementById('worker-area').innerHTML = buildRankHtml(rows, r=>r.k, '報告', 'bar-g', 'worker');
+}
+function renderDefectWorkerRank() {
+  const rows = groupBy(filtered, r => r.defectWorker || r.workerId || '（未設定）');
+  const named = rows.filter(r => r.k && !/^\d+$/.test(r.k) && r.k !== '（未設定）');
+  const final = named.length ? named : rows;
+  document.getElementById('defect-worker-area').innerHTML = buildRankHtml(final, r=>r.k, '件数', 'bar-r', 'defectWorker');
+}
+
+// === レコード一覧 ===
+function renderRecordList() {
+  const label = document.getElementById('record-count-label');
+  label.textContent = `${filtered.length} 件`;
+  if (!filtered.length) {
+    document.getElementById('record-area').innerHTML = '<div class="empty">該当するレコードなし</div>';
+    return;
+  }
+  const show = filtered.slice(0, 100);
+  const more = filtered.length > 100;
+  const rows = show.map((r,i) => `
+    <tr onclick="openDetail(${i})" style="cursor:pointer">
+      <td>${String(r.date||'').slice(0,10)}</td>
+      <td>${r.worker||'—'}</td>
+      <td>${r.defectWorker || r.workerId || '—'}</td>
+      <td style="font-family:monospace;font-size:11px">${r.part||'—'}</td>
+      <td>${r.customer||'—'}</td>
+      <td>${r.defectType||'—'}</td>
+      <td style="text-align:center;font-weight:700;color:var(--r)">${r.defectCount||0}</td>
+    </tr>`).join('');
+  document.getElementById('record-area').innerHTML = `
+    <div style="overflow-x:auto">
+      <table class="detail-table">
+        <thead><tr>
+          <th>発生日</th><th>担当者</th><th>作業者</th><th>品番</th>
+          <th>取引先</th><th>不具合種類</th><th>不良数</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    ${more ? `<div style="text-align:center;padding:10px;font-size:12px;color:var(--tx3)">表示は上位100件まで（全${filtered.length}件）</div>` : ''}
+  `;
+  // 詳細用にインデックスを保持
+  window._filteredForModal = filtered;
+}
+
+function openDetail(idx) {
+  const r = (window._filteredForModal || filtered)[idx];
+  if (!r) return;
+  document.getElementById('modal-title').textContent = `不具合詳細 — ${r.part || r.id}`;
+  document.getElementById('modal-body').innerHTML = `
+    <table class="detail-table" style="margin-bottom:14px">
+      <tbody>
+        ${[
+          ['報告書ID', r.id],
+          ['発生日', r.date],
+          ['担当者（報告者）', r.worker],
+          ['不具合作業者', r.defectWorker || r.workerId || '—'],
+          ['品番', r.part],
+          ['取引先', r.customer],
+          ['不具合種類', r.defectType],
+          ['不良数', r.defectCount + ' 個'],
+          ['不具合詳細', r.detail || '—'],
+        ].map(([l,v]) => `<tr><td style="font-weight:700;width:130px;background:var(--sf2)">${l}</td><td>${v||'—'}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    ${r.photo1 || r.photo2 || r.photo3 ? `
+      <div style="font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:8px">写真</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${[r.photo1,r.photo2,r.photo3].filter(Boolean).map(url =>
+          url.includes('/preview')
+            ? `<iframe src="${url}" width="200" height="150" frameborder="0" style="border-radius:6px;border:1px solid var(--bd)"></iframe>`
+            : `<img src="${url}" style="width:200px;height:150px;object-fit:cover;border-radius:6px;border:1px solid var(--bd)" onerror="this.style.display='none'">`
+        ).join('')}
+      </div>` : ''}
+    <div style="margin-top:12px">
+      <button onclick="
+        document.getElementById('f-worker').value='${r.worker||''}';
+        document.getElementById('f-part').value='${r.part||''}';
+        closeModal(); applyFilter();"
+        class="btn-primary" style="font-size:12px;padding:6px 12px;margin-right:8px">
+        この担当者・品番で絞り込む
+      </button>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ============================================================
+// ページ切替
+// ============================================================
+function switchPage(page) {
+  document.querySelectorAll('.page-nav-btn').forEach((b,i) => b.classList.toggle('on', i === (page==='dashboard'?0:1)));
+  document.getElementById('page-dashboard').classList.toggle('on', page==='dashboard');
+  document.getElementById('page-analysis').classList.toggle('on', page==='analysis');
+  if (page === 'analysis') renderAllAnalysis();
+}
+
+// ============================================================
+// 分析レンダリング（フィルター済みデータを使用）
+// ============================================================
+let patternMode = 'type-part';
+let personMode  = 'worker';
+let riskMode    = 'part';
+
+function renderAllAnalysis() {
+  renderPattern();
+  renderPerson();
+  renderRisk();
+}
+
+// ---- ① 繰り返しパターン検出 ----
+function switchPattern(mode) {
+  patternMode = mode;
+  ['type-part','type-worker','part-customer'].forEach(m => {
+    document.getElementById('pat-tab-'+m).classList.toggle('on', m===mode);
+  });
+  renderPattern();
+}
+
+function renderPattern() {
+  const keyFns = {
+    'type-part':     r => (r.defectType||'不明') + ' × ' + (r.part||'不明'),
+    'type-worker':   r => (r.defectType||'不明') + ' × ' + (r.defectWorker||r.worker||'不明'),
+    'part-customer': r => (r.part||'不明') + ' × ' + (r.customer||'不明'),
+  };
+  const keyFn = keyFns[patternMode];
+
+  // 組み合わせ別に集計
+  const map = {};
+  filtered.forEach(r => {
+    const k = keyFn(r);
+    if (!map[k]) map[k] = { cnt:0, count:0, dates:[], types:new Set() };
+    map[k].cnt++;
+    map[k].count += Number(r.defectCount)||0;
+    const d = String(r.date).replace(/\//g,'-').slice(0,10);
+    if (d) map[k].dates.push(d);
+    if (r.defectType) map[k].types.add(r.defectType);
+  });
+
+  // 繰り返し = 2回以上
+  const rows = Object.entries(map)
+    .filter(([,v]) => v.cnt >= 2)
+    .map(([k,v]) => {
+      v.dates.sort();
+      const span = v.dates.length >= 2
+        ? diffDays(v.dates[0], v.dates[v.dates.length-1])
+        : 0;
+      // 重要度スコア: 件数×3 + 不良数×0.5 + (直近30日内なら+5)
+      const recentCnt = v.dates.filter(d => diffDays(d, fmtDate(new Date())) <= 30).length;
+      const score = v.cnt * 3 + v.count * 0.5 + recentCnt * 5;
+      return { k, ...v, span, recentCnt, score };
+    })
+    .sort((a,b) => b.score - a.score);
+
+  if (!rows.length) {
+    document.getElementById('pattern-area').innerHTML =
+      '<div class="empty">繰り返しパターンは検出されませんでした（2回以上の組み合わせなし）</div>';
+    return;
+  }
+
+  const html = rows.slice(0,20).map(r => {
+    const level = r.cnt >= 5 || r.recentCnt >= 3 ? 'high' : r.cnt >= 3 ? 'mid' : 'low';
+    const levelLabel = level==='high'?'⚠️ 高頻度': level==='mid'?'△ 中頻度':'✓ 低頻度';
+    // 日別スパークライン（簡易バー）
+    const dayCounts = {};
+    r.dates.forEach(d => dayCounts[d] = (dayCounts[d]||0)+1);
+    const maxDC = Math.max(...Object.values(dayCounts), 1);
+    const sparkDays = [...new Set(r.dates)].sort().slice(-14);
+    const sparkHtml = sparkDays.map(d => {
+      const h = Math.round((dayCounts[d]||0)/maxDC*28);
+      return `<span title="${d}: ${dayCounts[d]}件" style="display:inline-block;width:10px;height:${h}px;background:${level==='high'?'var(--r)':level==='mid'?'var(--ac)':'var(--g)'};border-radius:2px 2px 0 0;vertical-align:bottom;margin-right:2px"></span>`;
+    }).join('');
+
+    return `<div class="pattern-item ${level}">
+      <div class="pattern-header">
+        <span class="pattern-key">${r.k}</span>
+        <span class="pattern-badge ${level}">${levelLabel}</span>
+      </div>
+      <div class="pattern-meta">
+        <span>🔢 ${r.cnt}回発生</span>
+        <span>❌ 不良数: ${r.count}個</span>
+        <span>📅 期間: ${r.span}日間</span>
+        <span>🕐 直近30日: ${r.recentCnt}回</span>
+        <span>📆 最終: ${r.dates[r.dates.length-1]||'—'}</span>
+      </div>
+      ${sparkDays.length ? `<div style="margin-top:8px;display:flex;align-items:flex-end;height:32px;gap:0">${sparkHtml}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('pattern-area').innerHTML = `
+    <div style="font-size:11px;color:var(--tx2);margin-bottom:8px">
+      ${rows.length}件のパターンを検出（上位20件表示）
+    </div>
+    ${html}`;
+}
+
+// ---- ② 人別不具合傾向比較 ----
+function switchPerson(mode) {
+  personMode = mode;
+  document.getElementById('per-tab-worker').classList.toggle('on', mode==='worker');
+  document.getElementById('per-tab-defect-worker').classList.toggle('on', mode==='defect-worker');
+  renderPerson();
+}
+
+function renderPerson() {
+  const keyFn = personMode==='worker'
+    ? r => r.worker || '不明'
+    : r => r.defectWorker || r.workerId || '不明';
+
+  const map = {};
+  filtered.forEach(r => {
+    const k = keyFn(r);
+    if (!/^\d+$/.test(k)) {  // 数字IDを除外
+      if (!map[k]) map[k] = { cnt:0, count:0, types:{}, parts:{} };
+      map[k].cnt++;
+      map[k].count += Number(r.defectCount)||0;
+      const t = r.defectType||'不明';
+      map[k].types[t] = (map[k].types[t]||0)+1;
+      const p = r.part||'不明';
+      map[k].parts[p] = (map[k].parts[p]||0)+1;
+    }
+  });
+
+  const allCnt = filtered.length || 1;
+  const entries = Object.entries(map).sort((a,b) => b[1].cnt - a[1].cnt);
+
+  if (!entries.length) {
+    document.getElementById('person-area').innerHTML = '<div class="empty">データなし</div>';
+    return;
+  }
+
+  const maxCnt   = entries[0][1].cnt || 1;
+  const maxCount = Math.max(...entries.map(([,v])=>v.count), 1);
+
+  const cards = entries.map(([name, v]) => {
+    const topTypes = Object.entries(v.types).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const topParts = Object.entries(v.parts).sort((a,b)=>b[1]-a[1]).slice(0,2);
+    const share = Math.round(v.cnt/allCnt*100);
+    const cntBarW  = Math.round(v.cnt/maxCnt*100);
+    const countBarW = Math.round(v.count/maxCount*100);
+
+    return `<div class="person-card">
+      <div class="person-name">
+        <span>${name}</span>
+        <span style="font-size:11px;color:var(--tx3);font-weight:400">全体の ${share}%</span>
+      </div>
+      <div class="person-stats">
+        <div class="person-stat">
+          <div class="person-stat-val red">${v.cnt}</div>
+          <div class="person-stat-lbl">不具合件数</div>
+        </div>
+        <div class="person-stat">
+          <div class="person-stat-val red">${v.count}</div>
+          <div class="person-stat-lbl">不良数</div>
+        </div>
+        <div class="person-stat">
+          <div class="person-stat-val">${v.cnt > 0 ? Math.round(v.count/v.cnt*10)/10 : 0}</div>
+          <div class="person-stat-lbl">平均不良/件</div>
+        </div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:11px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:48px;color:var(--tx2)">件数</span>
+            <div style="flex:1;background:var(--sf3);border-radius:3px;height:6px;overflow:hidden">
+              <div style="width:${cntBarW}%;height:100%;background:var(--r);border-radius:3px"></div>
+            </div>
+            <span style="width:24px;text-align:right;font-weight:600">${v.cnt}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:48px;color:var(--tx2)">不良数</span>
+            <div style="flex:1;background:var(--sf3);border-radius:3px;height:6px;overflow:hidden">
+              <div style="width:${countBarW}%;height:100%;background:var(--ac);border-radius:3px"></div>
+            </div>
+            <span style="width:24px;text-align:right;font-weight:600">${v.count}</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--tx2);margin-bottom:4px;font-weight:700">主な不具合種類</div>
+      <div class="person-type-list">
+        ${topTypes.map(([t,c])=>`<span class="person-type-tag">${t} (${c})</span>`).join('')}
+      </div>
+      ${topParts.length ? `
+      <div style="font-size:10px;color:var(--tx2);margin-top:6px;margin-bottom:4px;font-weight:700">主な品番</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        ${topParts.map(([p,c])=>`<span style="padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;background:#e8f0fe;color:var(--pr)">${p} (${c})</span>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('person-area').innerHTML = `<div class="person-grid">${cards}</div>`;
+}
+
+// ---- ③ リスク評価 ----
+function switchRisk(mode) {
+  riskMode = mode;
+  document.getElementById('risk-tab-part').classList.toggle('on', mode==='part');
+  document.getElementById('risk-tab-customer').classList.toggle('on', mode==='customer');
+  renderRisk();
+}
+
+function renderRisk() {
+  const keyFn = riskMode==='part' ? r=>r.part||'不明' : r=>r.customer||'不明';
+
+  const map = {};
+  filtered.forEach(r => {
+    const k = keyFn(r);
+    if (!map[k]) map[k] = { cnt:0, count:0, dates:[], types:new Set() };
+    map[k].cnt++;
+    map[k].count += Number(r.defectCount)||0;
+    const d = String(r.date).replace(/\//g,'-').slice(0,10);
+    if (d) map[k].dates.push(d);
+    if (r.defectType) map[k].types.add(r.defectType);
+  });
+
+  const allCnt   = filtered.length || 1;
+  const allCount = filtered.reduce((s,r)=>s+(Number(r.defectCount)||0),0) || 1;
+  const maxCnt   = Math.max(...Object.values(map).map(v=>v.cnt), 1);
+  const maxCount = Math.max(...Object.values(map).map(v=>v.count), 1);
+
+  const entries = Object.entries(map).map(([k, v]) => {
+    v.dates.sort();
+    // 直近30日件数（トレンド）
+    const recent = v.dates.filter(d => diffDays(d, fmtDate(new Date())) <= 30).length;
+    const older  = v.cnt - recent;
+    // トレンドスコア: 直近比率が高いほど高リスク
+    const trendScore = v.cnt > 0 ? recent / v.cnt : 0;
+    // 正規化スコア (0〜100)
+    const cntScore    = v.cnt / maxCnt * 40;
+    const countScore  = v.count / maxCount * 40;
+    const trendScoreN = trendScore * 20;
+    const total = Math.round(cntScore + countScore + trendScoreN);
+    const level = total >= 50 ? 'risk-high' : total >= 25 ? 'risk-mid' : 'risk-low';
+    const levelLabel = total >= 50 ? '高リスク' : total >= 25 ? '中リスク' : '低リスク';
+    return { k, ...v, recent, older, total, level, levelLabel };
+  }).sort((a,b) => b.total - a.total);
+
+  if (!entries.length) {
+    document.getElementById('risk-area').innerHTML = '<div class="empty">データなし</div>';
+    return;
+  }
+
+  const cards = entries.map(e => {
+    const cntBarW   = Math.round(e.cnt/maxCnt*100);
+    const countBarW = Math.round(e.count/maxCount*100);
+    const trendBarW = Math.round(e.recent/e.cnt*100);
+    const typeList  = [...e.types].slice(0,3).join('、');
+    return `<div class="risk-card ${e.level}">
+      <div class="risk-header">
+        <div class="risk-label">${e.k}</div>
+        <div class="risk-score-badge">スコア ${e.total}<br><span style="font-size:10px;font-weight:600">${e.levelLabel}</span></div>
+      </div>
+      <div class="risk-bars">
+        <div class="risk-bar-row">
+          <span class="risk-bar-lbl">件数</span>
+          <div class="risk-bar-wrap"><div class="risk-bar-fill" style="width:${cntBarW}%;background:var(--r)"></div></div>
+          <span class="risk-bar-val">${e.cnt}</span>
+        </div>
+        <div class="risk-bar-row">
+          <span class="risk-bar-lbl">不良数</span>
+          <div class="risk-bar-wrap"><div class="risk-bar-fill" style="width:${countBarW}%;background:var(--ac)"></div></div>
+          <span class="risk-bar-val">${e.count}</span>
+        </div>
+        <div class="risk-bar-row">
+          <span class="risk-bar-lbl">直近比率</span>
+          <div class="risk-bar-wrap"><div class="risk-bar-fill" style="width:${trendBarW}%;background:var(--pr)"></div></div>
+          <span class="risk-bar-val">${e.recent}件</span>
+        </div>
+      </div>
+      <div class="risk-footer">
+        ${typeList ? `主な不具合: ${typeList}` : ''}
+        　直近30日 ${e.recent}件 / 過去 ${e.older}件
+        　最終: ${e.dates[e.dates.length-1]||'—'}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('risk-area').innerHTML = `<div class="risk-matrix">${cards}</div>`;
+}
+
+// ---- ユーティリティ ----
+function diffDays(dateStr1, dateStr2) {
+  const d1 = new Date(dateStr1), d2 = new Date(dateStr2);
+  return Math.round(Math.abs(d2-d1) / 86400000);
+}
+</script>
+</body>
+</html>

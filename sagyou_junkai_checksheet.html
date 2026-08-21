@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>作業巡回チェックシート | 関ケ原プラ工業(株)</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --pr: #1a3a5c; --prl: #2a5a8c; --ac: #e8a020;
+  --bg: #edf1f6; --sf: #fff; --sf2: #f2f6fb; --sf3: #e8edf4;
+  --tx: #1a2332; --tx2: #5a6a7a; --tx3: #9aabb8;
+  --bd: #cfd9e6; --bd2: #adbace;
+  --g: #0b7a3d; --gbg: #e3f6ed;
+  --a: #b07000; --abg: #fff7db;
+  --r: #b53030; --rbg: #fce8e8;
+  --b: #1655b0; --bbg: #e5effe;
+  --rad: 10px; --rads: 7px;
+}
+html { -webkit-text-size-adjust: 100%; }
+.hid { display: none !important; }
+.cov-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.cov-summary-item { background: var(--sf2); border: 1px solid var(--bd); border-radius: var(--rads); padding: 12px; text-align: center; }
+.cov-summary-val { font-size: 20px; font-weight: 700; color: var(--pr); }
+.cov-summary-lbl { font-size: 11px; color: var(--tx2); margin-top: 4px; }
+.cov-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+.cov-bar-name { width: 110px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cov-bar-track { flex: 1; background: var(--sf3); border-radius: 5px; height: 18px; overflow: hidden; }
+.cov-bar-fill { height: 100%; border-radius: 5px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: #fff; font-size: 10px; font-weight: 700; min-width: 22px; box-sizing: border-box; }
+.insp-card { border: 1px solid var(--bd); border-radius: var(--rads); padding: 12px; margin-bottom: 10px; background: #fafcfe; }
+.insp-card-title { font-size: 13px; font-weight: 700; color: var(--pr); margin-bottom: 8px; }
+.insp-breakdown { font-size: 11.5px; color: var(--tx2); line-height: 1.8; }
+.insp-breakdown b { color: var(--tx); }
+@media (max-width: 640px) {
+  .cov-summary-grid { grid-template-columns: 1fr 1fr; }
+  .cov-bar-name { width: 78px; font-size: 11px; }
+}
+.translate-box { margin-top: 6px; padding: 8px 10px; background: var(--bbg); border: 1px solid rgba(22,85,176,.2); border-radius: var(--rads); font-size: 12.5px; color: var(--b); white-space: pre-wrap; }
+.translate-box:empty { display: none; }
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--tx); font-size: 14px; -webkit-font-smoothing: antialiased; padding-bottom: 40px; }
+
+/* topbar */
+.topbar { background: var(--pr); padding: 0 14px; height: 48px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,.28); position: sticky; top: 0; z-index: 100; gap: 8px; }
+.tbl { display: flex; align-items: center; gap: 8px; min-width: 0; flex-shrink: 1; }
+.tbic { width: 30px; height: 30px; border-radius: 50%; background: rgba(232,160,32,.2); border: 1px solid rgba(232,160,32,.4); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.tbco { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbmd { font-size: 10px; color: rgba(255,255,255,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbr { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.user-name { font-size: 11px; color: rgba(255,255,255,.85); white-space: nowrap; }
+.badge-role { padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.22); white-space: nowrap; flex-shrink: 0; }
+#btn-close-tab { white-space: nowrap; flex-shrink: 0; }
+#lang-select { flex-shrink: 0; max-width: 92px; }
+
+.content { padding: 14px; max-width: 980px; margin: 0 auto; }
+
+.notice-card { background: var(--abg); border: 1px solid rgba(176,112,0,.25); border-radius: var(--rad); padding: 12px 14px; margin-bottom: 14px; font-size: 12px; color: var(--tx2); line-height: 1.7; }
+.notice-card b { color: var(--a); }
+
+.toolbar-top { display: flex; gap: 8px; margin-bottom: 14px; }
+
+.card { background: var(--sf); border: 1px solid var(--bd); border-radius: var(--rad); padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+.card-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--bd); color: var(--pr); }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+.form-grid.full { grid-template-columns: 1fr; }
+.fg { margin-bottom: 2px; }
+.fl { font-size: 12px; color: var(--tx2); display: block; margin-bottom: 4px; font-weight: 500; }
+.fi { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid var(--bd2); border-radius: var(--rads); background: #f8fafc; color: var(--tx); outline: none; font-family: inherit; -webkit-appearance: none; appearance: none; }
+.fi:focus { border-color: var(--pr); }
+textarea.fi { resize: vertical; min-height: 70px; }
+select.fi { cursor: pointer; }
+.row-inline { display: flex; gap: 8px; align-items: center; }
+.link-btn { font-size: 12px; color: var(--b); cursor: pointer; white-space: nowrap; user-select: none; }
+.link-btn:hover { text-decoration: underline; }
+
+.btn { padding: 9px 16px; font-size: 13px; font-weight: 600; border-radius: var(--rads); cursor: pointer; border: 1px solid var(--bd2); background: var(--sf2); color: var(--tx); font-family: inherit; -webkit-appearance: none; }
+.btn.pri { background: var(--pr); color: #fff; border-color: transparent; }
+.btn.pri:active { background: var(--prl); }
+.btn.danger { background: var(--r); color: #fff; border-color: transparent; }
+.btn.sm { padding: 6px 12px; font-size: 12px; }
+.btn.xs { padding: 4px 9px; font-size: 11px; }
+
+/* section (accordion) */
+.section { border: 1px solid var(--bd); border-radius: var(--rad); margin-bottom: 12px; overflow: hidden; background: var(--sf); }
+.section-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; background: var(--sf2); user-select: none; }
+.section-head:active { background: var(--sf3); }
+.section-head-l { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--pr); }
+.section-caret { transition: transform .18s; color: var(--tx3); font-size: 11px; }
+.section.open .section-caret { transform: rotate(90deg); }
+.section-badge { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 20px; background: var(--gbg); color: var(--g); }
+.section-badge.warn { background: var(--rbg); color: var(--r); }
+.section-body { display: none; padding: 14px 16px; border-top: 1px solid var(--bd); }
+.section.open .section-body { display: block; }
+
+.chk-card { border: 1px solid var(--bd); border-radius: var(--rads); padding: 12px; margin-bottom: 10px; background: #fafcfe; }
+.chk-card-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.chk-no-badge { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--pr); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 6px; }
+.chk-label-input { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; padding: 8px 10px; border: 1px solid var(--bd2); border-radius: var(--rads); background: #fff; font-family: inherit; }
+.chk-del-btn { flex-shrink: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--tx3); cursor: pointer; font-size: 15px; border-radius: 50%; }
+.chk-del-btn:active { background: var(--rbg); color: var(--r); }
+.chk-detail-text { color: var(--tx2); font-size: 12.5px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; padding: 8px 10px; background: var(--sf2); border-radius: var(--rads); margin-bottom: 10px; }
+.chk-detail-text:empty { display: none; }
+.chk-bottom-row { display: flex; gap: 10px; }
+.chk-eval-wrap { flex-shrink: 0; width: 96px; }
+.chk-eval-wrap select { width: 100%; padding: 9px 8px; font-size: 14px; border: 1px solid var(--bd2); border-radius: var(--rads); background: #fff; font-family: inherit; text-align: center; font-weight: 700; }
+.chk-eval-wrap select.v-ok { color: var(--g); background: var(--gbg); border-color: var(--g); }
+.chk-eval-wrap select.v-ng { color: var(--r); background: var(--rbg); border-color: var(--r); }
+.chk-result-wrap { flex: 1; min-width: 0; }
+.chk-result-wrap input { width: 100%; padding: 9px 10px; font-size: 13px; border: 1px solid var(--bd2); border-radius: var(--rads); background: #fff; font-family: inherit; }
+.chk-field-tag { font-size: 10px; color: var(--tx3); margin-bottom: 3px; display: block; }
+textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding: 10px 12px; font-size: 13px; border: 1px solid var(--bd2); border-radius: var(--rads); background: #f8fafc; font-family: inherit; resize: vertical; }
+.add-item-row { margin-top: 10px; }
+
+.action-bar { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+
+/* history */
+.hist-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.hist-table th { padding: 7px 9px; background: var(--sf2); border-bottom: 1px solid var(--bd); color: var(--tx2); font-weight: 600; text-align: left; }
+.hist-table td { padding: 7px 9px; border-bottom: 1px solid var(--bd); }
+.hist-empty { text-align: center; color: var(--tx3); padding: 18px; font-size: 12px; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px); background: #1a2332; color: #fff; padding: 11px 22px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.3); z-index: 999; transition: transform .3s; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--g); }
+.toast.error { background: var(--r); }
+
+.tab-bar { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 2px solid var(--bd); }
+.tab-item { padding: 10px 16px; font-size: 13px; font-weight: 700; color: var(--tx2); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; user-select: none; }
+.tab-item.on { color: var(--pr); border-bottom-color: var(--pr); }
+.tab-page { display: none; }
+.tab-page.on { display: block; }
+.hist-row { cursor: pointer; }
+.hist-row:hover { background: var(--sf2); }
+.detail-card { margin-top: 12px; }
+.detail-section-title { font-size: 13px; font-weight: 700; color: var(--pr); margin: 14px 0 8px; }
+.detail-item { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--bd); font-size: 12.5px; align-items: flex-start; }
+.detail-item:last-child { border-bottom: none; }
+.detail-item .di-label { flex-shrink: 0; width: 140px; font-weight: 600; }
+.detail-item .di-eval { flex-shrink: 0; width: 28px; font-weight: 700; text-align: center; }
+.detail-item .di-eval.ng { color: var(--r); }
+.detail-item .di-eval.ok { color: var(--g); }
+.detail-item .di-result { flex: 1; color: var(--tx2); }
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .content { padding: 10px; }
+  .card { padding: 12px; }
+  .chk-bottom-row { flex-wrap: wrap; }
+  .chk-eval-wrap { width: 100%; }
+  .chk-result-wrap { width: 100%; }
+  .topbar { flex-wrap: wrap; height: auto; min-height: 48px; padding: 8px 10px; row-gap: 6px; }
+  .tbmd { display: none; }
+  .user-name { display: none; }
+  #lang-select { font-size: 10px; padding: 3px 4px; max-width: 78px; }
+  .badge-role { font-size: 9px; padding: 2px 6px; }
+  #btn-close-tab { font-size: 10px; padding: 4px 8px; }
+}
+@media (min-width: 700px) {
+  .chk-eval-wrap { width: 110px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tbl">
+    <div class="tbic">&#x1F3ED;</div>
+    <div style="min-width:0"><div class="tbco">作業巡回チェックシート</div><div class="tbmd">関ケ原プラ工業(株)</div></div>
+  </div>
+  <div class="tbr">
+    <select id="lang-select" style="font-size:11px;padding:4px 6px;border-radius:5px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff">
+      <option value="ja" style="color:#1a2332;background:#fff">&#x1F310; 日本語</option>
+      <option value="en" style="color:#1a2332;background:#fff">&#x1F310; English</option>
+      <option value="zh-CN" style="color:#1a2332;background:#fff">&#x1F310; 中文</option>
+      <option value="vi" style="color:#1a2332;background:#fff">&#x1F310; Tiếng Việt</option>
+      <option value="pt" style="color:#1a2332;background:#fff">&#x1F310; Português</option>
+    </select>
+    <span class="user-name" id="disp-name">未ログイン</span>
+    <span class="badge-role" id="disp-role"></span>
+    <button class="btn xs hid" id="btn-close-tab" onclick="closeTab()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff">&#x2715; タブを閉じる</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="tab-bar">
+    <div class="tab-item on" id="tab-btn-input" onclick="switchTab('input')">&#x1F4CB; 点検入力</div>
+    <div class="tab-item" id="tab-btn-history" onclick="switchTab('history')">&#x1F4DC; 巡回記録の確認</div>
+    <div class="tab-item" id="tab-btn-coverage" onclick="switchTab('coverage')">&#x2B50; 巡回バランス</div>
+  </div>
+
+  <div id="tab-input" class="tab-page on">
+
+  <div class="notice-card">
+    日々巡回を行うことで、工場内の変化や作業環境の変化に気付くことができ、品質不具合の軽減が可能です。<br>
+    <b>~注意点~</b><br>
+    ・作業巡回者が、作業者にヒアリングする際は、声掛けのタイミングに注意しましょう。<br>
+    ・作業巡回者は、公平な目線で評価するようにしましょう。<br>
+    ・作業巡回時に、大きなトラブルを発見した場合は、巡回後現場管理者に報告しましょう。
+  </div>
+
+  <div class="card">
+    <div class="card-title">&#x1F4CB; 巡回基本情報</div>
+    <div class="form-grid">
+      <div class="fg"><label class="fl">巡回日時 *</label><input class="fi" type="date" id="f-date"></div>
+      <div class="fg"><label class="fl">時間</label><input class="fi" type="time" id="f-time"></div>
+      <div class="fg"><label class="fl">各取引先名</label>
+        <input class="fi" type="text" id="f-client" placeholder="品番を選択すると自動入力されます" readonly>
+      </div>
+      <div class="fg">
+        <label class="fl">品番</label>
+        <input class="fi" type="text" id="f-product" list="dl-products" placeholder="品番を入力(候補から選択)" autocomplete="off" oninput="onProductInput(this.value)">
+        <datalist id="dl-products"></datalist>
+      </div>
+      <div class="fg"><label class="fl">巡回担当者</label>
+        <input class="fi" type="text" id="f-inspector" placeholder="ログイン後に自動入力されます" readonly>
+      </div>
+      <div class="fg">
+        <label class="fl">作業者名</label>
+        <div class="row-inline">
+          <input class="fi" type="text" id="f-worker" list="dl-employees" placeholder="氏名を入力(候補から選択)" autocomplete="off">
+          <datalist id="dl-employees"></datalist>
+        </div>
+        <div class="row-inline" style="margin-top:4px">
+          <span class="link-btn" onclick="fetchWorkerName()">作業者名を登録</span>
+          <span class="link-btn" onclick="document.getElementById('f-worker').value=''">クリア</span>
+        </div>
+      </div>
+      <div class="fg full" style="grid-column:1/-1">
+        <label class="fl">作業評価コメント(管理者)</label>
+        <textarea class="fi" id="f-eval-comment" placeholder="管理者による評価コメント"></textarea>
+        <div class="row-inline" style="margin-top:4px">
+          <span class="link-btn" onclick="translateField('f-eval-comment','trans-eval-comment')">&#x1F310; 翻訳を見る</span>
+        </div>
+        <div class="translate-box hid" id="trans-eval-comment"></div>
+      </div>
+      <div class="fg full" style="grid-column:1/-1">
+        <label class="fl">作業者コメント</label>
+        <textarea class="fi" id="f-worker-comment" placeholder="作業者からのコメント"></textarea>
+        <div class="row-inline" style="margin-top:4px">
+          <span class="link-btn" onclick="translateField('f-worker-comment','trans-worker-comment')">&#x1F310; 翻訳を見る</span>
+          <span class="link-btn" onclick="translateField('f-worker-comment','trans-worker-comment','ja')">&#x1F1EF;&#x1F1F5; 日本語に翻訳</span>
+        </div>
+        <div class="translate-box hid" id="trans-worker-comment"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sections-wrap"></div>
+
+  <div class="action-bar">
+    <button class="btn" onclick="clearForm()">キャンセル</button>
+    <button class="btn pri" onclick="saveRecord()">&#x1F4BE; 保存</button>
+  </div>
+
+  </div>
+
+  <div id="tab-history" class="tab-page">
+    <div class="card">
+      <div class="card-title">&#x1F4DC; 巡回記録の確認(スプレッドシートの内容)</div>
+      <div style="overflow-x:auto">
+        <table class="hist-table">
+          <thead><tr><th>日時</th><th>取引先</th><th>品番</th><th>巡回担当者</th><th>作業者名</th><th>×件数</th><th></th></tr></thead>
+          <tbody id="hist-tbody"><tr><td colspan="7" class="hist-empty">読み込み中...</td></tr></tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn sm" onclick="loadHistoryFromServer()">&#x1F504; 更新</button>
+        <button class="btn sm" onclick="exportCsv()">&#x1F4C4; CSV出力</button>
+      </div>
+    </div>
+    <div id="detail-panel"></div>
+  </div>
+
+  <div id="tab-coverage" class="tab-page">
+    <div class="card">
+      <div class="card-title">&#x2B50; 全体サマリー</div>
+      <div class="cov-summary-grid" id="cov-summary-grid">
+        <div class="cov-summary-item"><div class="cov-summary-val" id="cov-total-records">-</div><div class="cov-summary-lbl">総巡回件数</div></div>
+        <div class="cov-summary-item"><div class="cov-summary-val" id="cov-covered">-</div><div class="cov-summary-lbl">巡回済み人数 / 全体</div></div>
+        <div class="cov-summary-item"><div class="cov-summary-val" id="cov-uncovered">-</div><div class="cov-summary-lbl">未巡回人数</div></div>
+        <div class="cov-summary-item"><div class="cov-summary-val" id="cov-daterange" style="font-size:13px">-</div><div class="cov-summary-lbl">記録期間</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">&#x2B50; 作業者別 巡回バランス(星取表)</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:12px;line-height:1.7">
+        従業員ごとの巡回(点検対象になった)回数と最終巡回日です。回数が少ない・最終巡回日が古い人を優先的に巡回すると、偏りなく均等に回れます。
+      </div>
+      <div id="cov-chart" style="margin-bottom:16px"></div>
+      <div style="overflow-x:auto">
+        <table class="hist-table">
+          <thead><tr><th>氏名</th><th>部署</th><th>巡回回数</th><th>最終巡回日</th><th></th></tr></thead>
+          <tbody id="coverage-tbody"><tr><td colspan="5" class="hist-empty">読み込み中...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" id="excluded-card" style="display:none">
+      <div class="card-title" style="cursor:pointer" onclick="toggleExcludedSection()">&#x1F6AB; 対象外の従業員(<span id="excluded-count">0</span>人) <span id="excluded-caret">&#x25B6;</span></div>
+      <div id="excluded-list" class="hid"></div>
+    </div>
+
+    <div id="worker-history-panel" class="hid"></div>
+
+    <div class="card">
+      <div class="card-title">&#x1F4CB; 巡回担当者別サマリー(取引先・品番の内訳)</div>
+      <div id="inspector-summary"><div class="hist-empty">読み込み中...</div></div>
+      <div style="margin-top:10px">
+        <button class="btn sm" onclick="loadCoverageStats()">&#x1F504; 更新</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==============================================================
+// 点検セクション定義
+// 現行kintoneアプリからそのまま移植した項目(成形工程/検査・加工)
+// 成形段取り・出荷は現行アプリで未展開だったため空欄。
+// 「+項目追加」で自由に追加できます。実際の項目が決まったら
+// SECTIONS 配列の items に直接追記してください。
+// ==============================================================
+const SEIKEI_ITEMS = [
+  { label: '標準類は最新版が管理されているか', detail: '現場内で最新版の帳票が管理できているか。(PC内も可)\n(成形記録票、製造仕様書、作業受領書等)' },
+  { label: '赤箱・チョイ置き品', detail: '・明示無し ×・製品があふれている ×\n・製品以外の物が入っている ×・チョイ置き品がある' },
+  { label: '作業レイアウト', detail: '・識別がわからない ×・製品に影響が出るレイアウト(キズ等) ×\n・安全が確保できていない ×' },
+  { label: 'QA機始業点検表', detail: '・始業点検無し ×・記録なし ×・管理者の確認無 ×\n・数値管理の項目がNG ×' },
+  { label: 'QA機ダミーサンプル', detail: '・ダミーサンプル無し ×・明示無し ×・使用していない ×' },
+  { label: 'QA機異常発生時', detail: '・決め事なし ×・管理者の対処確認できる ×\n・本来あるべきヒアリング(該非判断)のサイクルルールを守ること' },
+  { label: 'ショートショットの確認', detail: '・作業観察で明らかに確認できている場合のみOK\n(目視と手抜/併矛し/呼称/検知器etc.)' },
+  { label: '作業確認', detail: '・作業受領書通りの作業が出来ている ○\n・作業手順が違う ×\n・作業タクトの確認 秒数OK ／ NGX' },
+  { label: '頼合作業(混合)', detail: '・1篇完了時に順位の向きを確認していない ×\n・1篇内に混合作業をしていない ×・頼位の決め事が守られていない ×' },
+  { label: '作業台の3S', detail: '・治具に不要な物が置かれている ×・周囲の人が寄、ゴミ等が落ちている ×\n・工具他、装置類他、油汚れ、油漏れなどに置かれている ×' },
+  { label: '部品管理', detail: '・部品が決められた位置で管理できていない ×\n・部品を通剰に持ち出している ×・部品が破損している ×' },
+];
+
+const DANTORI_ITEMS = [
+  { label: '標準類は最新版が管理されているか', detail: '現場内で最新版の帳票が管理できているか。(PC内も可)\n(段取り替え手順書、材料投入手順書など)' },
+  { label: '赤箱・チョイ置き品', detail: '・前製品が作業台、コンベア、赤箱の中に残っている ×\n(社内現品票を含む)' },
+  { label: '金型交換時の作業姿', detail: '・ヘルメットを被らない ×・手袋をしない ×\n・確認項目が確認できていない ×' },
+  { label: '色替え作業', detail: '・色替え作業が正しく行えているか' },
+  { label: '製品外観', detail: '・外観不良 ×・ロット刻印が正しくない ×' },
+  { label: 'ショートショットの確認', detail: '・作業観察で明らかに確認できている場合のみOK\n(目視と手感/指差し呼称/検知器etc..)' },
+  { label: '成形記録類', detail: '・チョコ停記録記録なし ×・変化点の記録なし ×\n・成形ロット毎に記録がされていない ×' },
+  { label: '成形機周りの3S', detail: '・混雑に不要な物が置かれている ×・材料ペレット、ゴミ等が散乱している ×\n・タンゴが片付けられていない ×・段取り替え台車が放置されている ×' },
+  { label: '材料投入', detail: '・決め事なし ×・材料投入記録なし ×\n・材料缶の蓋が閉まっていない ×' },
+  { label: '生産タブレットの入力', detail: '・前製品の履歴のまま、段取りを開始している ×・材料ロットを記憶作業で入力している ×\n・生産タブレットの意味が理解できているか？(確認して答えられない ×)' },
+];
+
+const SHUKKA_ITEMS = [
+  { label: '標準類が最新版で管理されているか', detail: '現場内で最新の帳票が管理できているか。(PC内も可)\n(照合ルールEtc..)' },
+  { label: '出荷レイアウトは明確か', detail: '・出荷レーンが正しい状態で使用できているか\n・他社様と混合になっていないか・出荷品以外の製品と一目でわかるようになっているか' },
+  { label: '置場管理', detail: '・レイアウト図等でわかりやすくなっている' },
+  { label: '照合作業', detail: '・照合ルールを守っている(縦読み照合や、バーコード等)' },
+  { label: '出荷管理', detail: '・出荷指示書等がない ×・出荷指示書と出荷部品の整合記録がない ×\n・記録内容を管理者が確認している ○' },
+  { label: '端数管理', detail: '・決め事なし ×・記録類がない ×' },
+  { label: 'トレース', detail: '・ロット番号から製造記録のトレースが取れる ○' },
+  { label: '出荷作業台の3S', detail: '・作業場に不要な物が置かれている ×・指示書が適切に管理されていない ×\n・フォークリフトの日常点検ができていない ×' },
+  { label: '作業スペースは暗くないか', detail: '・暗くて照合が読み取れない ×' },
+];
+
+const SECTIONS = [
+  { id: 'dantori',  title: '成形段取り', items: DANTORI_ITEMS.slice() },
+  { id: 'koutei',   title: '成形工程',   items: SEIKEI_ITEMS.slice() },
+  { id: 'kensa',    title: '検査/加工',  items: SEIKEI_ITEMS.slice() },
+  { id: 'shukka',   title: '出荷',       items: SHUKKA_ITEMS.slice() },
+];
+
+// SSOトークン(ポータルから開かれた場合)・GASバックエンドURLの取得
+// GitHub Pages上の静的ページとして動くため、window.location.search から
+// クエリパラメータを直接読み取れる(他アプリと同じ方式)。
+let currentUser = null, employees = [];
+let JUNKAI_GAS_URL = '';
+(function initFromPortal() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const sso = params.get('sso') || '';
+    JUNKAI_GAS_URL = params.get('junkai_gas_url') || '';
+
+    if (sso) {
+      const b64 = sso.split('').reverse().join('');
+      const payload = JSON.parse(decodeURIComponent(escape(atob(b64))));
+      currentUser = payload;
+    }
+  } catch (e) { console.error('SSO解析エラー:', e); }
+})();
+
+function renderTopbar() {
+  document.getElementById('disp-name').textContent = currentUser ? currentUser.name : '未ログイン(単独プレビュー)';
+  document.getElementById('disp-role').textContent = currentUser ? currentUser.role : '';
+  if (currentUser) {
+    document.getElementById('f-inspector').value = currentUser.name;
+    document.getElementById('btn-close-tab').classList.remove('hid');
+  }
+}
+
+function closeTab() {
+  try { window.close(); } catch (e) {}
+  setTimeout(() => { showToast('このタブは手動で閉じてください', ''); }, 300);
+}
+
+// ==============================================================
+// 簡易翻訳(無料の翻訳エンドポイントを使用。精度はほどほど)
+// ==============================================================
+function getTargetLang() {
+  const sel = document.getElementById('lang-select');
+  return sel ? sel.value : 'en';
+}
+
+async function translateText(text, targetLang) {
+  if (!text || !text.trim()) return '';
+  const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='
+    + encodeURIComponent(targetLang) + '&dt=t&q=' + encodeURIComponent(text);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('翻訳サーバーエラー ' + res.status);
+  const data = await res.json();
+  return (data[0] || []).map(seg => seg[0]).join('');
+}
+
+function translateField(sourceId, boxId, forceLang) {
+  const box = document.getElementById(boxId);
+  const el = document.getElementById(sourceId);
+  const text = el.value !== undefined ? el.value : el.textContent;
+  if (!text || !text.trim()) { showToast('翻訳する文章がありません', ''); return; }
+  box.classList.remove('hid');
+  box.textContent = '翻訳中...';
+  translateText(text, forceLang || getTargetLang())
+    .then(result => { box.textContent = result || '(翻訳結果なし)'; })
+    .catch(err => { box.textContent = '翻訳エラー: ' + err.message; });
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('on'));
+  document.getElementById('tab-btn-' + tab).classList.add('on');
+  document.getElementById('tab-' + tab).classList.add('on');
+  if (tab === 'history') { loadHistoryFromServer(); document.getElementById('detail-panel').innerHTML = ''; }
+  if (tab === 'coverage') loadCoverageStats();
+}
+
+function showWorkerHistory(name) {
+  const panel = document.getElementById('worker-history-panel');
+  panel.classList.remove('hid');
+  panel.innerHTML = '<div class="card">読み込み中...</div>';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  gasGet('getJunkaiRecords').then(res => {
+    if (!res || !res.ok) { panel.innerHTML = `<div class="card" style="color:var(--r)">取得エラー: ${(res && res.message) || '不明'}</div>`; return; }
+    const list = (res.data || []).filter(r => r.worker === name);
+    if (!list.length) {
+      panel.innerHTML = `<div class="card"><div class="card-title">&#x1F4CB; ${escapeHtml(name)}さんの巡回記録</div><div class="hist-empty">記録がありません</div></div>`;
+      return;
+    }
+    panel.innerHTML = `
+      <div class="card">
+        <div class="card-title">&#x1F4CB; ${escapeHtml(name)}さんの巡回記録(${list.length}件)</div>
+        <div style="overflow-x:auto">
+          <table class="hist-table">
+            <thead><tr><th>日時</th><th>取引先</th><th>品番</th><th>巡回担当者</th><th>×件数</th><th></th></tr></thead>
+            <tbody>${list.map(r => `
+              <tr class="hist-row" onclick="goToRecordDetail('${r.id}')">
+                <td>${r.date || ''}${r.time ? ' ' + r.time : ''}</td>
+                <td>${r.client || '-'}</td>
+                <td>${r.product || '-'}</td>
+                <td>${r.inspector || '-'}</td>
+                <td style="color:${r.ngTotal > 0 ? 'var(--r)' : 'var(--g)'};font-weight:700">${r.ngTotal}</td>
+                <td><span class="link-btn">詳細を見る</span></td>
+              </tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }).catch(err => { panel.innerHTML = `<div class="card" style="color:var(--r)">取得エラー: ${err.message}</div>`; });
+}
+
+function goToRecordDetail(id) {
+  switchTab('history');
+  showRecordDetail(id);
+  setTimeout(() => {
+    const el = document.getElementById('detail-panel');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }, 250);
+}
+
+function loadCoverageStats() {
+  const tbody = document.getElementById('coverage-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="hist-empty">読み込み中...</td></tr>';
+  document.getElementById('inspector-summary').innerHTML = '<div class="hist-empty">読み込み中...</div>';
+
+  Promise.all([gasGet('getWorkerCoverageStats'), gasGet('getExcludedWorkers')]).then(([res, exRes]) => {
+    if (!res || !res.ok) {
+      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--r);text-align:center;padding:14px">取得エラー: ${(res && res.message) || '不明'}</td></tr>`;
+      return;
+    }
+    const { workerStats, inspectorStats, totalRecords, dateRange } = res.data;
+    const excludedIds = new Set((exRes && exRes.ok ? exRes.data : []).map(String));
+
+    // 従業員マスターに載っている全員を対象に、記録がなければ0件として表示
+    const allRows = employees.map(e => {
+      const s = workerStats[e.name] || { count: 0, lastDate: '' };
+      return { id: e.id, name: e.name, dept: e.dept || '-', count: s.count, lastDate: s.lastDate || '' };
+    });
+    const rows = allRows.filter(r => !excludedIds.has(String(r.id)));
+    const excludedRows = allRows.filter(r => excludedIds.has(String(r.id)));
+    rows.sort((a, b) => (a.count - b.count) || String(a.lastDate).localeCompare(String(b.lastDate)));
+
+    // --- 全体サマリー(対象外を除いて集計) ---
+    const coveredCount = rows.filter(r => r.count > 0).length;
+    document.getElementById('cov-total-records').textContent = totalRecords;
+    document.getElementById('cov-covered').textContent = coveredCount + ' / ' + rows.length;
+    document.getElementById('cov-uncovered').textContent = (rows.length - coveredCount) + '人';
+    document.getElementById('cov-daterange').textContent = dateRange.first
+      ? (dateRange.first + ' 〜 ' + dateRange.last) : '記録なし';
+
+    // --- 棒グラフ(対象外を除く) ---
+    const chartEl = document.getElementById('cov-chart');
+    const maxCount = Math.max(1, ...rows.map(r => r.count));
+    chartEl.innerHTML = rows.map(r => {
+      const pct = Math.max(4, Math.round((r.count / maxCount) * 100));
+      const color = r.count === 0 ? 'var(--r)' : r.count <= 2 ? 'var(--a)' : 'var(--g)';
+      return `
+        <div class="cov-bar-row">
+          <div class="cov-bar-name">${escapeHtml(r.name)}</div>
+          <div class="cov-bar-track"><div class="cov-bar-fill" style="width:${pct}%;background:${color}">${r.count}</div></div>
+        </div>`;
+    }).join('');
+
+    // --- テーブル(対象者) ---
+    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="hist-empty">対象の従業員がいません</td></tr>'; }
+    else {
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td><span class="link-btn" onclick="showWorkerHistory('${escapeAttr(r.name)}')">${escapeHtml(r.name)}</span></td>
+          <td>${escapeHtml(r.dept)}</td>
+          <td style="font-weight:700;color:${r.count === 0 ? 'var(--r)' : r.count <= 2 ? 'var(--a)' : 'var(--g)'}">${r.count}回</td>
+          <td>${r.lastDate || '(未巡回)'}</td>
+          <td><span class="link-btn" onclick="toggleExcluded('${escapeAttr(r.id)}','${escapeAttr(r.name)}',true)">対象外にする</span></td>
+        </tr>`).join('');
+    }
+
+    // --- 対象外セクション ---
+    const excCard = document.getElementById('excluded-card');
+    document.getElementById('excluded-count').textContent = excludedRows.length;
+    if (excludedRows.length) {
+      excCard.style.display = '';
+      document.getElementById('excluded-list').innerHTML = `
+        <table class="hist-table" style="margin-top:10px">
+          <thead><tr><th>氏名</th><th>部署</th><th></th></tr></thead>
+          <tbody>${excludedRows.map(r => `
+            <tr>
+              <td>${escapeHtml(r.name)}</td>
+              <td>${escapeHtml(r.dept)}</td>
+              <td><span class="link-btn" onclick="toggleExcluded('${escapeAttr(r.id)}','${escapeAttr(r.name)}',false)">対象に戻す</span></td>
+            </tr>`).join('')}</tbody>
+        </table>`;
+    } else {
+      excCard.style.display = 'none';
+    }
+
+    // --- 巡回担当者別サマリー ---
+    const inspNames = Object.keys(inspectorStats).sort((a, b) => inspectorStats[b].total - inspectorStats[a].total);
+    const inspEl = document.getElementById('inspector-summary');
+    if (!inspNames.length) {
+      inspEl.innerHTML = '<div class="hist-empty">まだ巡回記録がありません</div>';
+    } else {
+      inspEl.innerHTML = inspNames.map(name => {
+        const s = inspectorStats[name];
+        const topClients = Object.entries(s.clients).sort((a, b) => b[1] - a[1])
+          .map(([k, v]) => `${escapeHtml(k)}(${v})`).join('、');
+        const topProducts = Object.entries(s.products).sort((a, b) => b[1] - a[1])
+          .map(([k, v]) => `${escapeHtml(k)}(${v})`).join('、');
+        return `
+          <div class="insp-card">
+            <div class="insp-card-title">${escapeHtml(name)} — 合計 ${s.total}件</div>
+            <div class="insp-breakdown"><b>取引先内訳:</b> ${topClients}</div>
+            <div class="insp-breakdown"><b>品番内訳:</b> ${topProducts}</div>
+          </div>`;
+      }).join('');
+    }
+  }).catch(err => {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--r);text-align:center;padding:14px">取得エラー: ${err.message}</td></tr>`;
+    document.getElementById('inspector-summary').innerHTML = `<div style="color:var(--r)">取得エラー: ${err.message}</div>`;
+  });
+}
+
+function toggleExcluded(id, name, excluded) {
+  gasPost('setWorkerExcluded', { id, name, excluded })
+    .then(res => {
+      if (res && res.ok) {
+        showToast(excluded ? '対象外にしました' : '対象に戻しました', 'success');
+        loadCoverageStats();
+      } else {
+        showToast('更新エラー: ' + ((res && res.message) || '不明'), 'error');
+      }
+    })
+    .catch(err => showToast('更新エラー: ' + err.message, 'error'));
+}
+
+function toggleExcludedSection() {
+  document.getElementById('excluded-list').classList.toggle('hid');
+  const caret = document.getElementById('excluded-caret');
+  caret.style.transform = caret.style.transform === 'rotate(90deg)' ? '' : 'rotate(90deg)';
+}
+
+// ==============================================================
+// GASバックエンド呼び出し(fetch経由。他アプリと同じAPI方式)
+// ==============================================================
+async function gasGet(action, extraParams) {
+  if (!JUNKAI_GAS_URL) return null;
+  const qs = new URLSearchParams({ action, ...(extraParams || {}) });
+  const res = await fetch(JUNKAI_GAS_URL + '?' + qs.toString());
+  return res.json();
+}
+
+async function gasPost(action, payload) {
+  if (!JUNKAI_GAS_URL) return null;
+  const res = await fetch(JUNKAI_GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // GAS doPostはtext/plainでもJSONとして受け取れる
+    body: JSON.stringify({ action, ...(payload || {}) })
+  });
+  return res.json();
+}
+
+// 従業員マスター(ポータルの employees シート)から巡回担当者・作業者名の候補を取得
+function loadEmployeeMaster() {
+  const dl = document.getElementById('dl-employees');
+  gasGet('getEmployeeMaster').then(res => {
+    if (res && res.ok) {
+      employees = res.data;
+      dl.innerHTML = employees.map(e => `<option value="${escapeAttr(e.name)}">`).join('');
+    }
+  }).catch(err => console.error('従業員マスター取得エラー:', err));
+}
+
+// 製品マスタ(製品マスタ管理アプリ)から品番の候補を取得
+// 製品マスタ(製品マスタ管理アプリ)から品番の候補を取得
+// 作業報告書アプリと同じ方式: ブラウザから直接、製品マスタのGASにfetchする
+// (自分のGAS経由にすると UrlFetchApp の権限承認が必要になるため)
+const PRODUCT_MASTER_GAS_URL = 'https://script.google.com/macros/s/AKfycbww1lPYGVf7FLmIbjwxODbFMKSn8Q6yxFL9OpPnYmh9AnkAWVf9BgrRgk0Wc8GvK2XN/exec';
+
+// ==============================================================
+// 通知(通知マスタGASに直接fetch。特定の1人ずつに directUserId で送る)
+// ==============================================================
+const NOTIFY_GAS_URL = 'https://script.google.com/macros/s/AKfycbyu0vfirCmz6Vi-phFPh76-KS6cJc5cIOsUdt3-yaUqmhVnGdayWwIKTuSvtxZfmeGh/exec';
+
+function sendNotify(message, lwUserId) {
+  if (!lwUserId) return;
+  fetch(NOTIFY_GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ app: 'junkaiCheck', message, directUserId: lwUserId })
+  }).catch(err => console.error('通知送信エラー:', err));
+}
+
+function findEmployeeByName(name) {
+  return employees.find(e => e.name === name);
+}
+let productMaster = [];
+function loadProductMaster() {
+  fetch(PRODUCT_MASTER_GAS_URL + '?action=getProducts')
+    .then(res => res.json())
+    .then(res => {
+      if (res && res.ok) {
+        productMaster = (res.data || []).map(p => ({ code: p['品番'], client: p['基本取引先'] })).filter(p => p.code);
+        document.getElementById('dl-products').innerHTML =
+          productMaster.map(p => `<option value="${escapeAttr(p.code)}">`).join('');
+        if (!productMaster.length) showToast('製品マスタが0件でした', '');
+      } else {
+        showToast('製品マスタ取得エラー: ' + ((res && res.message) || '不明'), 'error');
+        console.error('製品マスタ取得エラー:', res);
+      }
+    })
+    .catch(err => {
+      showToast('製品マスタ取得エラー: ' + err.message, 'error');
+      console.error('製品マスタ取得エラー:', err);
+    });
+}
+
+function onProductInput(code) {
+  const match = productMaster.find(p => String(p.code) === String(code));
+  document.getElementById('f-client').value = match ? (match.client || '') : '';
+}
+
+function fetchWorkerName() {
+  document.getElementById('f-worker').value = currentUser ? currentUser.name : '';
+}
+
+function renderSections() {
+  const wrap = document.getElementById('sections-wrap');
+  wrap.innerHTML = SECTIONS.map((sec, si) => `
+    <div class="section" id="sec-${sec.id}">
+      <div class="section-head" onclick="toggleSection('${sec.id}')">
+        <div class="section-head-l"><span class="section-caret">&#x25B6;</span> ${sec.title}</div>
+        <span class="section-badge" id="badge-${sec.id}">0件</span>
+      </div>
+      <div class="section-body">
+        <div id="cards-${sec.id}"></div>
+        <div class="add-item-row"><button class="btn xs" onclick="addItem('${sec.id}')">&#xFF0B; 項目追加</button></div>
+        <label class="fl" style="margin-top:12px">改善してほしい点(改善内容)</label>
+        <textarea class="improve-note" id="note-${sec.id}" placeholder="改善内容を入力"></textarea>
+      </div>
+    </div>`).join('');
+  SECTIONS.forEach(sec => sec.items.forEach(it => appendItemRow(sec.id, it.label, it.detail)));
+}
+
+function toggleSection(id) {
+  document.getElementById('sec-' + id).classList.toggle('open');
+}
+
+function appendItemRow(sectionId, label = '', detail = '', editable = false) {
+  const container = document.getElementById('cards-' + sectionId);
+  const card = document.createElement('div');
+  card.className = 'chk-card';
+  card.innerHTML = `
+    <div class="chk-card-top">
+      <div class="chk-no-badge">${container.children.length + 1}</div>
+      <input class="chk-label-input" value="${escapeAttr(label)}" placeholder="点検項目" ${editable ? '' : 'readonly style="background:#f2f6fb;color:var(--tx)"'}>
+      ${editable ? `<div class="chk-del-btn" onclick="removeRow(this,'${sectionId}')">&#x2715;</div>` : '<div style="width:30px"></div>'}
+    </div>
+    ${detail ? `<div class="chk-detail-text">${escapeHtml(detail)}</div>` : ''}
+    <div class="row-inline" style="margin:2px 0 6px">
+      <span class="link-btn" onclick="translateItemCard(this)">&#x1F310; 項目を翻訳</span>
+    </div>
+    <div class="translate-box hid"></div>
+    <div class="chk-bottom-row">
+      <div class="chk-eval-wrap">
+        <span class="chk-field-tag">評価(○/×)</span>
+        <select onchange="markEval(this)">
+          <option value="">-----</option>
+          <option value="○">○</option>
+          <option value="×">×</option>
+        </select>
+      </div>
+      <div class="chk-result-wrap">
+        <span class="chk-field-tag">確認結果</span>
+        <input type="text" placeholder="確認結果">
+      </div>
+    </div>`;
+  container.appendChild(card);
+  renumber(sectionId);
+}
+
+function translateItemCard(linkEl) {
+  const card = linkEl.closest('.chk-card');
+  const label = card.querySelector('.chk-label-input').value;
+  const detail = card.querySelector('.chk-detail-text')?.textContent || '';
+  const box = card.querySelector('.translate-box');
+  const text = label + (detail ? '\n' + detail : '');
+  if (!text.trim()) { showToast('翻訳する文章がありません', ''); return; }
+  box.classList.remove('hid');
+  box.textContent = '翻訳中...';
+  translateText(text, getTargetLang())
+    .then(result => { box.textContent = result || '(翻訳結果なし)'; })
+    .catch(err => { box.textContent = '翻訳エラー: ' + err.message; });
+}
+
+function addItem(sectionId) { appendItemRow(sectionId, '', '', true); }
+
+function removeRow(el, sectionId) {
+  el.closest('.chk-card').remove();
+  renumber(sectionId);
+  updateBadge(sectionId);
+}
+
+function renumber(sectionId) {
+  const container = document.getElementById('cards-' + sectionId);
+  [...container.children].forEach((card, i) => card.querySelector('.chk-no-badge').textContent = i + 1);
+}
+
+function markEval(sel) {
+  sel.classList.remove('v-ok', 'v-ng');
+  if (sel.value === '○') sel.classList.add('v-ok');
+  if (sel.value === '×') sel.classList.add('v-ng');
+  const sectionId = sel.closest('[id^="cards-"]').id.replace('cards-', '');
+  updateBadge(sectionId);
+}
+
+function updateBadge(sectionId) {
+  const container = document.getElementById('cards-' + sectionId);
+  const ngCount = [...container.querySelectorAll('.chk-eval-wrap select')].filter(s => s.value === '×').length;
+  const badge = document.getElementById('badge-' + sectionId);
+  badge.textContent = ngCount + '件 ×';
+  badge.classList.toggle('warn', ngCount > 0);
+}
+
+// ==============================================================
+// 保存・履歴(このプロトタイプではブラウザのメモリ内に保持)
+// 実運用では GAS の doPost / スプレッドシート保存に置き換える
+// ==============================================================
+let history = [];
+
+function collectSectionData(sectionId) {
+  const container = document.getElementById('cards-' + sectionId);
+  return [...container.children].map(card => ({
+    label: card.querySelector('.chk-label-input').value,
+    detail: card.querySelector('.chk-detail-text')?.textContent || '',
+    eval: card.querySelector('.chk-eval-wrap select').value,
+    result: card.querySelector('.chk-result-wrap input').value,
+  }));
+}
+
+function saveRecord() {
+  if (!document.getElementById('f-date').value) {
+    showToast('巡回日時を入力してください', 'error'); return;
+  }
+  const record = {
+    date: document.getElementById('f-date').value,
+    time: document.getElementById('f-time').value,
+    client: document.getElementById('f-client').value,
+    product: document.getElementById('f-product').value,
+    inspector: document.getElementById('f-inspector').value,
+    worker: document.getElementById('f-worker').value,
+    evalComment: document.getElementById('f-eval-comment').value,
+    workerComment: document.getElementById('f-worker-comment').value,
+    sections: {}
+  };
+  let ngTotal = 0;
+  SECTIONS.forEach(sec => {
+    const data = collectSectionData(sec.id);
+    record.sections[sec.id] = { items: data, note: document.getElementById('note-' + sec.id).value };
+    ngTotal += data.filter(d => d.eval === '×').length;
+  });
+  record.ngTotal = ngTotal;
+
+  if (JUNKAI_GAS_URL) {
+    gasPost('saveJunkaiRecord', { record })
+      .then(res => {
+        if (res && res.ok) {
+          showToast('保存しました', 'success');
+          loadHistoryFromServer();
+          // 該当の作業者に通知(全体購読者への一斉通知ではなく、本人だけへ)
+          const workerEmp = findEmployeeByName(record.worker);
+          if (workerEmp && workerEmp.lwUserId) {
+            const msg = '📋 巡回チェックの結果が届きました\n' +
+              '──────────────\n' +
+              '巡回日時: ' + record.date + ' ' + (record.time || '') + '\n' +
+              '品番: ' + (record.product || '-') + '\n' +
+              '巡回担当者: ' + (record.inspector || '-') + '\n' +
+              '×項目数: ' + record.ngTotal + '\n' +
+              '──────────────\n' +
+              'アプリで詳細を確認できます。';
+            sendNotify(msg, workerEmp.lwUserId);
+          }
+        } else {
+          showToast('保存エラー: ' + (res && res.message || '不明なエラー'), 'error');
+        }
+      })
+      .catch(err => showToast('保存エラー: ' + err.message, 'error'));
+  } else {
+    // 単独プレビュー時(GAS未接続)はブラウザ内メモリのみに保存
+    history.unshift(record);
+    renderHistory();
+    showToast('保存しました(プレビューモード:サーバー未接続)', 'success');
+  }
+}
+
+function renderHistory() {
+  const tbody = document.getElementById('hist-tbody');
+  if (!history.length) { tbody.innerHTML = '<tr><td colspan="7" class="hist-empty">まだ保存された記録はありません</td></tr>'; return; }
+  tbody.innerHTML = history.map((r, i) => `
+    <tr class="hist-row" onclick="${r.id ? `showRecordDetail('${r.id}')` : ''}">
+      <td>${r.date || ''}${r.time ? ' ' + r.time : ''}</td>
+      <td>${r.client || '-'}</td>
+      <td>${r.product || '-'}</td>
+      <td>${r.inspector || '-'}</td>
+      <td>${r.worker || '-'}</td>
+      <td style="color:${r.ngTotal > 0 ? 'var(--r)' : 'var(--g)'};font-weight:700">${r.ngTotal}</td>
+      <td>${r.id ? '<span class="link-btn">詳細を見る</span>' : ''}</td>
+    </tr>`).join('');
+}
+
+const SECTION_TITLES = { dantori: '成形段取り', koutei: '成形工程', kensa: '検査/加工', shukka: '出荷' };
+
+let currentDetailRecord = null;
+function showRecordDetail(id) {
+  const panel = document.getElementById('detail-panel');
+  panel.innerHTML = '<div class="card detail-card">読み込み中...</div>';
+  gasGet('getJunkaiRecordDetail', { id }).then(res => {
+    if (!res || !res.ok) { panel.innerHTML = `<div class="card detail-card" style="color:var(--r)">取得エラー: ${(res && res.message) || '不明'}</div>`; return; }
+    const d = res.data;
+    currentDetailRecord = d;
+    const sectionsHtml = Object.keys(SECTION_TITLES).map(key => {
+      const allItems = (d[key] && d[key].items) || [];
+      const items = allItems.filter(it => it.eval || (it.result && it.result.trim()));
+      if (!items.length) return '';
+      return `<div class="detail-section-title">${SECTION_TITLES[key]}</div>` +
+        items.map(it => `
+          <div class="detail-item">
+            <div class="di-label">${escapeHtml(it.label || '')}</div>
+            <div class="di-eval ${it.eval === '×' ? 'ng' : it.eval === '○' ? 'ok' : ''}">${it.eval || '-'}</div>
+            <div class="di-result">${escapeHtml(it.result || '')}</div>
+          </div>`).join('') +
+        (d[key] && d[key].note ? `<div style="font-size:12px;color:var(--tx2);margin-top:6px">改善点: ${escapeHtml(d[key].note)}</div>` : '');
+    }).join('');
+    panel.innerHTML = `
+      <div class="card detail-card">
+        <div class="card-title">&#x1F4C4; 巡回記録の詳細</div>
+        <div style="font-size:12.5px;color:var(--tx2);margin-bottom:4px;line-height:1.8">
+          巡回日時: ${d.date || ''} ${d.time || ''}<br>
+          取引先: ${d.client || '-'} / 品番: ${d.product || '-'}<br>
+          巡回担当者: ${d.inspector || '-'} / 作業者名: ${d.worker || '-'}
+        </div>
+        ${d.evalComment ? `
+        <div style="font-size:12.5px;color:var(--tx2);margin-bottom:10px">
+          評価コメント: <span id="detail-eval-comment">${escapeHtml(d.evalComment)}</span>
+          <span class="link-btn" onclick="translateField('detail-eval-comment','trans-eval-comment-detail')" style="margin-left:8px">&#x1F310; 翻訳を見る</span>
+          <span class="link-btn" onclick="translateField('detail-eval-comment','trans-eval-comment-detail','ja')" style="margin-left:8px">&#x1F1EF;&#x1F1F5; 日本語に翻訳</span>
+          <div class="translate-box hid" id="trans-eval-comment-detail"></div>
+        </div>` : ''}
+        ${sectionsHtml}
+        <label class="fl" style="margin-top:14px">作業者コメント</label>
+        <textarea class="fi" id="detail-worker-comment" placeholder="作業者コメントを入力"
+          ${d.workerComment ? 'readonly style="background:var(--sf3);color:var(--tx2)"' : ''}>${escapeHtml(d.workerComment || '')}</textarea>
+        <div style="margin-top:8px">
+          <button class="btn pri sm${d.workerComment ? ' hid' : ''}" id="btn-save-worker-comment" onclick="saveWorkerComment('${id}')">&#x1F4BE; コメントを保存</button>
+          <span class="link-btn" onclick="translateField('detail-worker-comment','trans-detail-worker-comment')" style="margin-left:8px">&#x1F310; 翻訳を見る</span>
+          <span class="link-btn" onclick="translateField('detail-worker-comment','trans-detail-worker-comment','ja')" style="margin-left:8px">&#x1F1EF;&#x1F1F5; 日本語に翻訳</span>
+        </div>
+        <div class="translate-box hid" id="trans-detail-worker-comment"></div>
+      </div>`;
+  }).catch(err => { panel.innerHTML = `<div class="card detail-card" style="color:var(--r)">取得エラー: ${err.message}</div>`; });
+}
+
+function saveWorkerComment(id) {
+  const textarea = document.getElementById('detail-worker-comment');
+  const comment = textarea.value;
+  gasPost('updateWorkerComment', { id, comment })
+    .then(res => {
+      if (res && res.ok) {
+        showToast('作業者コメントを保存しました', 'success');
+        textarea.readOnly = true;
+        textarea.style.background = 'var(--sf3)';
+        textarea.style.color = 'var(--tx2)';
+        const btn = document.getElementById('btn-save-worker-comment');
+        if (btn) btn.classList.add('hid');
+
+        // 巡回担当者 + マスター管理者全員に通知(全体購読者への一斉通知ではなく該当者のみ)
+        const d = currentDetailRecord || {};
+        const msg = '\u{1F4AC} 作業者コメントが記入されました\n' +
+          '\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n' +
+          '巡回日時: ' + (d.date || '') + ' ' + (d.time || '') + '\n' +
+          '品番: ' + (d.product || '-') + '\n' +
+          '作業者: ' + (d.worker || '-') + '\n' +
+          'コメント: ' + comment + '\n' +
+          '\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
+        const inspectorEmp = findEmployeeByName(d.inspector);
+        if (inspectorEmp && inspectorEmp.lwUserId) sendNotify(msg, inspectorEmp.lwUserId);
+        employees.filter(e => e.role === 'master' && e.lwUserId)
+          .forEach(m => sendNotify(msg, m.lwUserId));
+      } else {
+        showToast('保存エラー: ' + ((res && res.message) || '不明'), 'error');
+      }
+    })
+    .catch(err => showToast('保存エラー: ' + err.message, 'error'));
+}
+
+function clearForm() {
+  document.querySelectorAll('.card input, .card textarea, .card select').forEach(el => {
+    if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = '';
+  });
+  renderSections();
+  showToast('フォームをクリアしました', '');
+}
+
+function exportCsv() {
+  if (!history.length) { showToast('出力する履歴がありません', 'error'); return; }
+  const rows = [['巡回日時', '時間', '取引先', '品番', '巡回担当者', '作業者名', '×件数']];
+  history.forEach(r => rows.push([r.date, r.time, r.client, r.product, r.inspector, r.worker, r.ngTotal]));
+  const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '作業巡回チェックシート_' + (new Date().toISOString().slice(0, 10)) + '.csv';
+  a.click();
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast' + (type ? ' ' + type : '');
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function escapeHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function escapeAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+
+function loadHistoryFromServer() {
+  if (!JUNKAI_GAS_URL) return;
+  gasGet('getJunkaiRecords')
+    .then(res => { if (res && res.ok && res.data) { history = res.data; renderHistory(); } })
+    .catch(err => console.error('履歴取得エラー:', err));
+}
+
+// init
+renderTopbar();
+loadEmployeeMaster();
+loadProductMaster();
+renderSections();
+document.getElementById('f-date').value = new Date().toISOString().slice(0, 10);
+loadHistoryFromServer();
+</script>
+</body>
+</html>
