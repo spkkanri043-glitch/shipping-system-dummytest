@@ -9,6 +9,36 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="出荷照合">
+
+<!-- ============================================================
+     ★ポータルから渡されたトークンを回収する処理
+     ★この <script> は、このページで最初に実行されるJavaScriptであること。
+       置き場所：<head> の中、他のどの <script>（外部・インラインとも）よりも前。
+       現在このファイルは外部JSを読み込んでいないが、将来CDNのライブラリを
+       追加したときに、その <script> より後ろに移動させてはいけない。
+
+     ★理由：外部から読み込んだJSは location.hash を自由に読める。
+       消すのが後になると、読み込んだライブラリにトークンを渡してしまう。
+
+     ★トークンはクエリ(?)ではなくフラグメント(#)で受け取る。
+       フラグメントはサーバーに送信されないため、
+       GitHub Pages のアクセスログや Referer に残らない。
+     ============================================================ -->
+<script>
+(function () {
+  var TOKEN_KEY = 'shipping_token_v1';
+  try {
+    var h = window.location.hash || '';
+    var m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      // 保存してから、すぐURLから消す（履歴も残さない）
+      sessionStorage.setItem(TOKEN_KEY, decodeURIComponent(m[1]));
+      window.history.replaceState({}, '', window.location.pathname + window.location.search);
+    }
+  } catch (e) {}
+})();
+</script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Meiryo','Hiragino Sans',sans-serif;background:#f5f5f2;color:#1a1a18;min-height:100vh}
@@ -136,22 +166,14 @@ select,input[type=date]{width:100%;padding:10px;border:1px solid #ccc;border-rad
   </div>
   <div class="login-company">関ケ原プラ工業(株)</div>
   <div class="login-greeting">従業員の皆様、ようこそ</div>
+  <!-- ★このアプリ単体ではログインさせない（Step 7）。
+       利用者の判定はポータル側とGAS側で行う。 -->
   <div class="login-card">
-    <div class="login-tabs">
-      <button class="login-tab active" id="tab-admin" onclick="switchLoginTab('admin')">管理者ログイン</button>
-      <button class="login-tab" id="tab-staff" onclick="switchLoginTab('staff')">従業員ログイン</button>
+    <div class="login-label" style="text-align:center;line-height:2;font-size:15px">
+      このアプリは<br><b>業務管理ポータル</b>からご利用ください
     </div>
-    <div class="login-field">
-      <div class="login-label">ユーザーID</div>
-      <input type="text" class="login-input" id="login-id" placeholder="" autocomplete="username">
-    </div>
-    <div class="login-field">
-      <div class="login-label">パスワード</div>
-      <input type="password" class="login-input" id="login-pw" placeholder="パスワード" autocomplete="current-password">
-    </div>
-    <button class="login-btn" onclick="doLogin()">ログイン</button>
-    <div class="login-error" id="login-error">IDまたはパスワードが違います</div>
-    <div class="login-hint" id="login-hint" style="display:none"></div>
+    <button class="login-btn" onclick="goPortal()" style="margin-top:16px">ポータルを開く</button>
+    <div class="login-error" id="login-error" style="display:none"></div>
   </div>
   <div class="login-footer">© 関ケ原プラ工業株式会社</div>
 </div>
@@ -263,7 +285,7 @@ select,input[type=date]{width:100%;padding:10px;border:1px solid #ccc;border-rad
 // ============================================================
 // GAS設定
 // ============================================================
-const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbxvxOoOGVKi_L9U9BG6aZI8fL9hP-O1EExPQsshppITG7BkpHsFNUbDwv9gs5nbI4wJ-w/exec';
+const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbxZoEhqcpYbLyj-1EXvKtisWL3Wreb8_OwWVeyy4vUhB5t6PKC9HtCJWm1ESS8pabSSZg/exec';
 const GAS_URL = GAS_DEPLOY_URL;
 
 // ============================================================
@@ -273,13 +295,36 @@ const SAVE_KEY       = 'shipping_data_v1';
 const SAVE_KEY_FILES = 'shipping_files_v1';
 const SAVE_KEY_LOG   = 'shipping_log_v1';
 
-const USERS = [
-  { id: 'admin',  pw: '435511spk', name: '管理者',   admin: true  },
-  { id: 'kouki',  pw: 'admin',     name: '安田光輝', admin: false },
-  { id: 'ryota',  pw: 'admin1',    name: '吉村亮汰', admin: false },
-  { id: 'tomoki', pw: 'admin2',    name: '安田智貴', admin: false },
-];
+// ★USERS配列（利用者のIDとパスワードの直書き）は Step 7 で削除した。
+//   このファイルはGitHub Pagesで公開配信されており、誰でもソースを読めるため、
+//   ここに認証情報を置いてはいけない。
+//   なお、削除しただけでは過去に公開された値は無効にならない。
+//   ★必ず全員分のパスワードを変更すること（Gitの履歴には残っているため）。
 const SESSION_KEY = 'shipping_session_v1';
+const TOKEN_KEY   = 'shipping_token_v1';   // <head> の先頭スクリプトと同じキー名にすること
+
+/**
+ * HTMLとして解釈されると困る文字を無害化する（Step 7）。
+ *
+ * ★なぜ必要か
+ *   この画面が表示しているのは取引先から届くCSVの中身。
+ *   品名の欄に <img src=x onerror=...> のような文字列が入っていると、
+ *   エスケープせずに innerHTML へ入れた瞬間にスクリプトとして動いてしまう。
+ *   トークンは sessionStorage にあるため、1箇所でも注入経路があると盗まれる。
+ *   （別オリジンのため httpOnly Cookie が使えず、sessionStorage 以外に置き場がない）
+ *
+ * ★本来は textContent が最善だが、この画面は行のHTMLを文字列で組み立てているため、
+ *   全面的な作り替えになる。ここでは「差し込む値を必ずこの関数に通す」方式にした。
+ *   新しく値を差し込むときは、必ず esc() を通すこと。
+ */
+function esc(v) {
+  return String(v === undefined || v === null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 let records          = [];
 let filterMode       = 'all';
@@ -350,8 +395,7 @@ async function manualRefresh() {
   restoreData();
   if (GAS_DEPLOY_URL && GAS_DEPLOY_URL !== 'YOUR_DEPLOY_URL') {
     try {
-      const res  = await fetch(GAS_DEPLOY_URL + '?action=loadShippingData');
-      const data = await res.json();
+      const data = await gasCall('loadShippingData', {});
       if (data.ok && data.records && data.records.length > 0) {
         const cloudMap = {};
         data.records.forEach(function(r) { cloudMap[r['バーコード番号']] = r; });
@@ -409,10 +453,9 @@ function stopAutoRefresh() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  const loginIdEl = document.getElementById('login-id');
-  const loginPwEl = document.getElementById('login-pw');
-  if (loginIdEl) loginIdEl.addEventListener('keydown', e => { if(e.key==='Enter') { if(loginPwEl) loginPwEl.focus(); } });
-  if (loginPwEl) loginPwEl.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  // ★ログイン欄（login-id / login-pw）のキー操作は Step 7 で削除した。
+  //   入力欄も doLogin() も無くなったため、ここに残しておくと
+  //   将来ログイン欄を作り直したときに、存在しない関数を呼びに行ってしまう。
   const hinbanEl = document.getElementById('hinban-input');
   if (hinbanEl) hinbanEl.addEventListener('keydown', e => { if(e.key==='Enter') { e.preventDefault(); setHinban(); } });
   const scanEl = document.getElementById('scan-input');
@@ -441,9 +484,7 @@ async function saveToCloud() {
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(async () => {
     try {
-      const payload = { action: 'saveShippingData', records: records, logEntries: logEntries, savedAt: nowStr() };
-      const res = await fetch(GAS_DEPLOY_URL, { method: 'POST', body: JSON.stringify(payload) });
-      const data = await res.json();
+      const data = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr() });
       if (data.ok) {
         const el = document.getElementById('save-indicator');
         if (el) { el.textContent = '☁️ クラウド保存済 ' + nowStr().slice(11,16); el.style.opacity='1'; setTimeout(()=>el.style.opacity='.4',3000); }
@@ -455,8 +496,7 @@ async function saveToCloud() {
 async function loadFromCloud() {
   if (!GAS_DEPLOY_URL || GAS_DEPLOY_URL.includes('YOUR_DEPLOY_URL')) { showFB('warn', 'GAS_DEPLOY_URLが未設定です'); return; }
   try {
-    const res = await fetch(GAS_DEPLOY_URL + '?action=loadShippingData');
-    const data = await res.json();
+    const data = await gasCall('loadShippingData', {});
     if (data.ok && data.records && data.records.length > 0) {
       records = data.records; logEntries = data.logEntries || [];
       updateStats(); renderList();
@@ -546,7 +586,7 @@ function splitCSV(line) {
 function updateChips() {
   const wrap = document.getElementById('file-chips-wrap');
   wrap.style.display = loadedFiles.length ? 'block' : 'none';
-  document.getElementById('chip-list').innerHTML = loadedFiles.map(f => `<span class="file-chip">${f}</span>`).join('');
+  document.getElementById('chip-list').innerHTML = loadedFiles.map(f => `<span class="file-chip">${esc(f)}</span>`).join('');
 }
 
 function clearAll() {
@@ -704,13 +744,13 @@ function renderList() {
       mukouKeys.forEach(function(mk) {
         const info = mukouMap[mk];
         const mc   = info.done === info.total ? '#1e8a55' : '#e8a000';
-        mukouHtml += mk + ':<span style="color:' + mc + '">' + info.done + '/' + info.total + '</span>　';
+        mukouHtml += esc(mk) + ':<span style="color:' + mc + '">' + info.done + '/' + info.total + '</span>　';
       });
       mukouHtml += '</span>';
     }
     const isOpen = expandedGroups[hn] === true;
     const arrow  = isOpen ? '▲' : '▼';
-    rows.push('<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:2px;padding:7px 12px;background:#f0f0ea;border-left:4px solid ' + color + ';border-radius:6px;margin-top:12px;font-size:13px;font-weight:700;cursor:pointer" data-grp="' + hn + '" onclick="toggleGroup(this.dataset.grp)"><span>' + hn + ' <span style="font-size:11px;color:#999;font-weight:400">' + arrow + '</span>' + mukouHtml + '</span><span style="color:' + color + ';font-size:12px;flex-shrink:0">' + doneCount + ' / ' + total + '</span></div>');
+    rows.push('<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:2px;padding:7px 12px;background:#f0f0ea;border-left:4px solid ' + color + ';border-radius:6px;margin-top:12px;font-size:13px;font-weight:700;cursor:pointer" data-grp="' + esc(hn) + '" onclick="toggleGroup(this.dataset.grp)"><span>' + esc(hn) + ' <span style="font-size:11px;color:#999;font-weight:400">' + arrow + '</span>' + mukouHtml + '</span><span style="color:' + color + ';font-size:12px;flex-shrink:0">' + doneCount + ' / ' + total + '</span></div>');
     if (!isOpen) return;
     grp.forEach(function(r) {
       const done      = isDone(r);
@@ -719,7 +759,7 @@ function renderList() {
       const bc        = r['バーコード番号'] || '';
       const adjClass  = cancelled ? 'cancelled' : adj==='前倒し' ? 'adjusted-mae' : adj==='後ろ倒し' ? 'adjusted-ato' : '';
       const badgeAdj  = adj==='前倒し' ? 'badge-adj-mae' : adj==='後ろ倒し' ? 'badge-adj-ato' : 'badge-cancel';
-      rows.push('<div class="list-item ' + (done?'done':'') + ' ' + adjClass + '" id="item-' + bc + '" style="border-radius:0;border-top:none"><div style="width:0;flex-shrink:0"></div><div class="item-body"><div class="item-top"><span class="item-hinban">' + (r['品番']||'') + '</span><span style="display:flex;gap:4px;align-items:center;flex-shrink:0">' + (adj ? '<span class="badge ' + badgeAdj + '">' + adj + '</span>' : '') + '<span class="badge ' + (done?'badge-done':cancelled?'badge-cancel':'badge-pending') + '">' + (done?'済':cancelled?'取消':'未') + '</span></span></div><div class="item-bc">' + bc + '</div><div class="item-meta"><span>数量:' + (r['数量']||'') + '</span><span>連番:' + (r['連番']||'') + '/' + (r['総数']||'') + '</span><span>納品日:' + (r['納品日']||'') + '</span><span>発注:' + (r['発注番号']||'') + '</span>' + (done ? '<span style="color:#1e8a55">消込:' + (r['消込日時']||'') + '</span>' : '') + '</div></div></div>');
+      rows.push('<div class="list-item ' + (done?'done':'') + ' ' + adjClass + '" id="item-' + esc(bc) + '" style="border-radius:0;border-top:none"><div style="width:0;flex-shrink:0"></div><div class="item-body"><div class="item-top"><span class="item-hinban">' + esc(r['品番']) + '</span><span style="display:flex;gap:4px;align-items:center;flex-shrink:0">' + (adj ? '<span class="badge ' + badgeAdj + '">' + esc(adj) + '</span>' : '') + '<span class="badge ' + (done?'badge-done':cancelled?'badge-cancel':'badge-pending') + '">' + (done?'済':cancelled?'取消':'未') + '</span></span></div><div class="item-bc">' + esc(bc) + '</div><div class="item-meta"><span>数量:' + esc(r['数量']) + '</span><span>連番:' + esc(r['連番']) + '/' + esc(r['総数']) + '</span><span>納品日:' + esc(r['納品日']) + '</span><span>発注:' + esc(r['発注番号']) + '</span>' + (done ? '<span style="color:#1e8a55">消込:' + esc(r['消込日時']) + '</span>' : '') + '</div></div></div>');
     });
   });
   body.innerHTML = rows.join('');
@@ -736,7 +776,7 @@ function switchTab(tab,btn) {
 function renderLog() {
   const body = document.getElementById('log-body');
   if (!logEntries.length) { body.innerHTML='<div class="empty">消込履歴なし</div>'; return; }
-  body.innerHTML = [...logEntries].reverse().map(r=>`<div class="list-item"><div style="width:16px;flex-shrink:0"></div><div class="item-body"><div class="item-top"><span class="item-hinban">${r['品番']||''}</span><span style="font-size:11px;color:#aaa">${r['ts']||''}</span></div><div class="item-bc">${r['バーコード番号']||''}</div><div class="item-meta"><span>${r['納品先']||''}</span><span>連番:${r['連番']||''}/${r['総数']||''}</span></div></div></div>`).join('');
+  body.innerHTML = [...logEntries].reverse().map(r=>`<div class="list-item"><div style="width:16px;flex-shrink:0"></div><div class="item-body"><div class="item-top"><span class="item-hinban">${esc(r['品番'])}</span><span style="font-size:11px;color:#aaa">${esc(r['ts'])}</span></div><div class="item-bc">${esc(r['バーコード番号'])}</div><div class="item-meta"><span>${esc(r['納品先'])}</span><span>連番:${esc(r['連番'])}/${esc(r['総数'])}</span></div></div></div>`).join('');
 }
 
 // ============================================================
@@ -749,11 +789,10 @@ async function exportCSVByStatus() {
     showFB('ok', '📤 CSV書き出し中...');
     try {
       const baseName = sourceFileName || ('出荷指示_' + today);
-      const res = await fetch(GAS_DEPLOY_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'saveCSVByStatus', records: records, today: today, baseName: baseName, tanto: currentUserName(), sourceFileNames: loadedFiles })
-      });
-      const resText = await res.text();
+      // ★担当者名は送らない。サーバーがトークンの中の名前を使う
+      //   （ブラウザから渡すと、他人の名前で書き出せてしまうため）
+      const resData = await gasCall('saveCSVByStatus', { records: records, today: today, baseName: baseName, sourceFileNames: loadedFiles });
+      const resText = JSON.stringify(resData);
       let data;
       try { data = JSON.parse(resText); } catch(e) { throw new Error('JSONパース失敗: ' + resText.slice(0,100)); }
       if (!data.ok) throw new Error(data.message);
@@ -843,47 +882,55 @@ document.addEventListener('click', function(e) {
   if (wrap && !wrap.contains(e.target)) closeMoreMenu();
 });
 
-restoreData();
+// ★認証前にローカル保存データを表示しないため、ここでの無条件 restoreData() は廃止した。
+//   restoreData() は showMainScreen()（＝whoami でサーバー認証が確定した後）の中でのみ呼ぶ。
 
 // ============================================================
 // ログイン機能
 // ============================================================
-function switchLoginTab(type) {
-  const tabAdmin = document.getElementById('tab-admin');
-  const tabStaff = document.getElementById('tab-staff');
-  if (type === 'admin') { tabAdmin.classList.add('active'); tabStaff.classList.remove('active'); }
-  else { tabStaff.classList.add('active'); tabAdmin.classList.remove('active'); }
-  document.getElementById('login-id').value = '';
-  document.getElementById('login-pw').value = '';
-  document.getElementById('login-error').style.display = 'none';
+// ★switchLoginTab / doLogin（ブラウザ内でのID・パスワード判定）は Step 7 で削除した。
+//   ブラウザ内の判定は、開発者ツールから showMainScreen() を直接呼ぶだけで
+//   素通りできるため、認証として成立しない。
+
+/** 案内画面に戻す */
+function showGuide(msg) {
+  const err = document.getElementById('login-error');
+  if (err) {
+    if (msg) { err.textContent = msg; err.style.display = 'block'; }
+    else { err.style.display = 'none'; }
+  }
+  const main  = document.getElementById('main-screen');
+  const login = document.getElementById('login-screen');
+  if (main)  main.style.display  = 'none';
+  if (login) login.style.display = 'flex';
 }
 
-function doLogin() {
-  const id    = document.getElementById('login-id').value.trim();
-  const pw    = document.getElementById('login-pw').value;
-  const errEl = document.getElementById('login-error');
-  const user  = USERS.find(u => u.id === id && u.pw === pw);
-  if (!user) { errEl.style.display = 'block'; document.getElementById('login-pw').value = ''; return; }
-  errEl.style.display = 'none';
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id: user.id, name: user.name, admin: user.admin })); } catch(e){}
-  showMainScreen(user);
+/** ポータルを開く */
+function goPortal() {
+  const p = new URLSearchParams(window.location.search).get('portal_url');
+  window.location.href = p ? decodeURIComponent(p) : DEFAULT_PORTAL_URL;
 }
 
 function showMainScreen(user) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-screen').style.display  = 'block';
   const nameEl = document.getElementById('user-name-display');
-  if (nameEl) nameEl.textContent = '👤 ' + user.name + ' さん';
+  if (nameEl) nameEl.textContent = '👤 ' + ((user && user.name) || '') + ' さん';
   restoreData();
 }
 
 function notifyOfflineShipping() {
   try {
-    const sess = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
-    if (!sess || !GAS_DEPLOY_URL || GAS_DEPLOY_URL === 'YOUR_DEPLOY_URL') return;
-    const url = GAS_DEPLOY_URL + '?action=setOnlineStatus&appId=shipping&userId=' + encodeURIComponent(sess.id) + '&userName=' + encodeURIComponent(sess.name) + '&action2=logout';
-    if (navigator.sendBeacon) { navigator.sendBeacon(url); }
-    else { fetch(url, { keepalive: true, redirect: 'follow' }).catch(() => {}); }
+    const token = getStoredToken();
+    if (!token) return;
+    // ★トークンをURLに載せない。離脱時でもPOST本文で送る。
+    //   sendBeacon は Blob を本文として送れるので、Content-Type も text/plain にできる。
+    const body = JSON.stringify({ action: 'setOnlineStatus', appId: 'shipping', act: 'logout', token: token });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(GAS_URL, new Blob([body], { type: 'text/plain' }));
+    } else {
+      fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: body, keepalive: true, redirect: 'follow' }).catch(() => {});
+    }
   } catch(e) {}
 }
 window.addEventListener('beforeunload', notifyOfflineShipping);
@@ -892,12 +939,15 @@ window.addEventListener('pagehide',     notifyOfflineShipping);
 function doLogout() {
   if (!confirm('ログアウトしますか？')) return;
   notifyOfflineShipping();
-  try { sessionStorage.removeItem(SESSION_KEY); } catch(e){}
+  clearSession();
   stopAutoRefresh();
-  document.getElementById('main-screen').style.display  = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-id').value = '';
-  document.getElementById('login-pw').value = '';
+  showGuide();
+}
+
+/** 保存しているトークンと利用者情報を消す */
+function clearSession() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(e){}
+  try { sessionStorage.removeItem(TOKEN_KEY); } catch(e){}
 }
 
 // ポータルへ戻る既定URL（ポータルからの起動時はportal_urlパラメータが優先される）
@@ -913,35 +963,131 @@ function closeTab() {
   }, 300);
 }
 
-// SSO
-(function() {
-  function parseSSOToken(token) {
-    try {
-      const decoded = atob(token.split('').reverse().join(''));
-      const data    = JSON.parse(decoded);
-      if (Date.now() - data.ts > 5 * 60 * 1000) return null;
-      return data;
-    } catch(e) { return null; }
+// ============================================================
+// GASの呼び出し（Step 7）
+//
+// ★決まりごと
+//  ・すべてPOSTで送る（GETは使わない）
+//  ・Content-Type は text/plain
+//    application/json にすると、ブラウザがCORSプリフライト(OPTIONS)を送るが、
+//    GASのウェブアプリはOPTIONSに応答できないため通信が失敗する
+//  ・トークンはPOST本文に入れる。URLに載せない（履歴やログに残るため）
+//  ・応答が unauthorized なら、保存したトークンを消して案内画面に戻す
+//
+// ★接続先は GAS_URL（ファイル冒頭の定数）に固定。
+//   URLパラメータや localStorage から差し替えられる作りにはしないこと。
+// ============================================================
+function getStoredToken() {
+  try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch(e) { return ''; }
+}
+
+async function gasCall(action, payload) {
+  const token = getStoredToken();
+  if (!token) { clearSession(); showGuide('ポータルからやり直してください'); throw new Error('unauthorized'); }
+
+  const body = Object.assign({}, payload || {}, { action: action, token: token });
+  const res  = await fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },   // ★application/json にしない
+    body: JSON.stringify(body),
+    redirect: 'follow'
+  });
+  const text = await res.text();
+
+  let data;
+  try { data = JSON.parse(text); }
+  catch (e) { throw new Error('サーバーの応答を読めませんでした'); }
+
+  if (data && data.ok === false && data.error === 'unauthorized') {
+    clearSession();
+    showGuide('セッションの有効期限が切れました。ポータルからやり直してください');
+    throw new Error('unauthorized');
   }
-  const params = new URLSearchParams(window.location.search);
-  const token  = params.get('sso');
-  if (token) {
-    const data = parseSSOToken(token);
-    if (data) {
-      window.history.replaceState({}, '', window.location.pathname);
-      let name = data.name || '';
-      try { name = decodeURIComponent(escape(name)); } catch(e) {}
-      const user = { id: data.id, name: name, admin: data.role === 'admin' || data.role === 'master' };
-      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(user)); } catch(e) {}
-      showMainScreen(user);
-      return;
+  return data;
+}
+
+/**
+ * 応答がJSONではなくCSV本文そのものである操作（getCSV）用。
+ * 認証の扱いは gasCall と同じ。
+ */
+async function gasCallText(action, payload) {
+  const token = getStoredToken();
+  if (!token) { clearSession(); showGuide('ポータルからやり直してください'); throw new Error('unauthorized'); }
+
+  const body = Object.assign({}, payload || {}, { action: action, token: token });
+  const res  = await fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(body),
+    redirect: 'follow'
+  });
+  const text = await res.text();
+
+  // 失敗したときだけJSONが返る
+  if (text.trim().charAt(0) === '{') {
+    let d = null;
+    try { d = JSON.parse(text); } catch (e) {}
+    if (d && d.ok === false && d.error === 'unauthorized') {
+      clearSession();
+      showGuide('セッションの有効期限が切れました。ポータルからやり直してください');
+      throw new Error('unauthorized');
     }
+    if (d && d.ok === false) throw new Error(d.message || '取得に失敗しました');
   }
-  try {
-    const sess = sessionStorage.getItem(SESSION_KEY);
-    if (sess) { const user = JSON.parse(sess); showMainScreen(user); return; }
-  } catch(e) {}
-  document.getElementById('login-screen').style.display = 'flex';
+  return text;
+}
+
+// ============================================================
+// 起動処理（fail-closed）
+//
+// ★トークンの中身はブラウザ側で検証しない（署名を確かめられないため）。
+//   GASの whoami に送り、サーバー側で「トークン・期限・対象アプリ・利用者・権限」が
+//   すべて通った場合だけ本物として扱う。
+// ★サーバー認証が確定するまで、メイン画面も業務データも一切表示しない。
+//   認証エラー・タイムアウト・非JSON応答・接続先違いは、すべて案内画面に倒す。
+// ============================================================
+
+/**
+ * サーバーに whoami を送り、有効な出荷照合セッションかを確認する。
+ * 成功時のみ {ok:true,id,name,role} を解決する。
+ * 失敗（未認証／偽造／期限切れ／別アプリ用トークン／認証設定不一致／
+ * エラー／タイムアウト／非JSON）は、すべて reject する。
+ */
+function verifySession() {
+  const token = getStoredToken();
+  if (!token) return Promise.reject(new Error('no-token'));
+  const controller = new AbortController();
+  const timer = setTimeout(function() { controller.abort(); }, 15000);  // 応答なし＝拒否側へ
+  return fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'whoami', token: token }),
+    redirect: 'follow',
+    signal: controller.signal
+  }).then(function(res) { return res.text(); })
+    .then(function(text) {
+      clearTimeout(timer);
+      let data;
+      try { data = JSON.parse(text); } catch (e) { throw new Error('bad-response'); }
+      if (!data || data.ok !== true || !data.id) throw new Error('unauthorized');
+      return data;
+    }, function(err) { clearTimeout(timer); throw err; });
+}
+
+(function() {
+  // <head> の先頭スクリプトが、フラグメントからトークンを回収して保存済み。
+  // トークンが無ければ、この時点で案内画面（メインは非表示のまま）。
+  if (!getStoredToken()) { showGuide(); return; }
+
+  // ★ここではメイン画面を出さない。サーバー確認が通ってから showMainScreen する。
+  verifySession().then(function(res) {
+    const u = { id: res.id, name: res.name || '', admin: (res.role === 'admin' || res.role === 'master') };
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(u)); } catch (e) {}
+    showMainScreen(u);   // ← 認証確定後に初めてメイン表示＋restoreData（名前も確定値で表示）
+  }).catch(function() {
+    clearSession();
+    showGuide('認証を確認できませんでした。ポータルから開き直してください');
+  });
 })();
 
 // ============================================================
@@ -967,10 +1113,7 @@ async function loadDriveFileList() {
   if (!GAS_DEPLOY_URL || GAS_DEPLOY_URL === 'YOUR_DEPLOY_URL') { showUrlFb('GAS_DEPLOY_URLが未設定です', 'err'); return; }
   showUrlFb('ファイル一覧を取得中...', 'info');
   try {
-    const res  = await fetch(GAS_DEPLOY_URL + '?action=getFileList');
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch(e) { showUrlFb('GASの応答がJSONではありません\n' + text.slice(0, 100), 'err'); return; }
+    const data = await gasCall('getFileList', {});
     if (!data.ok) throw new Error(data.message || '取得失敗');
     if (!data.files || data.files.length === 0) { showUrlFb('フォルダにCSVファイルがありません', 'warn'); return; }
     const listEl = document.getElementById('drive-file-list');
@@ -986,16 +1129,24 @@ async function loadDriveFileList() {
     if (pendingFiles.length > 0) {
       html2 += '<div style="padding:6px 12px;background:#fff8ec;font-size:11px;font-weight:700;color:#b56e00;border-bottom:1px solid #f0e8cc">🔄 作業中（未完了フォルダ）</div>';
       pendingFiles.forEach(function(f) {
-        var safeName = f.name.replace(/'/g, "\'");
+        // ★旧: f.name.replace(/'/g, "\'") は置換になっていなかった。
+        //   二重引用符の中の "\'" は ' と同じ文字なので、' を ' に置き換えるだけ。
+        //   さらに、値を入れる先の属性は " で囲まれているため、
+        //   本当に無害化すべき文字は " のほうだった。esc() で両方まとめて処理する。
+        var safeName = esc(f.name);
         var labelColor = f.label && f.label.includes('前倒し') ? '#1a5fb4' : f.label && f.label.includes('後ろ倒し') ? '#c0392b' : '#b56e00';
-        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fffdf5"><input type="checkbox" value="' + f.id + '" data-name="' + safeName + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#e8a000"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + f.name + '</div><div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center"><span style="color:' + labelColor + ';font-weight:600">' + (f.label||'') + '</span><span style="color:#888">' + f.updated + '</span></div></div></label>';
+        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fffdf5"><input type="checkbox" value="' + esc(f.id) + '" data-name="' + safeName + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#e8a000"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + esc(f.name) + '</div><div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center"><span style="color:' + labelColor + ';font-weight:600">' + esc(f.label) + '</span><span style="color:#888">' + esc(f.updated) + '</span></div></div></label>';
       });
     }
     if (sourceFiles.length > 0) {
       html2 += '<div style="padding:6px 12px;background:#f0f5ff;font-size:11px;font-weight:700;color:#3a7bdc;border-bottom:1px solid #dce8ff">🆕 新規（読込元フォルダ）</div>';
       sourceFiles.forEach(function(f) {
-        var safeName = f.name.replace(/'/g, "\'");
-        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" value="' + f.id + '" data-name="' + safeName + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#3a7bdc"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + f.name + '</div><div style="font-size:11px;color:#888;margin-top:3px">' + f.updated + '</div></div></label>';
+        // ★旧: f.name.replace(/'/g, "\'") は置換になっていなかった。
+        //   二重引用符の中の "\'" は ' と同じ文字なので、' を ' に置き換えるだけ。
+        //   さらに、値を入れる先の属性は " で囲まれているため、
+        //   本当に無害化すべき文字は " のほうだった。esc() で両方まとめて処理する。
+        var safeName = esc(f.name);
+        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" value="' + esc(f.id) + '" data-name="' + safeName + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#3a7bdc"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + esc(f.name) + '</div><div style="font-size:11px;color:#888;margin-top:3px">' + esc(f.updated) + '</div></div></label>';
       });
     }
     listEl.innerHTML = html2;
@@ -1013,8 +1164,7 @@ async function loadSelectedFiles() {
     const cb = checkboxes[i]; const fileId = cb.value; const fileName = cb.dataset.name;
     showUrlFb('(' + (i+1) + '/' + checkboxes.length + ') ' + fileName + ' 読込中...', 'info');
     try {
-      const res = await fetch(GAS_DEPLOY_URL + '?action=getCSV&fileId=' + fileId);
-      let text = await res.text();
+      let text = await gasCallText('getCSV', { fileId: fileId });
       if (text.trim().startsWith('{')) { const d = JSON.parse(text); if (!d.ok) throw new Error(d.message); }
       if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
       const lines = text.trim().split('\n');
@@ -1043,7 +1193,7 @@ async function loadSelectedFiles() {
   if (GAS_DEPLOY_URL && GAS_DEPLOY_URL !== 'YOUR_DEPLOY_URL') {
     for (var mi = 0; mi < movedFileIds.length; mi++) {
       try {
-        await fetch(GAS_DEPLOY_URL, { method: 'POST', body: JSON.stringify({ action: 'recordLoadedFileId', fileId: movedFileIds[mi] }) });
+        await gasCall('recordLoadedFileId', { fileId: movedFileIds[mi] });
       } catch(e) { console.warn('記録失敗:', e); }
     }
   }
