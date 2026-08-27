@@ -285,7 +285,7 @@ select,input[type=date]{width:100%;padding:10px;border:1px solid #ccc;border-rad
 // ============================================================
 // GAS設定
 // ============================================================
-const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbxZoEhqcpYbLyj-1EXvKtisWL3Wreb8_OwWVeyy4vUhB5t6PKC9HtCJWm1ESS8pabSSZg/exec';
+const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_SHIPPING/exec';
 const GAS_URL = GAS_DEPLOY_URL;
 
 // ============================================================
@@ -484,10 +484,18 @@ async function saveToCloud() {
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(async () => {
     try {
-      const data = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr() });
+      const data = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr(), batchId: sourceFileName || '' });
+      if (data && data.code === 'BATCH_BUSY') { showFB('warn', data.message || '別バッチの処理が未完了です'); return; }
       if (data.ok) {
         const el = document.getElementById('save-indicator');
         if (el) { el.textContent = '☁️ クラウド保存済 ' + nowStr().slice(11,16); el.style.opacity='1'; setTimeout(()=>el.style.opacity='.4',3000); }
+        // 区間B②：クライアントが全件完了と見なした時だけ、サーバー側の完了判定を依頼する。
+        //   ・判定の根拠はサーバー側（元CSV突合）。ここは「評価してほしい」合図にすぎない。
+        //   ・客先CSV生成はここでは呼ばない（時間主導トリガーが分離実行 §6-3/§7-1）。
+        if (sourceFileName && records.length && records.every(function(r){ return isDone(r); })) {
+          try { await gasCall('evaluateCompletion', { batchId: sourceFileName }); }
+          catch(e) { console.warn('evaluateCompletion失敗:', e); }
+        }
       }
     } catch(e) { console.warn('クラウド保存失敗:', e.message); }
   }, 1500);
@@ -951,7 +959,7 @@ function clearSession() {
 }
 
 // ポータルへ戻る既定URL（ポータルからの起動時はportal_urlパラメータが優先される）
-const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/AKfycbzAB87ZCwdp3mgVTMe8kS-bAgQAEleWotqJGS72GJCx3UkNKoLu-i2r2WBgibzpN9sU/exec';
+const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PORTAL/exec';
 
 function closeTab() {
   notifyOfflineShipping();
@@ -1195,6 +1203,11 @@ async function loadSelectedFiles() {
       try {
         await gasCall('recordLoadedFileId', { fileId: movedFileIds[mi] });
       } catch(e) { console.warn('記録失敗:', e); }
+    }
+    // 区間B①：読み込んだバッチをサーバーへ登録（batchId = 元CSVファイル名のベース）
+    if (sourceFileName) {
+      try { await gasCall('registerBatch', { batchId: sourceFileName }); }
+      catch(e) { console.warn('registerBatch失敗:', e); }
     }
   }
   setTimeout(function() { closeUrlModal(); }, 2500);
