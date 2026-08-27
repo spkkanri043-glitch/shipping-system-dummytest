@@ -745,26 +745,54 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 // ══════════════════════════════════════════════
 // CONFIG & USER
 // ══════════════════════════════════════════════
-const GAS_URL = (() => {
-  const p = new URLSearchParams(window.location.search);
-  return p.get('seikei_gas_url') || p.get('seikeiKirokuGas') || p.get('gasUrl') || '';
-})();
+// セキュリティ改修：接続先は固定（?seikei_gas_url= 等の差し替えを撤去）。
+const GAS_URL         = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_SEIKEIKIROKU/exec';
+const PRODUCT_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec'; // 製品マスタ（現状は匿名読取）
 
-// 製品マスタGAS URL（ポータルから product_url パラメータで渡される）
-const PRODUCT_GAS_URL = (() => {
-  const p = new URLSearchParams(window.location.search);
-  return p.get('product_url') || '';
+// ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
+const AUTH_TOKEN_KEY = 'kpk_seikei_token';
+let AUTH_TOKEN = (function() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, t);
+      history.replaceState(null, '', location.pathname + location.search);
+      return t;
+    }
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch(e) { return ''; }
 })();
+function decodeTokenClaims_(t) {
+  try {
+    const p = String(t).split('.')[0];
+    const b64 = p.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
+  } catch(e) { return null; }
+}
+function handleUnauthorized_() {
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = '';
+  try { showToast && showToast('認証が無効です。ポータルから入り直してください'); } catch(e) {}
+}
 
 let CU = null; // currentUser
 let STARTER = null; // 記録書の最初の作成者（上書きしない）
 
 (function initUser() {
-  try {
-    const t = new URLSearchParams(window.location.search).get('sso');
-    if (t) CU = JSON.parse(decodeURIComponent(escape(atob(t.split('').reverse().join('')))));
-  } catch(e) {}
-  if (!CU) CU = {id:'guest', name:'ゲスト', role:'staff', loginId:'guest'};
+  const c = AUTH_TOKEN ? decodeTokenClaims_(AUTH_TOKEN) : null;
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (c && c.aud === 'seikeiKiroku' && c.exp && c.exp > nowSec) {
+    let name = c.name || c.sub;
+    try { name = decodeURIComponent(escape(name)); } catch(e) {}
+    CU = { id: c.sub, name: name, role: c.role || 'staff', loginId: c.sub };
+  } else {
+    // 有効なトークンが無い＝ポータル未経由。サーバー機能は使えない（ローカル編集のみ）。
+    try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+    AUTH_TOKEN = '';
+    CU = { id:'guest', name:'ゲスト（ポータル未ログイン）', role:'staff', loginId:'guest' };
+  }
   document.getElementById('user-badge').textContent = CU.name + '（' + CU.role + '）';
   // operator欄は新規作成時のみ設定（fillFormで上書きされる）
   document.getElementById('s-start').textContent = CU.name;
@@ -2835,13 +2863,27 @@ function newFromMaster(partNoKey) {
 // ══════════════════════════════════════════════
 // GAS通信
 // ══════════════════════════════════════════════
-async function gasGet(action){
-  const r=await fetch(GAS_URL+'?action='+action);
-  return r.json();
+// 読み書きともトークン付きPOSTに統一（GETの匿名取得は廃止）。
+async function gasCall_(action, payload){
+  if(!AUTH_TOKEN){ handleUnauthorized_(); return { ok:false, error:'unauthorized' }; }
+  const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({ action, token:AUTH_TOKEN, ...(payload||{}) })});
+  const j=await r.json();
+  if(j && j.error==='unauthorized'){ handleUnauthorized_(); }
+  return j;
+}
+// 旧gasGet互換：'listSeikei&limit=300' のようなクエリ付き文字列を本文に展開する。
+async function gasGet(actionStr){
+  const parts=String(actionStr).split('&');
+  const action=parts.shift();
+  const extra={};
+  parts.forEach(kv=>{ const i=kv.indexOf('='); if(i>=0) extra[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1)); });
+  return gasCall_(action, extra);
 }
 async function gasPost(body){
-  const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
-  return r.json();
+  const b=Object.assign({}, body||{});
+  const action=b.action; delete b.action;
+  return gasCall_(action, b);
 }
 
 // ══════════════════════════════════════════════
