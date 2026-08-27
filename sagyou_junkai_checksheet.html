@@ -370,23 +370,50 @@ const SECTIONS = [
   { id: 'shukka',   title: '出荷',       items: SHUKKA_ITEMS.slice() },
 ];
 
-// SSOトークン(ポータルから開かれた場合)・GASバックエンドURLの取得
-// GitHub Pages上の静的ページとして動くため、window.location.search から
-// クエリパラメータを直接読み取れる(他アプリと同じ方式)。
+// ============================================================
+// 接続先(固定)・SSO署名トークン
+//   セキュリティ改修：?junkai_gas_url= での接続先差し替えを撤去し固定。
+//   トークンは #sso=（URLフラグメント。サーバへ送られない）で受け取り、
+//   取得後は即URLから除去してsessionStorageへ。旧 reverse+atob 方式は廃止。
+// ============================================================
 let currentUser = null, employees = [];
-let JUNKAI_GAS_URL = '';
-(function initFromPortal() {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const sso = params.get('sso') || '';
-    JUNKAI_GAS_URL = params.get('junkai_gas_url') || '';
+const JUNKAI_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_JUNKAI/exec';
 
-    if (sso) {
-      const b64 = sso.split('').reverse().join('');
-      const payload = JSON.parse(decodeURIComponent(escape(atob(b64))));
-      currentUser = payload;
+const AUTH_TOKEN_KEY = 'kpk_junkai_token';
+let AUTH_TOKEN = (function() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, t);
+      history.replaceState(null, '', location.pathname + location.search);
+      return t;
     }
-  } catch (e) { console.error('SSO解析エラー:', e); }
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch (e) { return ''; }
+})();
+
+// 署名検証はGAS側。ここでは表示用にpayloadのclaimだけ取り出す。
+function decodeTokenClaims_(t) {
+  try {
+    const p = String(t).split('.')[0];
+    const b64 = p.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
+  } catch (e) { return null; }
+}
+
+(function initFromPortal() {
+  if (!AUTH_TOKEN) return;
+  const claims = decodeTokenClaims_(AUTH_TOKEN);
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (claims && claims.aud === 'junkaiCheck' && claims.exp && claims.exp > nowSec) {
+    currentUser = { id: claims.sub, name: claims.name || claims.sub, role: claims.role || 'staff' };
+  } else {
+    // 期限切れ・aud不一致 → 破棄
+    try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) {}
+    AUTH_TOKEN = '';
+  }
 })();
 
 function renderTopbar() {
@@ -607,25 +634,34 @@ function toggleExcludedSection() {
 // ==============================================================
 // GASバックエンド呼び出し(fetch経由。他アプリと同じAPI方式)
 // ==============================================================
-async function gasGet(action, extraParams) {
-  if (!JUNKAI_GAS_URL) return null;
-  const qs = new URLSearchParams({ action, ...(extraParams || {}) });
-  const res = await fetch(JUNKAI_GAS_URL + '?' + qs.toString());
-  return res.json();
+// トークン失効・未ログイン検知の共通処理
+function handleUnauthorized_() {
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) {}
+  AUTH_TOKEN = '';
+  currentUser = null;
+  showToast('認証が無効です。業務管理ポータルから入り直してください。', 'error');
 }
 
-async function gasPost(action, payload) {
-  if (!JUNKAI_GAS_URL) return null;
+// 読み取りも書き込みもトークン付きPOSTに統一（GETの匿名取得は廃止）。
+async function gasCall_(action, payload) {
+  if (!AUTH_TOKEN) { handleUnauthorized_(); return null; }
   const res = await fetch(JUNKAI_GAS_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // GAS doPostはtext/plainでもJSONとして受け取れる
-    body: JSON.stringify({ action, ...(payload || {}) })
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // application/jsonはCORSプリフライトが必要でGASが応答不可
+    body: JSON.stringify({ action, token: AUTH_TOKEN, ...(payload || {}) })
   });
-  return res.json();
+  const json = await res.json();
+  if (json && json.error === 'unauthorized') { handleUnauthorized_(); return null; }
+  return json;
 }
+
+// 互換のため名前は残す（旧gasGetの第2引数extraParamsもそのまま本文に載る）
+async function gasGet(action, extraParams) { return gasCall_(action, extraParams); }
+async function gasPost(action, payload)    { return gasCall_(action, payload); }
 
 // 従業員マスター(ポータルの employees シート)から巡回担当者・作業者名の候補を取得
 function loadEmployeeMaster() {
+  if (!AUTH_TOKEN) return; // 未認証時は名簿(氏名・lwUserId)を取得しない
   const dl = document.getElementById('dl-employees');
   gasGet('getEmployeeMaster').then(res => {
     if (res && res.ok) {
@@ -639,12 +675,16 @@ function loadEmployeeMaster() {
 // 製品マスタ(製品マスタ管理アプリ)から品番の候補を取得
 // 作業報告書アプリと同じ方式: ブラウザから直接、製品マスタのGASにfetchする
 // (自分のGAS経由にすると UrlFetchApp の権限承認が必要になるため)
-const PRODUCT_MASTER_GAS_URL = 'https://script.google.com/macros/s/AKfycbww1lPYGVf7FLmIbjwxODbFMKSn8Q6yxFL9OpPnYmh9AnkAWVf9BgrRgk0Wc8GvK2XN/exec';
+const PRODUCT_MASTER_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec';
 
 // ==============================================================
 // 通知(通知マスタGASに直接fetch。特定の1人ずつに directUserId で送る)
+//   ★【暫定・通知マスタ第2部で対応】ブラウザから通知GASを直接叩く経路。
+//     通知GAS自体がまだ無認証のため、この直呼びは第2部（サーバー間HMAC化：
+//     巡回GAS→通知GAS）に移すまでの暫定。lwUserIdはトークン必須化した
+//     getEmployeeMaster経由でのみ取得するため、匿名での名簿・宛先入手は封鎖済み。
 // ==============================================================
-const NOTIFY_GAS_URL = 'https://script.google.com/macros/s/AKfycbyu0vfirCmz6Vi-phFPh76-KS6cJc5cIOsUdt3-yaUqmhVnGdayWwIKTuSvtxZfmeGh/exec';
+const NOTIFY_GAS_URL = 'https://script.google.com/macros/s/AKfycbxUrrMU3RbqDWU0F30evJy6jE9urhv7WFgbi7yxbWRyl4Zlc8wgJhTys6_W3w7G_ZI/exec';
 
 function sendNotify(message, lwUserId) {
   if (!lwUserId) return;
@@ -825,7 +865,7 @@ function saveRecord() {
   });
   record.ngTotal = ngTotal;
 
-  if (JUNKAI_GAS_URL) {
+  if (AUTH_TOKEN) {
     gasPost('saveJunkaiRecord', { record })
       .then(res => {
         if (res && res.ok) {
@@ -987,7 +1027,7 @@ function escapeHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;'
 function escapeAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
 
 function loadHistoryFromServer() {
-  if (!JUNKAI_GAS_URL) return;
+  if (!AUTH_TOKEN) return; // 未認証時はサーバー履歴を読まない（プレビューはメモリのみ）
   gasGet('getJunkaiRecords')
     .then(res => { if (res && res.ok && res.data) { history = res.data; renderHistory(); } })
     .catch(err => console.error('履歴取得エラー:', err));
