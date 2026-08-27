@@ -426,16 +426,42 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-const LS_KEY = 'defect_dash_url';
-let defectUrl = localStorage.getItem(LS_KEY) || '';
+// セキュリティ改修：接続先は固定（?fuguai_gas_url= 差し替え・localStorage保持を撤去）。
+const defectUrl = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_FUGUAI/exec';
 
-const _qp = new URLSearchParams(location.search);
-const _paramGasUrl = _qp.get('fuguai_gas_url');
-if (_paramGasUrl) {
-  defectUrl = _paramGasUrl;
-  localStorage.setItem(LS_KEY, defectUrl);
+// ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
+const AUTH_TOKEN_KEY = 'kpk_fuguai_dash_token';
+let AUTH_TOKEN = (function() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, t);
+      history.replaceState(null, '', location.pathname + location.search);
+      return t;
+    }
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch(e) { return ''; }
+})();
+async function gasCall_(action, payload) {
+  if (!AUTH_TOKEN) return null;
+  try {
+    const res = await fetch(defectUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, token: AUTH_TOKEN, ...(payload || {}) })
+    });
+    const json = await res.json();
+    if (json && json.error === 'unauthorized') {
+      try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+      AUTH_TOKEN = '';
+      return null;
+    }
+    return json;
+  } catch(e) { console.error('[gasCall_]', action, e); return null; }
 }
-  
+
 let allRecords = [];
 let filtered = [];
 let trendMode = 'cnt';
@@ -445,28 +471,19 @@ let aggChart = null;
 let typePieChart = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('defect-url').value = defectUrl;
-  if (defectUrl) document.getElementById('setup').classList.add('hid');
+  const setup = document.getElementById('setup'); if (setup) setup.classList.add('hid');
   setPeriodDates(30);
-  if (defectUrl) loadData();
+  loadData();
 });
 
-function saveUrl() {
-  const v = document.getElementById('defect-url').value.trim();
-  if (!v) { showToast('URLを入力してください', 'err'); return; }
-  defectUrl = v;
-  localStorage.setItem(LS_KEY, v);
-  document.getElementById('setup').classList.add('hid');
-  showToast('接続しました', 'ok');
-  loadData();
-}
+function saveUrl() { /* 接続先差し替えは廃止（no-op） */ }
 
 async function loadData() {
-  if (!defectUrl) { showToast('GAS URLを設定してください', 'err'); return; }
+  if (!AUTH_TOKEN) { showToast('業務管理ポータルからご利用ください', 'err'); return; }
   showLoadingAll();
   try {
-    const res = await fetch(`${defectUrl}?action=getDefects`);
-    const d = await res.json();
+    const d = await gasCall_('getDefects', {});
+    if (!d) { showToast('認証が無効です。ポータルから入り直してください', 'err'); return; }
     // 担当者（報告者）と不具合作業者のデータが入れ替わって届くため、ここでスワップして正しい項目に割り当てる
     allRecords = (d.records || []).map(r => ({
       ...r,
