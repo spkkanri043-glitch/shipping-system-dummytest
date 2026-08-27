@@ -284,10 +284,40 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
 // ============================================================
 // 作業報告書 GAS URL（固定）
 // ============================================================
-const REPORT_GAS_URL_FIXED = 'https://script.google.com/macros/s/AKfycby-AS3uRATUSAmLb5kqyfxuTy-Y1jDTg4SnbXbqAKpSjEYwlId1n86dHw0sQqmbu3sDEw/exec';
+// セキュリティ改修：接続先は固定。?report_url= 等での差し替え・localStorage保持は廃止。
+const gasUrl = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_REPORT/exec';
 
-const LS_KEY = 'daily_report_gas_url';
-let gasUrl = REPORT_GAS_URL_FIXED; // URLパラメータ > 固定値
+// SSO署名トークン（ポータルが #sso= で受け渡す）。取得後URLから除去しsessionStorageへ。
+const AUTH_TOKEN_KEY = 'kpk_dailyreport_token';
+let AUTH_TOKEN = (function() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, t);
+      history.replaceState(null, '', location.pathname + location.search);
+      return t;
+    }
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch(e) { return ''; }
+})();
+function decodeTokenClaims_(t) {
+  try {
+    const p = String(t).split('.')[0];
+    const b64 = p.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
+  } catch(e) { return null; }
+}
+async function gasPost_(action, data) {
+  const body = JSON.stringify({ action, token: AUTH_TOKEN, ...(data || {}) });
+  const res  = await fetch(gasUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body });
+  if (!res.ok) throw new Error('通信エラー ' + res.status);
+  const json = await res.json();
+  if (json && json.error === 'unauthorized') throw new Error('認証が無効です。ポータルから入り直してください。');
+  return json;
+}
+
 let allReports = [];
 let filtered   = [];
 const PAGE_SIZE = 30;
@@ -299,29 +329,24 @@ let portalUrl = ''; // ポータルに戻るURL
 window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(location.search);
 
-  // ① GAS URL：URLパラメータ優先、なければ固定値
-  const fromUrl = params.get('report_url') || params.get('gas_url');
-  if (fromUrl) {
-    gasUrl = fromUrl;
-    localStorage.setItem(LS_KEY, fromUrl);
-  } else {
-    const saved = localStorage.getItem(LS_KEY);
-    if (saved) gasUrl = saved;
-  }
-  // 常にセットアップパネルを非表示（URL固定のため）
+  // ① GAS URL：固定（差し替え廃止）。セットアップパネルは常に非表示。
   document.getElementById('setup').classList.add('hid');
-  document.getElementById('gas-url-input').value = gasUrl;
+  const urlInput = document.getElementById('gas-url-input');
+  if (urlInput) urlInput.value = gasUrl;
 
-  // ② SSO：ユーザー名をヘッダーに表示
-  const sso = params.get('sso');
-  if (sso) {
-    try {
-      const pl = JSON.parse(decodeURIComponent(escape(atob(sso.split('').reverse().join('')))));
-      if (pl && pl.name) {
-        document.getElementById('header-user-name').textContent = pl.name;
+  // ② SSO署名トークン：aud・期限を確認し、ユーザー名をヘッダーに表示
+  if (AUTH_TOKEN) {
+    const claims = decodeTokenClaims_(AUTH_TOKEN);
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (claims && claims.aud === 'report' && claims.exp && claims.exp > nowSec) {
+      if (claims.name) {
+        document.getElementById('header-user-name').textContent = claims.name;
         document.getElementById('header-user').style.display = 'flex';
       }
-    } catch(e) {}
+    } else {
+      try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+      AUTH_TOKEN = '';
+    }
   }
 
   // ③ ポータルURL：戻るボタンの表示制御
@@ -340,12 +365,9 @@ window.addEventListener('DOMContentLoaded', () => {
   loadData();
 });
 
+// 接続先差し替えは廃止。この関数は互換のため残すが接続先は変更しない。
 function saveUrl() {
-  const v = document.getElementById('gas-url-input').value.trim();
-  if (!v) { showToast('URLを入力してください', 'err'); return; }
-  gasUrl = v; localStorage.setItem(LS_KEY, v);
   document.getElementById('setup').classList.add('hid');
-  showToast('接続しました', 'ok');
   loadData();
 }
 
@@ -368,16 +390,18 @@ function goPortal() {
 
 // データ取得
 async function loadData() {
-  if (!gasUrl) { showToast('GAS URLを設定してください', 'err'); return; }
+  if (!AUTH_TOKEN) {
+    document.getElementById('table-area').innerHTML = '<div class="empty">🔒 業務管理ポータルからご利用ください</div>';
+    return;
+  }
   document.getElementById('table-area').innerHTML = '<div class="loading"><div class="spinner"></div>読み込み中...</div>';
   try {
-    const res = await fetch(`${gasUrl}?action=getReports`);
-    const d = await res.json();
+    const d = await gasPost_('getReports', {});   // トークン付きPOST（GETの匿名取得は廃止）
     allReports = (d.data || []).filter(r => r['完了フラグ'] === '完了');
     buildFilterOptions();
     applyFilter();
   } catch(e) {
-    document.getElementById('table-area').innerHTML = '<div class="empty">❌ データ取得失敗<br><small>GAS URLを確認してください</small></div>';
+    document.getElementById('table-area').innerHTML = '<div class="empty">❌ データ取得失敗<br><small>' + e.message + '</small></div>';
     showToast('取得失敗: ' + e.message, 'err');
   }
 }
