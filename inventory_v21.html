@@ -684,58 +684,63 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
 </div>
 
 <script>
-// ============================================================
-//  設定
-// ============================================================
-const SK_URL    = 'inv_gas_url';
-const SK_MASTER = 'inv_master_url';
-const DEFAULT_GAS_URL    = 'https://script.google.com/macros/s/AKfycbxmWXZwQDuGIQPVAV6TOpRJxe8YUDFAgX2ZYnvohSeo2J_Cwyv9woRSwROr5PGjMaqD/exec';
-const DEFAULT_MASTER_URL = 'https://script.google.com/macros/s/AKfycbww1lPYGVf7FLmIbjwxODbFMKSn8Q6yxFL9OpPnYmh9AnkAWVf9BgrRgk0Wc8GvK2XN/exec';
-const SK_PORTAL = 'inv_portal_url';
-const SK_SAT    = 'inv_sat_v2';
+// ★ポータルから渡されたトークンを #sso= フラグメントで回収し、すぐURLから消す。
+//   （このHTMLはGitHub Pages配信。トークンはサーバーに送信されないフラグメントで受ける）
+(function () {
+  var K = 'inv_token';
+  try {
+    var m = (location.hash || '').match(/[#&]sso=([^&]+)/);
+    if (m) {
+      sessionStorage.setItem(K, decodeURIComponent(m[1]));
+      history.replaceState({}, '', location.pathname + location.search);
+    }
+  } catch (e) {}
+})();
 
-let GAS_URL    = DEFAULT_GAS_URL    || localStorage.getItem(SK_URL)    || '';
-let MASTER_URL = DEFAULT_MASTER_URL || localStorage.getItem(SK_MASTER) || '';
-if (GAS_URL)    localStorage.setItem(SK_URL,    GAS_URL);
-if (MASTER_URL) localStorage.setItem(SK_MASTER, MASTER_URL);
+// ============================================================
+//  設定（接続先は固定。URLパラメータ・入力欄・localStorageでの差し替えは受け付けない）
+// ============================================================
+const GAS_URL    = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_INVENTORY/exec';
+const MASTER_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec';
+const SK_PORTAL = 'inv_portal_url';
+const SK_SAT    = 'inv_sat_v2';   // 月次表示のローカルキャッシュ用キー（接続先とは無関係）
+const TOKEN_KEY = 'inv_token';   // ↑ 先頭スクリプトと同じキー名
+
+// ★過去に差し替えで localStorage に残った接続先を消す（端末の汚染除去）
+try { localStorage.removeItem('inv_gas_url'); localStorage.removeItem('inv_master_url'); } catch(e) {}
+
 let PORTAL_URL = localStorage.getItem(SK_PORTAL) || '';
 
 // ============================================================
-//  ユーザー認証（ポータルSSO優先、フォールバックでローカルログイン）
+//  ユーザー認証（ポータル発行トークンのみ。単体ログインは無し）
 // ============================================================
 const SK_USER = 'inv_current_user';
-let currentUser = null; // { id, name, role }
+let currentUser = null; // 表示用。identity の正本はサーバー（トークン）側。
 
-function decodeSsoToken(token) {
-  try {
-    const reversed = token.split('').reverse().join('');
-    const json = decodeURIComponent(escape(atob(reversed)));
-    const payload = JSON.parse(json);
-    if (!payload.id || !payload.name) return null;
-    return { id: payload.id, name: payload.name, role: payload.role || 'staff' };
-  } catch (e) { return null; }
+function getToken() { try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch(e){ return ''; } }
+function clearSession() {
+  try { sessionStorage.removeItem(TOKEN_KEY); } catch(e){}
+  try { sessionStorage.removeItem(SK_USER); } catch(e){}
 }
 
 function initAuth() {
   const params = new URLSearchParams(location.search);
-  const ssoToken = params.get('sso');
   const portalUrlParam = params.get('portal_url');
   if (portalUrlParam) { PORTAL_URL = portalUrlParam; localStorage.setItem(SK_PORTAL, PORTAL_URL); }
 
-  if (ssoToken) {
-    const user = decodeSsoToken(ssoToken);
-    if (user) {
-      currentUser = user;
-      try { sessionStorage.setItem(SK_USER, JSON.stringify(user)); } catch(e) {}
-      return true;
+  // 先頭スクリプトが #sso= を回収済み。トークンが無ければ未認証。
+  if (!getToken()) return false;
+
+  try { const saved = sessionStorage.getItem(SK_USER); if (saved) currentUser = JSON.parse(saved); } catch(e) {}
+  // 表示名・役割はサーバーに問い合わせて受け取る（届くまでは画面を出したまま）。
+  api({ action: 'whoami' }).then(function (res) {
+    if (res && res.ok) {
+      currentUser = { id: res.id, name: res.name || '', role: res.role || 'staff' };
+      try { sessionStorage.setItem(SK_USER, JSON.stringify(currentUser)); } catch(e) {}
+      if (typeof updateUserBadge === 'function') updateUserBadge();
     }
-  }
-  // セッションに保存済みのユーザーがあれば再利用（同タブでのリロード時）
-  try {
-    const saved = sessionStorage.getItem(SK_USER);
-    if (saved) { currentUser = JSON.parse(saved); return true; }
-  } catch(e) {}
-  return false;
+  }).catch(function () {});
+  return true;
 }
 
 function showLoginScreen() {
@@ -745,25 +750,37 @@ function hideLoginScreen() {
   document.getElementById('login-screen').style.display = 'none';
 }
 
+// ============================================================
+// ★このアプリ単体でのログインは廃止した（2026-07-30）
+//
+// 【削除した理由】
+//   ここには id === 'admin' && pw === 'admin123' という判定が直書きされており、
+//   一致した場合に role:'master'（最上位権限）を与えていた。
+//   このファイルはGitHub Pagesで公開配信されているため、
+//   ソースを開けば誰でもこの2つの値を読めた。
+//   つまり、誰でも在庫管理アプリに管理者として入れる状態だった。
+//
+//   ブラウザ内で判定している以上、値を変えても開発者ツールから
+//   currentUser を直接書き換えれば素通りできるため、
+//   「別のパスワードにする」ではなく、判定そのものを廃止する。
+//
+// 【今後の入り方】
+//   業務管理ポータルから開く。利用者の判定はポータルとGASが行う。
+//
+// ★注意：このアプリのGASはまだトークン検証に対応していない。
+//   ポータル側の改修（Step 10）が入ると、このアプリには
+//   有効なトークンが渡らなくなるため、移行までは利用できない。
+//   移行手順は出荷照合システムと同じ（CHANGELOG_Step1-10_実装記録.md を参照）。
+// ============================================================
 function doLocalLogin() {
-  const id = document.getElementById('login-id').value.trim();
-  const pw = document.getElementById('login-pw').value;
   const errEl = document.getElementById('login-err');
-  errEl.style.display = 'none';
-  if (id === 'admin' && pw === 'admin123') {
-    currentUser = { id: 'admin', name: '管理者', role: 'master' };
-    try { sessionStorage.setItem(SK_USER, JSON.stringify(currentUser)); } catch(e) {}
-    hideLoginScreen();
-    updateUserBadge();
-    startOnlineHeartbeat();
-    boot();
-  } else {
-    errEl.textContent = 'IDまたはパスワードが違います';
+  if (errEl) {
+    errEl.textContent = 'このアプリは業務管理ポータルからご利用ください';
     errEl.style.display = 'block';
   }
 }
-document.getElementById('login-btn').addEventListener('click', doLocalLogin);
-document.getElementById('login-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLocalLogin(); });
+const _invLoginBtn = document.getElementById('login-btn');
+if (_invLoginBtn) _invLoginBtn.addEventListener('click', doLocalLogin);
 
 function updateUserBadge() {
   const badge = document.getElementById('current-user-badge');
@@ -956,42 +973,14 @@ function startCellPolling() {
   _cellPollTimer = setInterval(refreshCellFocusAndHistory, 6000); // 6秒ごと（高速化要望対応）
 }
 
-document.getElementById('gas-url-input').value    = GAS_URL;
-document.getElementById('master-url-input').value = MASTER_URL;
-if (GAS_URL) document.getElementById('url-bar').style.display = 'none';
-
-document.getElementById('btn-settings').addEventListener('click', () => {
-  const bar = document.getElementById('url-bar');
-  const show = bar.style.display === 'none';
-  bar.style.display = show ? 'flex' : 'none';
-  if (show) document.getElementById('gas-url-input').focus();
-});
-document.getElementById('btn-connect').addEventListener('click', async () => {
-  const url = document.getElementById('gas-url-input').value.trim();
-  if (!url) { alert('URLを入力してください'); return; }
-  const st = document.getElementById('conn-status');
-  st.className = 'conn-status ing'; st.textContent = '接続確認中…';
-  try {
-    const r = await fetch(url + '?action=getClients');
-    const j = await r.json();
-    if (j.error) throw new Error(j.error);
-    GAS_URL = url;
-    localStorage.setItem(SK_URL, GAS_URL);
-    const masterUrl = document.getElementById('master-url-input').value.trim();
-    if (masterUrl) { MASTER_URL = masterUrl; localStorage.setItem(SK_MASTER, MASTER_URL); }
-    st.className = 'conn-status ok';
-    st.textContent = `✓ 接続OK（取引先 ${j.clients.length}社）`;
-    setTimeout(() => { document.getElementById('url-bar').style.display = 'none'; }, 1200);
-    selCid = null;
-    await boot();
-  } catch(e) {
-    st.className = 'conn-status err';
-    st.textContent = '✗ 接続失敗: ' + e.message;
-  }
-});
-document.getElementById('gas-url-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('btn-connect').click();
-});
+// ★接続先固定：GAS URL の入力・差し替えUIは廃止した。
+//   接続先は上部の定数 GAS_URL のみ。URL設定バーと設定ボタンは表示しない。
+(function () {
+  var bar = document.getElementById('url-bar');
+  if (bar) bar.style.display = 'none';
+  var btnS = document.getElementById('btn-settings');
+  if (btnS) btnS.style.display = 'none';
+})();
 
 // ============================================================
 //  定数
@@ -1071,16 +1060,23 @@ const MOCK_PRODUCTS = {
 const DEMO_STORE = { initStock:{}, cells:{} };
 
 async function api(params) {
-  // saveCell呼び出し時は自動的にユーザー情報を付与（最終更新者記録用）
-  if (params.action === 'saveCell' && currentUser) {
-    params = { ...params, userId: currentUser.id, userName: currentUser.name };
-  }
-  if (!GAS_URL) return mockApi(params);
-  const url = GAS_URL + '?' + new URLSearchParams(params).toString();
+  // ★すべてPOST・Content-Type: text/plain・トークンは本文（GETや接続先差し替えは廃止）。
+  //   identity（userId/userName）はサーバーがトークンから決めるので、ここでは付けない。
+  const token = getToken();
+  if (!token) { clearSession(); showLoginScreen(); return { error: 'unauthorized' }; }
+  const body = Object.assign({}, params, { token: token });
   try {
-    const r = await fetch(url);
+    const r = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },   // application/json はCORSプリフライトでGASが応答できない
+      body: JSON.stringify(body),
+      redirect: 'follow'
+    });
     const j = await r.json();
-    if (j.error) console.error('[API Error]', params.action, j.error);
+    if (j && j.ok === false && j.error === 'unauthorized') {
+      clearSession(); showLoginScreen(); return { error: 'unauthorized' };
+    }
+    if (j && j.error) console.error('[API Error]', params.action, j.error);
     return j;
   } catch(e) {
     console.error('[API Fetch Error]', params.action, e.message);
