@@ -674,34 +674,42 @@ textarea.fi2 { resize: none; line-height: 1.6; }
 // 製品マスタGAS : URLパラメータ product_url or localStorage（getProducts・searchProduct用）
 // ============================================================
 
-// ▼▼▼ デプロイ後に各GASのURLをここに入力してください ▼▼▼
-const REPORT_GAS_URL_HARDCODED  = 'https://script.google.com/macros/s/AKfycby-AS3uRATUSAmLb5kqyfxuTy-Y1jDTg4SnbXbqAKpSjEYwlId1n86dHw0sQqmbu3sDEw/exec';
-const PRODUCT_GAS_URL_HARDCODED = 'https://script.google.com/macros/s/AKfycbww1lPYGVf7FLmIbjwxODbFMKSn8Q6yxFL9OpPnYmh9AnkAWVf9BgrRgk0Wc8GvK2XN/exec';
+// ▼▼▼ デプロイ後に各GASのURLをここに入力してください（固定。URLパラメータ差し替えは廃止）▼▼▼
+//   セキュリティ改修：?gas_url= 等での接続先差し替え・localStorage保持を撤去。
+//   任意サーバへトークンを送られる経路を塞ぐため、接続先は必ずこの定数のみを使う。
+const REPORT_GAS_URL  = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_REPORT/exec';   // 作業報告書GAS（saveReport・getReports）
+const PRODUCT_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec';  // 製品マスタGAS（getProducts・searchProduct／現状は匿名読取）
 
-function getGasUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const fromUrl = params.get('gas_url');
-  if (fromUrl) { localStorage.setItem('sakugyo_gas_url', fromUrl); return fromUrl; }
-  return localStorage.getItem('sakugyo_gas_url') || '';
+// ============================================================
+// SSOトークン（ポータルが #sso= で受け渡す署名トークン）
+//   ・URLフラグメント(#)はサーバへ送られないため漏えいしにくい。
+//   ・取得後は即URLから除去し、sessionStorageに保持。
+// ============================================================
+const AUTH_TOKEN_KEY = 'kpk_report_token';
+let AUTH_TOKEN = (function() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, t);
+      // URLバーからトークンを消す（履歴・共有からの漏えい防止）
+      history.replaceState(null, '', location.pathname + location.search);
+      return t;
+    }
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch(e) { return ''; }
+})();
+
+// 署名は検証しない（検証はGAS側）。表示用にpayloadのclaimだけ取り出す。
+function decodeTokenClaims_(t) {
+  try {
+    const p = String(t).split('.')[0];
+    const b64 = p.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4))));
+    return JSON.parse(json);
+  } catch(e) { return null; }
 }
-
-function getReportGasUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const fromUrl = params.get('report_url');
-  if (fromUrl) { localStorage.setItem('sakugyo_report_gas_url', fromUrl); return fromUrl; }
-  return localStorage.getItem('sakugyo_report_gas_url') || REPORT_GAS_URL_HARDCODED;
-}
-
-function getProductGasUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const fromUrl = params.get('product_url');
-  if (fromUrl) { localStorage.setItem('sakugyo_product_gas_url', fromUrl); return fromUrl; }
-  return localStorage.getItem('sakugyo_product_gas_url') || PRODUCT_GAS_URL_HARDCODED;
-}
-
-const GAS_URL         = getGasUrl();         // ポータルGAS（login・addLog）
-const REPORT_GAS_URL  = getReportGasUrl();   // 作業報告書GAS（saveReport）
-const PRODUCT_GAS_URL = getProductGasUrl();  // 製品マスタGAS（getProducts・searchProduct）
 
 // ポータルのURL（「ポータルに戻る」ボタン用）
 const PORTAL_URL = (function() {
@@ -726,17 +734,11 @@ let reportEmployees = (function() {
   return [];
 })();
 
-// ポータルGASから従業員データを直接取得（①②が空 or 不十分だった場合のフォールバック）
+// 従業員データは原則ポータルが emps パラメータで渡す。
+//   セキュリティ改修：ポータルGASへの直接getEmploy(master限定・別aud)フォールバックは廃止。
+//   emps が空でも手入力で運用継続できる。
 async function loadReportEmployeesFromPortal() {
-  if (reportEmployees.length > 0) return; // 既に取得済みなら不要
-  if (!GAS_URL) return;
-  try {
-    const res = await gasPost('getEmployees', {});
-    if (res && res.ok && Array.isArray(res.data)) {
-      reportEmployees = res.data.filter(e => e.status === 'active' || e.status === '在職' || !e.status);
-      renderDefects(); // 既に表示中の不具合フォームがあれば再描画して反映
-    }
-  } catch(e) { /* サイレント失敗（手入力で運用継続できるため） */ }
+  return; // フォールバック廃止（互換のため関数は残す）
 }
 
 // ============================================================
@@ -772,61 +774,74 @@ function loadZXing() {
   s.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js';
   document.head.appendChild(s);
 }
-  // URLパラメータから sso トークンを取得
-  const params = new URLSearchParams(location.search);
-  const ssoToken = params.get('sso');
-
-  if (ssoToken) {
-    try {
-      // ポータルの生成ロジックと逆順: reverse → atob → JSON.parse
-      const reversed = ssoToken.split('').reverse().join('');
-      const json     = decodeURIComponent(escape(atob(reversed)));
-      const payload  = JSON.parse(json);
-
-      // タイムスタンプが30分以内か確認
-      if (Date.now() - payload.ts < 30 * 60 * 1000) {
-        currentUser = { id: payload.id, name: payload.name, role: payload.role };
-        enterMain();
-        return;
-      }
-    } catch(e) {
-      console.warn('SSOトークン解析失敗:', e);
-    }
-  }
-
-  // sessionStorage にセッションが残っているか確認
-  try {
-    const saved = sessionStorage.getItem('kpk_report_user');
-    if (saved) {
-      currentUser = JSON.parse(saved);
+  // 署名トークン（#sso）があれば、それを本人情報として起動する。
+  //   最終的な正当性はGAS側で検証される。ここではトークンの有無と有効期限のみ確認。
+  if (AUTH_TOKEN) {
+    const claims = decodeTokenClaims_(AUTH_TOKEN);
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (claims && claims.aud === 'report' && claims.exp && claims.exp > nowSec) {
+      currentUser = { id: claims.sub, name: claims.name || claims.sub, role: claims.role || 'staff' };
       enterMain();
       return;
     }
-  } catch(e) {}
+    // 期限切れ・aud不一致 → 破棄
+    try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+    AUTH_TOKEN = '';
+  }
 
-  // どちらもなければログイン画面
-  document.getElementById('s-login').classList.add('on');
+  // トークンが無い＝ポータル経由でない。独自ログインは廃止し、ポータルへ誘導する。
+  showPortalRequired_();
 });
+
+// ポータルからの入場を促す画面（独自ログイン廃止）
+function showPortalRequired_() {
+  const el = document.getElementById('s-login');
+  if (el) el.classList.add('on');
+  const err = document.getElementById('login-err');
+  if (err) {
+    err.textContent = 'このアプリは業務管理ポータルからご利用ください。';
+    err.style.display = 'block';
+  }
+  // ID/PW入力とログインボタンを隠す（独自認証は無効）
+  ['inp-id', 'inp-pw', 'btn-login'].forEach(id => {
+    const n = document.getElementById(id);
+    if (n) n.style.display = 'none';
+  });
+}
 
 // ============================================================
 // GAS通信 — actionごとに送り先GASを振り分け
 // ============================================================
 function resolveGasUrl(action) {
-  if (['saveReport', 'getReports'].includes(action)) return REPORT_GAS_URL;
+  // 製品マスタ参照のみ製品GAS。それ以外（saveReport/getReports等）は作業報告書GAS。
   if (['getProducts', 'searchProduct'].includes(action)) return PRODUCT_GAS_URL;
-  return GAS_URL; // login・addLog等はポータルGAS
+  return REPORT_GAS_URL;
+}
+
+// トークン失効・未ログインを検知したときの共通処理
+function handleUnauthorized_() {
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = '';
+  currentUser = null;
+  try {
+    document.getElementById('s-main').classList.remove('on');
+  } catch(e) {}
+  showPortalRequired_();
 }
 
 async function gasPost(action, data) {
   const url  = resolveGasUrl(action);
-  const body = JSON.stringify({ action, ...data });
+  // トークンは全リクエストに添付（匿名の製品GASでは無視される）。
+  const body = JSON.stringify({ action, token: AUTH_TOKEN, ...data });
   const res  = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
+    headers: { 'Content-Type': 'text/plain' }, // application/jsonにするとCORSプリフライトが必要になりGASが応答できない
     body
   });
   if (!res.ok) throw new Error('通信エラー ' + res.status);
-  return res.json();
+  const json = await res.json();
+  if (json && json.error === 'unauthorized') { handleUnauthorized_(); throw new Error('認証が無効です。ポータルから入り直してください。'); }
+  return json;
 }
 
 async function gasGet(params) {
@@ -848,33 +863,9 @@ document.getElementById('inp-pw').addEventListener('keydown', e => {
 });
 document.getElementById('btn-login').addEventListener('click', doLogin);
 
+// 独自ログインは廃止（認証はポータル署名トークンに一本化）。
 async function doLogin() {
-  const loginId = document.getElementById('inp-id').value.trim();
-  const pw      = document.getElementById('inp-pw').value;
-  const errEl   = document.getElementById('login-err');
-  const btn     = document.getElementById('btn-login');
-  errEl.style.display = 'none';
-  if (!loginId || !pw) {
-    errEl.textContent = 'IDとパスワードを入力してください';
-    errEl.style.display = 'block'; return;
-  }
-  btn.disabled = true; btn.textContent = 'ログイン中...';
-  try {
-    const res = await gasPost('login', { loginId, pw });
-    if (res.ok) {
-      currentUser = res.user;
-      sessionStorage.setItem('kpk_report_user', JSON.stringify(currentUser));
-      gasPost('addLog', { userId: currentUser.id, action: '作業報告書ログイン', result: '成功' }).catch(() => {});
-      enterMain();
-    } else {
-      errEl.textContent = res.message || 'IDまたはパスワードが違います';
-      errEl.style.display = 'block';
-    }
-  } catch(e) {
-    errEl.textContent = 'エラー: ' + e.message;
-    errEl.style.display = 'block';
-  }
-  btn.disabled = false; btn.textContent = 'ログイン';
+  showPortalRequired_();
 }
 
 function doLogout() {
@@ -882,6 +873,8 @@ function doLogout() {
     stopTimer(); stopCamera(true); hideBreakOverlay();
     clearAutoSave(); // ログアウト → バックアップ破棄
     sessionStorage.removeItem('kpk_report_user');
+    try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+    AUTH_TOKEN = '';
     currentUser = null;
     // タブを閉じてポータルに戻る
     try {
