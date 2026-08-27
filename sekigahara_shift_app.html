@@ -330,14 +330,10 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
       <div class="lsub">従業員の皆様、ようこそ</div>
     </div>
     <div class="lcard">
-      <div class="ltabs">
-        <div class="ltab on" id="lt-a" onclick="slt('a')">管理者ログイン</div>
-        <div class="ltab" id="lt-s" onclick="slt('s')">従業員ログイン</div>
+      <div class="lhint" style="font-size:14px;line-height:1.8;text-align:center;padding:12px">
+        このアプリは<strong>業務管理ポータル</strong>からご利用ください。<br>
+        ポータルにログインし、シフト管理を開いてください。
       </div>
-      <div class="fg"><label class="fl">ユーザーID</label><input class="fi" id="lid" placeholder="admin または emp001〜emp032"></div>
-      <div class="fg"><label class="fl">パスワード</label><input class="fi" id="lpw" type="password" placeholder="パスワード"></div>
-      <button class="btnl" onclick="doLogin()">ログイン</button>
-      <div class="lhint">管理者: admin / admin<br>従業員: emp001〜emp032 / 1234</div>
     </div>
   </div>
 </div>
@@ -1074,34 +1070,52 @@ function seedShifts(){
 
 // ══ AUTH ══
 function slt(t){ltab=t;document.getElementById('lt-a').classList.toggle('on',t==='a');document.getElementById('lt-s').classList.toggle('on',t==='s');}
+// ============================================================
+// ★このアプリ単体でのログインは廃止した（2026-07-30）
+//
+// 【削除した理由】
+//  (1) id==='admin' && pw==='admin' という判定が直書きされており、
+//      一致した場合に管理者権限(isA=true)を与えていた。
+//      このファイルはGitHub Pagesで公開配信されているため、
+//      ソースを開けば誰でもこの2つの値を読めた。
+//  (2) もう一方の分岐は EMPLOYEES 配列（ポータルからURLで渡された従業員一覧）の
+//      pw と突き合わせていた。ブラウザ内の判定なので、
+//      開発者ツールから cUser と isA を直接書き換えれば素通りできる。
+//
+//  値を変えても (2) の性質は変わらないため、判定そのものを廃止する。
+//
+// 【今後の入り方】
+//   業務管理ポータルから開く。利用者の判定はポータルとGASが行う。
+//
+// ★注意：このアプリのGASはまだトークン検証に対応していない。
+//   ポータル側の改修（Step 10）が入ると有効なトークンが渡らなくなるため、
+//   移行までは利用できない。移行手順は出荷照合システムと同じ。
+// ============================================================
 function doLogin(){
-  const id=document.getElementById('lid').value.trim(),pw=document.getElementById('lpw').value;
-  if(ltab==='a'&&id==='admin'&&pw==='admin'){cUser={id:'admin',name:'管理者'};isA=true;persistData();launch();}
-  else{const e=EMPLOYEES.find(x=>x.id===id&&x.pw===pw);if(e){cUser={id:e.id,name:e.name,dept:e.dept||''};isA=false;persistData();launch();}else{alert('IDまたはパスワードが違います');}}
+  alert('このアプリは業務管理ポータルからご利用ください');
 }
-document.getElementById('lpw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-// オフライン状態をGASに通知
+const _shiftPwEl = document.getElementById('lpw');
+if (_shiftPwEl) _shiftPwEl.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+// オフライン状態をGASに通知（トークン付きPOSTをsendBeaconで送る）
 function notifyOffline() {
-  if (!cUser || !GAS_URL_SHIFT) return;
+  if (!cUser || !AUTH_TOKEN) return;
   try {
-    const url = GAS_URL_SHIFT + '?action=setOnlineStatus' +
-      '&appId=shift' +
-      '&userId=' + encodeURIComponent(cUser.id) +
-      '&userName=' + encodeURIComponent(cUser.name) +
-      '&action2=logout';
-    navigator.sendBeacon(url); // ページ離脱時も確実に送信
+    // userId/userNameはGAS側でトークンのsub/nameに固定するため本文には含めない
+    const body = JSON.stringify({ action: 'setOnlineStatus', token: AUTH_TOKEN, action2: 'logout' });
+    const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
+    navigator.sendBeacon(GAS_URL_SHIFT, blob); // ページ離脱時も確実に送信
   } catch(e) {}
 }
 
 function doLogout(){
   notifyOffline();
   cUser=null;isA=false;
-  // セッションをlocalStorageから削除（次回リロード時にログイン画面を表示）
+  // セッション・トークンを破棄（次回はポータルからの入場が必要）
   try { localStorage.removeItem(LS_USER); } catch(e) {}
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = null;
   document.getElementById('lw').classList.remove('hid');
   document.getElementById('mainApp').classList.add('hid');
-  document.getElementById('lid').value='';
-  document.getElementById('lpw').value='';
 }
 
 // ページを閉じる・離脱する時もオフラインを記録
@@ -1112,6 +1126,8 @@ window.addEventListener('pagehide', notifyOffline);
   notifyOffline();
   cUser = null; isA = false;
   try { localStorage.removeItem(LS_USER); } catch(e) {}
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = null;
   try {
     window.close();
   } catch(e) {}
@@ -1119,8 +1135,6 @@ window.addEventListener('pagehide', notifyOffline);
   setTimeout(() => {
     document.getElementById('lw').classList.remove('hid');
     document.getElementById('mainApp').classList.add('hid');
-    document.getElementById('lid').value = '';
-    document.getElementById('lpw').value = '';
   }, 300);
 }
 
@@ -2869,18 +2883,69 @@ function syncFromPortalAndPersist(portalEmps) {
 }
 
 // ══ GASスプレッドシート保存・読み込み ══
-const LS_GAS_URL = 'kpk_shift_gas_url';
-// GASのURL（ポータルと同じURL）
-const GAS_URL_HARDCODED = 'https://script.google.com/macros/s/AKfycbwfAkY2iW48xUKPhyjznxYQW_-n19qLa4QcJ0qIB1zSnyY66UyAhOkm0grR8KTgjcza/exec';
-let GAS_URL_SHIFT = GAS_URL_HARDCODED; // まずハードコード値をセット
-try {
-  const saved = localStorage.getItem(LS_GAS_URL);
-  if (saved) GAS_URL_SHIFT = saved; // 保存済みがあれば上書き
-} catch(e) {}
+// セキュリティ改修：接続先は固定（?shift_gas_url= / ?gas_url= 差し替え・localStorage保持を撤去）。
+const GAS_URL_SHIFT = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_SHIFT/exec';
+function setGasUrl(_url) { /* 接続先差し替えは廃止（no-op） */ }
 
-function setGasUrl(url) {
-  GAS_URL_SHIFT = url;
-  try { localStorage.setItem(LS_GAS_URL, url); } catch(e) {}
+// ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
+//   URLフラグメントはサーバへ送られない。取得後は即URLから除去しsessionStorageへ。
+const AUTH_TOKEN_KEY = 'kpk_shift_token';
+let AUTH_TOKEN = (function() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, t);
+      history.replaceState(null, '', location.pathname + location.search);
+      return t;
+    }
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch(e) { return ''; }
+})();
+
+function decodeTokenClaims_(t) {
+  try {
+    const p = String(t).split('.')[0];
+    const b64 = p.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
+  } catch(e) { return null; }
+}
+
+// 有効なshift用トークンの claim を返す（無効ならnull）
+function validClaims_() {
+  if (!AUTH_TOKEN) return null;
+  const c = decodeTokenClaims_(AUTH_TOKEN);
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (c && c.aud === 'shift' && c.exp && c.exp > nowSec) return c;
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = '';
+  return null;
+}
+
+function handleUnauthorized_() {
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = null; cUser = null; isA = false;
+  try {
+    document.body.classList.remove('app-loading');
+    document.getElementById('mainApp').classList.add('hid');
+    document.getElementById('lw').classList.remove('hid');
+  } catch(e) {}
+}
+
+// 全API：トークン付きPOST（text/plain）に統一。GETの匿名アクセスは廃止。
+async function gasCall_(action, payload) {
+  if (!AUTH_TOKEN) { handleUnauthorized_(); return null; }
+  try {
+    const res = await fetch(GAS_URL_SHIFT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, token: AUTH_TOKEN, ...(payload || {}) })
+    });
+    const json = await res.json();
+    if (json && json.error === 'unauthorized') { handleUnauthorized_(); return null; }
+    return json;
+  } catch(e) { console.error('[gasCall_]', action, e); return null; }
 }
 
 // ══ オンライン状態通知（関数は上部で定義済み）══
@@ -2892,38 +2957,35 @@ function setGasUrl(url) {
 restoreData();
 seedShifts();
 
-// ログインセッション復元（リロード時にログアウトしないための処理）
-(function restoreSession() {
-  // SSOトークンがある場合はSSOが処理するので何もしない（SSOのlaunch()でapp-loadingが外れる）
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('sso')) return;
+// ログインは署名トークンに一本化。#sso で入る、またはリロード時は
+// sessionStorage のトークンで復元する。有効なトークンが無ければログイン画面。
+(function initFromToken() {
   try {
-    const saved = localStorage.getItem(LS_USER);
-    if (!saved) {
-      // セッションなし → ログイン画面を表示
+    const c = validClaims_();
+    if (!c) {
+      // 有効なトークンなし → ログイン画面（doLoginは「ポータルからご利用ください」）
       document.body.classList.remove('app-loading');
       return;
     }
-    const sess = JSON.parse(saved);
-    if (!sess || !sess.user || !sess.user.id) {
-      document.body.classList.remove('app-loading');
-      return;
+    let name = c.name || c.sub;
+    try { name = decodeURIComponent(escape(name)); } catch(e) {}
+    cUser = { id: c.sub, name: name, dept: c.dept || '' };
+    isA   = (c.role === 'admin' || c.role === 'master');
+    // ログインユーザーをEMPLOYEESに仮登録（申請機能のため）
+    if (!isA && !EMPLOYEES.find(x => x.id === c.sub)) {
+      try { getEmpOrCurrent(c.sub); persistData(); } catch(e) {}
     }
-    cUser = sess.user;
-    isA   = !!sess.isA;
     launch();
     // GASから最新データを静かに取得
-    if (GAS_URL_SHIFT) {
-      setTimeout(async () => {
-        try {
-          await loadFromSheet();
-          rSh(); rDB(); rEmp(); rPL(); rVreq(); rOTReq(); rHReq(); rOT();
-        } catch(e) {}
-      }, 400);
-    }
+    setTimeout(async () => {
+      try {
+        await loadFromSheet();
+        rSh(); rDB(); rEmp(); rPL(); rVreq(); rOTReq(); rHReq(); rOT();
+      } catch(e) {}
+    }, 400);
   } catch(e) {
-    console.warn('[restoreSession] エラー:', e);
-    document.body.classList.remove('app-loading'); // エラー時もログイン画面を表示
+    console.warn('[initFromToken] エラー:', e);
+    document.body.classList.remove('app-loading');
   }
 })();
 
@@ -2935,32 +2997,12 @@ function scheduleSave() {
 }
 
 async function saveShiftKey(key, val) {
-  // 値をそのまま送信（エンコード後8000文字以下に制限）
-  const encoded = encodeURIComponent(val);
-  const safe = encoded.slice(0, 7500); // GASのURL上限
-  const url = GAS_URL_SHIFT + '?action=saveShiftKey' +
-    '&key=' + encodeURIComponent(key) +
-    '&val=' + safe;
-  try {
-    // GASはリダイレクトがあるためno-corsではレスポンスが読めない
-    // XMLHttpRequestで同期的に送信（CORSを回避）
-    return await new Promise((resolve) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);
-      xhr.onload = () => {
-        try {
-          const r = JSON.parse(xhr.responseText);
-          console.log('[saveKey]', key, ':', r.ok ? 'OK' : r.message);
-          resolve(r.ok);
-        } catch(e) { resolve(false); }
-      };
-      xhr.onerror = () => { console.error('[saveKey] XHR error', key); resolve(false); };
-      xhr.send();
-    });
-  } catch(e) {
-    console.error('[saveKey] エラー', key, e);
-    return false;
-  }
+  // 値はPOST本文で送る（URLクエリの文字数上限・URLへのデータ露出が無くなる）。
+  // 権限のないキー（例：staffがshifts/employees）はGAS側で拒否され ok:false が返る。
+  const r = await gasCall_('saveShiftKey', { key: key, val: val });
+  if (r && r.ok) return true;
+  if (r && r.message) console.log('[saveKey]', key, ':', r.message);
+  return false;
 }
 
 // ══ 同期ログ管理 ══
@@ -2998,21 +3040,17 @@ function updateSyncInfoBar(entry) {
 }
 // GASにログ送信（fire-and-forget）
 function pushLogToGas(action, ok) {
-  if (!GAS_URL_SHIFT) return;
-  const url = GAS_URL_SHIFT + '?action=addShiftLog' + '&user=' + encodeURIComponent(getSyncUserName()) + '&act=' + encodeURIComponent(action + (ok?':OK':':NG')) + '&dev=' + encodeURIComponent(getDeviceLabel());
-  try { const xhr = new XMLHttpRequest(); xhr.open('GET', url, true); xhr.send(); } catch(e) {}
+  if (!AUTH_TOKEN) return;
+  gasCall_('addShiftLog', { act: action + (ok ? ':OK' : ':NG'), dev: getDeviceLabel() });
 }
 // GASからログを取得して画面に表示
 async function loadSyncLog() {
   const el = document.getElementById('sync-log-list'); if (!el) return;
-  if (!GAS_URL_SHIFT) { el.innerHTML = '<div style="font-size:11px;color:var(--tx3);text-align:center;padding:8px">GAS URL未設定</div>'; return; }
+  if (!AUTH_TOKEN) { el.innerHTML = '<div style="font-size:11px;color:var(--tx3);text-align:center;padding:8px">ポータルからご利用ください</div>'; return; }
   el.innerHTML = '<div style="font-size:11px;color:var(--tx3);text-align:center;padding:8px">読み込み中...</div>';
   try {
-    const data = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest(); xhr.open('GET', GAS_URL_SHIFT + '?action=getShiftLog', true);
-      xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
-      xhr.onerror = () => reject(new Error('XHR error')); xhr.send();
-    });
+    const data = await gasCall_('getShiftLog', {});
+    if (!data) { el.innerHTML = '<div style="font-size:11px;color:var(--r);text-align:center;padding:8px">認証エラー</div>'; return; }
     if (!data.ok || !data.logs || !data.logs.length) { el.innerHTML = '<div style="font-size:11px;color:var(--tx3);text-align:center;padding:8px">ログなし</div>'; return; }
     el.innerHTML = data.logs.slice(0, 50).map(r => {
       const ts = r.ts ? new Date(r.ts) : null;
@@ -3053,17 +3091,11 @@ async function saveToSheet() {
 
 // スプレッドシートから全データを読み込み
 async function loadFromSheet() {
-  if (!GAS_URL_SHIFT) return false;
+  if (!AUTH_TOKEN) return false;
   try {
     showSyncBadge('loading');
-    const result = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', GAS_URL_SHIFT + '?action=loadShiftData', true);
-      xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
-      xhr.onerror = () => reject(new Error('XHR error'));
-      xhr.send();
-    });
-    if (!result.ok || !result.data) { showSyncBadge('error'); return false; }
+    const result = await gasCall_('loadShiftData', {});
+    if (!result || !result.ok || !result.data) { showSyncBadge('error'); return false; }
     const d = result.data;
     console.log('[loadFromSheet] 取得キー:', Object.keys(d));
 
@@ -3149,98 +3181,26 @@ function showSyncBadge(status) {
   if (status === 'saved' || status === 'loaded') setTimeout(() => { el.style.display='none'; }, 3000);
 }
 
-// ══ SSO：ポータルからの自動ログイン + 従業員同期 ══
-(function(){
-  function parseSSOToken(token){
-    try{
-      const decoded=atob(token.split('').reverse().join(''));
-      const data=JSON.parse(decoded);
-      if(Date.now()-data.ts>5*60*1000)return null;
-      return data;
-    }catch(e){return null;}
-  }
+// ══ SSO ══
+//   ポータルからの入場・識別・データ読込は上部の initFromToken() に一本化した。
+//   旧 ?sso=（reverse+atob・ts5分）方式と、?emps=/?shift_gas_url= 受け渡しは廃止。
+//   従業員データは loadShiftData（トークン必須）経由で取得する。
 
-  const params=new URLSearchParams(window.location.search);
-  const token=params.get('sso');
-  if(!token)return;
-  const data=parseSSOToken(token);
-  if(!data){
-    // SSOトークン無効（期限切れ等）→ ログイン画面を表示
-    document.body.classList.remove('app-loading');
-    return;
-  }
-
-  // empsパラメータから従業員データを同期してlocalStorageに保存
-  const empsParam=params.get('emps');
-  const empsKey=params.get('emps_key');
-  let empsJson=null;
-  if(empsParam) empsJson=decodeURIComponent(empsParam);
-  else if(empsKey){ try{empsJson=sessionStorage.getItem(empsKey);}catch(e){} }
-
-  if(empsJson){
-    try{
-      const emps=JSON.parse(empsJson);
-      syncFromPortalAndPersist(emps);
-      window._portalEmpsReceived = true; // ポータルから受け取ったフラグ
-      // シフトGASにも従業員データを保存（次回loadFromSheet時に正しいデータを返すため）
-      if(GAS_URL_SHIFT || params.get('shift_gas_url') || params.get('gas_url')) {
-        setTimeout(() => {
-          saveShiftKey('employees', JSON.stringify(emps)).catch(()=>{});
-        }, 500);
-      }
-    }catch(e){console.warn('従業員同期エラー:',e);}
-  }
-
-  // シフトGAS URLを受け取って保存（shift_gas_urlパラメータ優先）
-  const shiftGasUrlParam = params.get('shift_gas_url');
-  const gasUrlParam      = params.get('gas_url'); // 旧パラメータ名互換
-  const gasUrl = shiftGasUrlParam || gasUrlParam;
-  if (gasUrl) { setGasUrl(decodeURIComponent(gasUrl)); }
-
-  let name=data.name||'';
-  try{name=decodeURIComponent(escape(name));}catch(e){}
-  cUser={id:data.id,name,dept:data.dept||''};
-  isA=(data.role==='admin' || data.role==='master');
-  window.history.replaceState({},'',window.location.pathname);
-  // ログインユーザーをEMPLOYEESに仮登録（申請機能のため）
-  if(!isA && !EMPLOYEES.find(x=>x.id===data.id)){
-    getEmpOrCurrent(data.id);
-    persistData();
-  }
-  launch();
-  // スプレッドシートから最新データを読み込む
-  setTimeout(async()=>{
-    try{
-      if(GAS_URL_SHIFT){
-        await loadFromSheet();
-        rSh();rDB();rEmp();rPL();rVreq();rOTReq();rHReq();rOT();
-      }else{
-        rSh();rDB();rEmp();
-      }
-    }catch(e){}
-  }, 300);
-})();
-
-// ══ LINEWORKS通知送信（シフトGAS経由）══
+// ══ LINEWORKS通知送信（シフトGAS経由・トークン必須POST）══
+//   ★通知の実送信(シフトGAS→通知GAS)はサーバー側。通知GAS自体の無認証は
+//     通知マスタ第2部で対応。ここではトリガーの匿名GETを廃止しトークン必須化した。
 function sendShiftNotify(eventType, data) {
-  if (!GAS_URL_SHIFT) return;
-  try {
-    const url = GAS_URL_SHIFT
-      + '?action=notifyShift'
-      + '&eventType=' + encodeURIComponent(eventType)
-      + '&name='      + encodeURIComponent(data.name     || '')
-      + '&type='      + encodeURIComponent(data.type     || '')
-      + '&date='      + encodeURIComponent(data.date     || '')
-      + '&detail='    + encodeURIComponent(data.detail   || '')
-      + '&approver='  + encodeURIComponent(data.approver || '')
-      + '&reason='    + encodeURIComponent(data.reason   || '')
-      + '&lwUserId='  + encodeURIComponent(data.lwUserId || '');
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.send();
-  } catch(e) {
-    console.warn('通知エラー:', e);
-  }
+  if (!AUTH_TOKEN) return;
+  gasCall_('notifyShift', {
+    eventType: eventType,
+    name:     data.name     || '',
+    type:     data.type     || '',
+    date:     data.date     || '',
+    detail:   data.detail   || '',
+    approver: data.approver || '',
+    reason:   data.reason   || '',
+    lwUserId: data.lwUserId || ''
+  });
 }
 </script>
 </body>
