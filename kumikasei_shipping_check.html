@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>出荷照合システム(クミ化成向け)</title>
+<title>出荷照合システム(クミ化成向け)[同時読み込み版]</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="出荷照合(クミ化成)">
@@ -82,6 +82,8 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
 .search-box{flex:1;min-width:100px;font-size:12px;padding:5px 10px;border:1px solid #ccc;border-radius:6px;outline:none;font-family:inherit}
 .list-item{background:#fff;border:1px solid #e5e5e0;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
 .list-item.done{opacity:.45}
+.list-item.targeting{border-color:#3a7bdc;border-width:2px;background:#f0f5ff;box-shadow:0 0 0 1px #3a7bdc inset}
+.badge-target{background:#3a7bdc;color:#fff}
 .item-body{flex:1;min-width:0}
 .item-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px}
 .item-hinban{font-weight:700;font-size:14px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -89,7 +91,10 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
 .badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;white-space:nowrap}
 .badge-pending{background:#fff3d6;color:#b56e00}
 .badge-done{background:#d6f5e8;color:#1e8a55}
-.badge-color{background:#e7edf6;color:#2f5d9c}
+.badge-color{background:#e7edf6;color:#2f5d9c;min-width:56px;text-align:center}
+.remain-count{font-size:16px;font-weight:800;padding:2px 10px;border-radius:8px;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:70px;text-align:center;box-sizing:border-box}
+.remain-count.pending{background:#fff3d6;color:#b56e00}
+.remain-count.done{background:#d6f5e8;color:#1e8a55}
 .file-chips-wrap{margin-bottom:10px}
 .section-title{font-size:11px;font-weight:700;color:#aaa;margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase}
 .file-chip{display:inline-flex;align-items:center;gap:4px;background:#f0f0ed;border-radius:99px;padding:3px 10px;font-size:11px;margin:2px;color:#555}
@@ -115,16 +120,11 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
   <div class="login-company">関ケ原プラ工業(株)</div>
   <div class="login-greeting">従業員の皆様、ようこそ</div>
   <div class="login-card">
-    <div class="login-field">
-      <div class="login-label">ユーザーID</div>
-      <input type="text" class="login-input" id="login-id" placeholder="" autocomplete="username">
+    <div class="login-label" style="font-size:14px;line-height:1.8;text-align:center;color:#1a1a18">
+      このアプリは<strong>業務管理ポータル</strong>からご利用ください。<br>
+      ポータルにログインし、クミ化成 出荷照合を開いてください。
     </div>
-    <div class="login-field">
-      <div class="login-label">パスワード</div>
-      <input type="password" class="login-input" id="login-pw" placeholder="パスワード" autocomplete="current-password">
-    </div>
-    <button class="login-btn" onclick="doLogin()">ログイン</button>
-    <div class="login-error" id="login-error">IDまたはパスワードが違います</div>
+    <div class="login-error" id="login-error" style="display:none"></div>
   </div>
   <div class="login-footer">© 関ケ原プラ工業株式会社</div>
 </div>
@@ -236,28 +236,83 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
 // ============================================================
 // 設定
 // ============================================================
-const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbzlj7JIEJwj65ACuflQVctEvYrmdcKBoJLdmghcQLyH1CYCK4gAzF7wue_OBdSNQGH0Bw/exec'; // (出荷照合アプリ)クミ化成 コード.gs.txt（Driveフォルダ版）をデプロイしたURLを設定する（未設定ならローカル完結モードで動作）
+// セキュリティ改修：接続先は固定（?kumi_gas_url= 差し替えを撤去）。
+const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_KUMI/exec';
+
+// ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
+const AUTH_TOKEN_KEY = 'kpk_kumi_token';
+let AUTH_TOKEN = (function() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, t);
+      history.replaceState(null, '', location.pathname + location.search);
+      return t;
+    }
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch(e) { return ''; }
+})();
+function decodeTokenClaims_(t) {
+  try {
+    const p = String(t).split('.')[0];
+    const b64 = p.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
+  } catch(e) { return null; }
+}
+function handleUnauthorized_() {
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = '';
+  try { showFB('err', '認証が無効です。業務管理ポータルから入り直してください'); } catch(e) {}
+}
+// 全API：トークン付きPOST（GETの匿名取得は廃止）。getCSVはテキスト応答なので rawText:true。
+async function gasCall_(action, payload, opts) {
+  opts = opts || {};
+  if (!AUTH_TOKEN) { handleUnauthorized_(); return null; }
+  try {
+    const res = await fetch(GAS_DEPLOY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, token: AUTH_TOKEN, ...(payload || {}) })
+    });
+    if (opts.rawText) {
+      const txt = await res.text();
+      if (txt && txt.indexOf('"unauthorized"') !== -1) { handleUnauthorized_(); return null; }
+      return txt;
+    }
+    const json = await res.json();
+    if (json && json.error === 'unauthorized') { handleUnauthorized_(); return null; }
+    return json;
+  } catch(e) { console.error('[gasCall_]', action, e); return null; }
+}
 
 // ①社内QR: `|`区切り。品番|品名|空|空|収容数|空|色調 の7項目固定（2026/07/28 確認済み）
+// ⚠️2026/08/29: 実機スキャナーはキーボードレイアウトの差異により `|` のつもりで
+// `}` を送信することがあると判明。両方を区切り文字として受け付ける。
+const QR_DELIMITER_PATTERN = /[|}]/;
 const INTERNAL_QR_IDX = { hinban: 0, capacity: 4, color: 6 };
+const INTERNAL_QR_FIELD_COUNT = 7; // ①の欄に②(客先QR大+小/2項目)が誤って入力された場合に弾くためのチェックに使う
 
 // ②客先QR(小/ロットNo)判定パターン。例: 260324B0661S001（2026/07/28 確認済み）
 const LOT_NO_PATTERN = /^\d{6}[A-Z]\d{4}S\d{3}$/;
+// ロットNoの先頭部分（末尾の箱番号"S001"等を除いた部分）。同じ注文（同じCSV行）の
+// 箱は同じ先頭部分を共有するとの実データ観察（2026/09/01）に基づき、他品番のQR小を
+// 誤って読み取った場合の検知に使う（1箱目には比較対象が無いため、2箱目以降のみ有効）
+const LOT_PREFIX_PATTERN = /^(\d{6}[A-Z]\d{4})S\d{3}$/;
 
-// ⚠️要検証: 大QRの生データ実例が未取得のため、下記オフセットは仮設定です。
-// 「🔍 生データ表示」をONにして大QRを実際にスキャンし、部品番号・色調(識別-1)が
-// 何文字目から始まるかを確認してから、下の start/length を実データに合わせて修正してください。
-const BIGQR_OFFSETS = {
-  hinban: { start: 0, length: 20 },
-  color:  { start: 20, length: 6 },
-};
+// 大QRは固定長・多項目のレコード（発行番号/部品番号/色調/部品名称/受注者名など）で、
+// 品番・色調のペアが2回登場する。文字位置を決め打ちせず、正規化した上で
+// 「大QRの中に①の品番・色調の文字列が含まれているか」で判定する（2026/08/29 実データで確認）。
+// Hondaの標準的な塗装色コード形式（例: NH900L, NH882L = NH+数字3桁+英字1文字）。
+// これに合わない値（例: "NH-70"）はクミ化成側の独自分類コードで、客先QRには
+// 含まれていないため、照合対象から除外する（2026/08/29 ユーザー確認済み）。
+const STANDARD_COLOR_PATTERN = /^NH\d{3}[A-Z]$/;
 
 const CSV_HEADERS = ['整番','品番','色調','納期','出荷数','入数','箱数','端数','注文番号','備考','消込チェック','消込日時'];
 
-const USERS = [
-  // TODO: 実際の担当者IDに合わせて追加・修正してください（現在は仮の管理者アカウントのみ）
-  { id: 'admin', pw: '435511spk', name: '管理者', admin: true },
-];
+// ★セキュリティ改修：平文パスワードのUSERS配列（公開ページに直書きの認証情報）は削除した。
+//   認証はポータルの署名トークンに一本化する（このアプリ単体でのログインは廃止）。
 const SESSION_KEY = 'kumikasei_shipping_session_v1';
 const SAVE_KEY       = 'kumikasei_shipping_data_v1';
 const SAVE_KEY_FILE  = 'kumikasei_shipping_file_v1';
@@ -281,7 +336,7 @@ let autoSaveTimer  = null;
 // ①社内QRの解析
 // ============================================================
 function parseInternalQR(raw) {
-  const f = raw.split('|');
+  const f = raw.split(QR_DELIMITER_PATTERN);
   return {
     hinban:   (f[INTERNAL_QR_IDX.hinban]   || '').trim(),
     capacity: Number(f[INTERNAL_QR_IDX.capacity] || 0),
@@ -294,7 +349,7 @@ function parseInternalQR(raw) {
 // ②客先QR(大+小)の解析。読み取り順序は不定のため内容の形で判別する
 // ============================================================
 function splitCustomerScan(raw) {
-  const parts = raw.split('|').map(s => s.trim()).filter(Boolean);
+  const parts = raw.split(QR_DELIMITER_PATTERN).map(s => s.trim()).filter(Boolean);
   if (parts.length !== 2) {
     return { ok: false, reason: `大QR/小QRの分割数が想定外です（${parts.length}個）` };
   }
@@ -308,49 +363,56 @@ function splitCustomerScan(raw) {
   return { ok: true, lotNo, bigQRRaw };
 }
 
-function parseBigQR(raw) {
-  const hinban = raw.substr(BIGQR_OFFSETS.hinban.start, BIGQR_OFFSETS.hinban.length).trim();
-  const color  = raw.substr(BIGQR_OFFSETS.color.start,  BIGQR_OFFSETS.color.length).trim();
-  return { hinban, color };
-}
-
 function normalizeHinban(s) {
   return (s || '').replace(/\s+/g, '').toUpperCase();
 }
 
+// 大QRとの部分一致判定用。ハイフン・スペースなど英数字以外を除去して比較する
+// （大QR側は品番のハイフンが無く、スペース区切りの表記のため）
+function normalizeForMatch(s) {
+  return (s || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+}
+
+function bigQRContains(bigRaw, needle) {
+  const n = normalizeForMatch(needle);
+  return !!n && normalizeForMatch(bigRaw).includes(n);
+}
+
 // ============================================================
-// 消込ロジック本体
+// 消込ロジック本体（FIFO割当・出荷数カウントダウン・2度読み防止）
+// ①社内QR＋ロットNoが確定した時点で呼ぶ。大QRとの品番/色調照合は
+// 呼び出し側（③ステップ、または②③同時スキャン時のprocessScan）で先に済ませておく
 // ============================================================
-function processScan(internalQR, customerRaw) {
-  const split = splitCustomerScan(customerRaw);
-  if (!split.ok) return { ok: false, reason: split.reason };
-
-  const bigQR = parseBigQR(split.bigQRRaw);
-  const lotNo = split.lotNo;
-
-  if (debugMode) showDebug(
-    `①社内QR: 品番=${internalQR.hinban} / 収容数=${internalQR.capacity} / 色調=${internalQR.color}\n` +
-    `②分割結果: 大QR="${split.bigQRRaw}" / 小QR(ロットNo)="${lotNo}"\n` +
-    `②大QR解析: 部品番号=${bigQR.hinban} / 色調=${bigQR.color}`
-  );
-
-  if (normalizeHinban(internalQR.hinban) !== normalizeHinban(bigQR.hinban) || internalQR.color !== bigQR.color) {
-    return { ok: false, reason: `品番または色調が不一致\n社内: ${internalQR.hinban} / ${internalQR.color}\n客先: ${bigQR.hinban} / ${bigQR.color}` };
-  }
-  if (scannedLots.has(lotNo)) {
-    return { ok: false, reason: `2度読みです（ロットNo: ${lotNo}）。このスキャンは無視されました` };
-  }
-
-  const candidates = records.filter(r =>
+// 品番・色調が一致し、まだ出荷数が残っている行をFIFO順（CSV内で先に出てくる順）で抽出する。
+// ①がセットされている間は、リスト表示側でも同じ関数を使って「消込対象の行」をハイライトする
+function findCandidateRows(internalQR) {
+  return records.filter(r =>
     normalizeHinban(r['品番']) === normalizeHinban(internalQR.hinban) &&
     (!r['色調'] || r['色調'] === internalQR.color) &&
     Number(r['出荷数']) > 0
   );
+}
+
+function matchAndDecrement(internalQR, lotNo) {
+  if (scannedLots.has(lotNo)) {
+    return { ok: false, reason: `2度読みです（ロットNo: ${lotNo}）。このスキャンは無視されました` };
+  }
+
+  const candidates = findCandidateRows(internalQR);
   if (candidates.length === 0) {
     return { ok: false, reason: `出荷指示表に該当する未消込行がありません（品番: ${internalQR.hinban} / 色調: ${internalQR.color}）` };
   }
 
   const row = candidates[0]; // FIFO: CSV内で先に出てくる行を優先
+
+  // ロットNoの先頭部分が、同じ行の1箱目と一致するか確認する（他品番のQR小の誤読み取り対策）
+  const prefixMatch = lotNo.match(LOT_PREFIX_PATTERN);
+  const prefix = prefixMatch ? prefixMatch[1] : null;
+  if (prefix && row._lotPrefix && row._lotPrefix !== prefix) {
+    return { ok: false, reason: `ロットNoの先頭部分が1箱目と異なります（1箱目: ${row._lotPrefix}... / 今回: ${prefix}...）\n別の品番のQR(小)を読み取っている可能性があります` };
+  }
+  if (prefix && !row._lotPrefix) row._lotPrefix = prefix;
+
   scannedLots.add(lotNo);
   const before = Number(row['出荷数']);
   row['出荷数'] = Math.max(0, before - internalQR.capacity);
@@ -366,6 +428,41 @@ function processScan(internalQR, customerRaw) {
   return { ok: true, row, lotNo, overScan };
 }
 
+// 客先QR(大)の品番・色調が①と一致するか判定する共通処理
+function checkBigQRMatch(internalQR, bigRaw) {
+  const hinbanFound = bigQRContains(bigRaw, internalQR.hinban);
+  const colorIsStandard = STANDARD_COLOR_PATTERN.test(internalQR.color);
+  const colorFound = !colorIsStandard || bigQRContains(bigRaw, internalQR.color);
+  return {
+    ok: hinbanFound && colorFound,
+    hinbanFound, colorFound, colorIsStandard,
+    reason: `品番または色調が大QRに見つかりません\n社内: ${internalQR.hinban} / ${internalQR.color}`
+  };
+}
+
+// ============================================================
+// 【同時スキャンモード（このファイルで使用中）】
+// ②客先QR(大+小)を1回のトリガーで読み取り、`|`/`}`で結合された内容を
+// ここで分割・照合する。単品読取（3ステップ）版は
+// kumikasei_shipping_check_sequential.html を参照。
+// ============================================================
+function processScan(internalQR, customerRaw) {
+  const split = splitCustomerScan(customerRaw);
+  if (!split.ok) return { ok: false, reason: split.reason };
+
+  const lotNo = split.lotNo;
+  const bigMatch = checkBigQRMatch(internalQR, split.bigQRRaw);
+
+  if (debugMode) showDebug(
+    `①社内QR: 品番=${internalQR.hinban} / 収容数=${internalQR.capacity} / 色調=${internalQR.color}\n` +
+    `②分割結果: 大QR="${split.bigQRRaw}" / 小QR(ロットNo)="${lotNo}"\n` +
+    `②大QR照合: 品番一致=${bigMatch.hinbanFound} / 色調一致=${bigMatch.colorIsStandard ? bigMatch.colorFound : '対象外(非標準形式)'}`
+  );
+
+  if (!bigMatch.ok) return { ok: false, reason: bigMatch.reason };
+  return matchAndDecrement(internalQR, lotNo);
+}
+
 // ============================================================
 // スキャン入力ハンドリング
 // ============================================================
@@ -374,6 +471,12 @@ function handleInternalScan() {
   const raw = inp.value.trim();
   if (!raw) return;
   if (!records.length) { playSound('err'); showFB('err', 'まず出荷指示表を読み込んでください'); inp.value=''; return; }
+  const fieldCount = raw.split(QR_DELIMITER_PATTERN).length;
+  if (fieldCount !== INTERNAL_QR_FIELD_COUNT) {
+    playSound('err');
+    showFB('err', `①の欄には社内QRをスキャンしてください（客先QRなど別の形式が読み取られました：${fieldCount}項目）`);
+    inp.value=''; return;
+  }
   pendingInternal = parseInternalQR(raw);
   if (!pendingInternal.hinban) {
     playSound('err'); showFB('err', '①社内QRの解析に失敗しました（品番が取得できません）');
@@ -388,7 +491,8 @@ function handleInternalScan() {
   area.style.display = 'block';
   custInp.value = '';
   setTimeout(() => custInp.focus(), 80);
-  showFB('ok', '①をセットしました。②客先QR(大+小)をスキャンしてください');
+  showFB('ok', '①をセットしました。②客先QR(大+小)を同時にスキャンしてください');
+  renderList(); // 消込対象の行をハイライトするため再描画
 }
 
 function handleCustomerScan() {
@@ -402,6 +506,8 @@ function handleCustomerScan() {
   const result = processScan(pendingInternal, raw);
   if (!result.ok) {
     playSound('err'); showFB('err', result.reason);
+    // 失敗時は原因調査用に生データと文字コード内訳を常に表示する（生データ表示トグルの状態によらない）
+    showDebug(`raw: ${JSON.stringify(raw)}\n文字コード内訳: ${charCodeDump(raw)}`);
   } else {
     playSound('ok');
     const msg = result.overScan
@@ -442,6 +548,20 @@ function showDebug(text) {
   const box = document.getElementById('debug-box');
   box.textContent = text;
   box.classList.add('show');
+}
+
+// 通常の印字可能ASCII以外の文字（タブ・制御文字など、区切り文字の正体を
+// 特定するための調査用）をコードポイント単位で集計する
+function charCodeDump(raw) {
+  const seen = new Map();
+  for (const ch of raw) {
+    const code = ch.codePointAt(0);
+    if (code >= 0x20 && code < 0x7F) continue; // 通常の印字可能ASCIIはスキップ
+    const key = 'U+' + code.toString(16).toUpperCase().padStart(4, '0');
+    seen.set(key, (seen.get(key) || 0) + 1);
+  }
+  if (seen.size === 0) return '(ASCII制御文字・特殊文字は見つかりませんでした。全角文字の可能性があります)';
+  return Array.from(seen.entries()).map(([k, v]) => `${k} × ${v}`).join(', ');
 }
 
 // ============================================================
@@ -605,20 +725,24 @@ function renderList() {
     (r['品番']||'').toLowerCase().includes(search) || (r['整番']||'').toLowerCase().includes(search)
   );
   if (!list.length) { body.innerHTML = '<div class="empty">該当なし</div>'; return; }
+  // ①がセット済みなら、実際に消込対象となる行（FIFOで選ばれる1行）を特定してハイライトする
+  const targetRow = pendingInternal ? findCandidateRows(pendingInternal)[0] : null;
   body.innerHTML = list.map(r => {
     const done = isDone(r);
-    return `<div class="list-item ${done?'done':''}">
+    const isTarget = !done && r === targetRow;
+    return `<div class="list-item ${done?'done':''} ${isTarget?'targeting':''}">
       <div class="item-body">
         <div class="item-top">
-          <span class="item-hinban">${r['整番']||''}</span>
-          <span style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+          <span class="item-hinban">${isTarget ? '🎯 ' : ''}${r['整番']||''}</span>
+          <span style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            ${isTarget ? `<span class="badge badge-target">対象</span>` : ''}
             ${r['色調'] ? `<span class="badge badge-color">${r['色調']}</span>` : ''}
+            <span class="remain-count ${done?'done':'pending'}">残 ${r['出荷数']||0}</span>
             <span class="badge ${done?'badge-done':'badge-pending'}">${done?'済':'未'}</span>
           </span>
         </div>
         <div class="item-meta">
           <span>品番:${r['品番']||''}</span>
-          <span>残:${r['出荷数']||0}</span>
           <span>入数:${r['入数']||''}</span>
           <span>箱数:${r['箱数']||''}</span>
           <span>納期:${r['納期']||''}</span>
@@ -673,14 +797,11 @@ async function exportCSV() {
   if (!records.length) { showFB('err', 'データがありません'); return; }
   const baseName = (loadedFileName || '出荷指示表').replace(/\.csv$/i, '');
 
-  if (GAS_DEPLOY_URL) {
+  if (AUTH_TOKEN) {
     showFB('ok', '📤 ドライブに書き出し中...');
     try {
-      const res = await fetch(GAS_DEPLOY_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'saveCSVByStatus', records, today: todayStr(), baseName })
-      });
-      const data = await res.json();
+      const data = await gasCall_('saveCSVByStatus', { records, today: todayStr(), baseName });
+      if (!data) { showFB('err', '認証が無効です。ポータルから入り直してください'); return; }
       if (!data.ok) throw new Error(data.message);
       const msgs = data.results.map(r => (r.type === 'pending' ? '未完了フォルダ: ' : '完了フォルダ: ') + r.count + '件（' + r.filename + '）');
       showFB('ok', '☁️ ドライブに保存しました\n' + msgs.join('\n'));
@@ -690,6 +811,7 @@ async function exportCSV() {
     return;
   }
 
+  // トークンが無い場合はローカルダウンロードにフォールバック
   const name = baseName + '_消込済み.csv';
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([makeCSV(records)], {type:'text/csv;charset=utf-8'}));
@@ -704,11 +826,11 @@ async function exportCSV() {
 function todayStr() { const d = new Date(); return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()); }
 
 async function loadDriveFileList() {
-  if (!GAS_DEPLOY_URL) { showCsvFb('GAS_DEPLOY_URLが未設定です', 'err'); return; }
+  if (!AUTH_TOKEN) { showCsvFb('業務管理ポータルからご利用ください', 'err'); return; }
   showCsvFb('ファイル一覧を取得中...', 'ok');
   try {
-    const res = await fetch(GAS_DEPLOY_URL + '?action=getFileList');
-    const data = await res.json();
+    const data = await gasCall_('getFileList', {});
+    if (!data) { showCsvFb('認証が無効です。ポータルから入り直してください', 'err'); return; }
     if (!data.ok) throw new Error(data.message || '取得失敗');
     const listEl = document.getElementById('drive-file-list');
     if (!data.files || data.files.length === 0) {
@@ -736,8 +858,8 @@ async function loadDriveFileList() {
 async function loadSelectedDriveFile(fileId, fileName) {
   showCsvFb(fileName + ' を読込中...', 'ok');
   try {
-    const res = await fetch(GAS_DEPLOY_URL + '?action=getCSV&fileId=' + fileId);
-    const text = await res.text();
+    const text = await gasCall_('getCSV', { fileId }, { rawText: true });
+    if (text === null) { showCsvFb('認証が無効です。ポータルから入り直してください', 'err'); return; }
     applyLoadedRecords(parseCSVText(text), fileName);
     loadedFileId = fileId;
     showCsvFb(`✅ ${fileName}：${records.length}件を読み込みました`, 'ok');
@@ -782,15 +904,10 @@ document.addEventListener('click', function(e) {
 // ============================================================
 // ログイン・ポータル連携
 // ============================================================
+// 独自ログインは廃止（認証はポータル署名トークンに一本化）。
 function doLogin() {
-  const id = document.getElementById('login-id').value.trim();
-  const pw = document.getElementById('login-pw').value;
   const errEl = document.getElementById('login-error');
-  const user = USERS.find(u => u.id === id && u.pw === pw);
-  if (!user) { errEl.style.display='block'; document.getElementById('login-pw').value=''; return; }
-  errEl.style.display='none';
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({id:user.id,name:user.name,admin:user.admin})); } catch(e){}
-  showMainScreen(user);
+  if (errEl) { errEl.textContent = 'このアプリは業務管理ポータルからご利用ください'; errEl.style.display = 'block'; }
 }
 
 function showMainScreen(user) {
@@ -804,12 +921,13 @@ function showMainScreen(user) {
 function doLogout() {
   if (!confirm('ログアウトしますか？')) return;
   try { sessionStorage.removeItem(SESSION_KEY); } catch(e){}
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e){}
+  AUTH_TOKEN = '';
   document.getElementById('main-screen').style.display='none';
   document.getElementById('login-screen').style.display='flex';
-  document.getElementById('login-id').value=''; document.getElementById('login-pw').value='';
 }
 
-const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/AKfycbzAB87ZCwdp3mgVTMe8kS-bAgQAEleWotqJGS72GJCx3UkNKoLu-i2r2WBgibzpN9sU/exec';
+const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PORTAL/exec';
 function closeTab() {
   try { window.close(); } catch(e) {}
   setTimeout(function() {
@@ -818,34 +936,23 @@ function closeTab() {
   }, 300);
 }
 
-// SSO（ポータルからの起動時）
+// SSO（ポータルからの起動時）：#sso 署名トークンから本人情報を取得（aud='kumi'）。
+//   旧 ?sso=（reverse+atob・ts5分）方式は廃止。最終検証はGAS側。
 (function() {
-  function parseSSOToken(token) {
-    try {
-      const decoded = atob(token.split('').reverse().join(''));
-      const data = JSON.parse(decoded);
-      if (Date.now() - data.ts > 5*60*1000) return null;
-      return data;
-    } catch(e) { return null; }
+  const c = AUTH_TOKEN ? decodeTokenClaims_(AUTH_TOKEN) : null;
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (c && c.aud === 'kumi' && c.exp && c.exp > nowSec) {
+    let name = c.name || c.sub;
+    try { name = decodeURIComponent(escape(name)); } catch(e) {}
+    const user = { id: c.sub, name: name, admin: (c.role === 'admin' || c.role === 'master') };
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(user)); } catch(e) {}
+    showMainScreen(user);
+    return;
   }
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get('sso');
-  if (token) {
-    const data = parseSSOToken(token);
-    if (data) {
-      window.history.replaceState({}, '', window.location.pathname);
-      let name = data.name || '';
-      try { name = decodeURIComponent(escape(name)); } catch(e) {}
-      const user = { id: data.id, name, admin: data.role === 'admin' || data.role === 'master' };
-      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(user)); } catch(e) {}
-      showMainScreen(user);
-      return;
-    }
-  }
-  try {
-    const sess = sessionStorage.getItem(SESSION_KEY);
-    if (sess) { showMainScreen(JSON.parse(sess)); return; }
-  } catch(e) {}
+  // 無効なトークン → 破棄
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = '';
+  // 旧セッションの復元も廃止（トークンが正当なときのみ入場）。
   document.getElementById('login-screen').style.display = 'flex';
 })();
 </script>
