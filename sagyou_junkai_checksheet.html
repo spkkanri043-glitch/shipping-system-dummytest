@@ -953,19 +953,7 @@ function saveWorkerComment(id) {
         const btn = document.getElementById('btn-save-worker-comment');
         if (btn) btn.classList.add('hid');
 
-        // 巡回担当者 + マスター管理者全員に通知(全体購読者への一斉通知ではなく該当者のみ)
-        const d = currentDetailRecord || {};
-        const msg = '\u{1F4AC} 作業者コメントが記入されました\n' +
-          '\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n' +
-          '巡回日時: ' + (d.date || '') + ' ' + (d.time || '') + '\n' +
-          '品番: ' + (d.product || '-') + '\n' +
-          '作業者: ' + (d.worker || '-') + '\n' +
-          'コメント: ' + comment + '\n' +
-          '\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
-        const inspectorEmp = findEmployeeByName(d.inspector);
-        if (inspectorEmp && inspectorEmp.lwUserId) sendNotify(msg, inspectorEmp.lwUserId);
-        employees.filter(e => e.role === 'master' && e.lwUserId)
-          .forEach(m => sendNotify(msg, m.lwUserId));
+        // ★通知は巡回GAS(updateWorkerComment)がサーバー側で署名送信する。ブラウザからは送らない。
       } else {
         showToast('保存エラー: ' + ((res && res.message) || '不明'), 'error');
       }
