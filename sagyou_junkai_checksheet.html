@@ -678,22 +678,10 @@ function loadEmployeeMaster() {
 const PRODUCT_MASTER_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec';
 
 // ==============================================================
-// 通知(通知マスタGASに直接fetch。特定の1人ずつに directUserId で送る)
-//   ★【暫定・通知マスタ第2部で対応】ブラウザから通知GASを直接叩く経路。
-//     通知GAS自体がまだ無認証のため、この直呼びは第2部（サーバー間HMAC化：
-//     巡回GAS→通知GAS）に移すまでの暫定。lwUserIdはトークン必須化した
-//     getEmployeeMaster経由でのみ取得するため、匿名での名簿・宛先入手は封鎖済み。
+// 通知：★ブラウザからの直呼びは廃止（通知マスタ第2部）。
+//   巡回記録の保存時に「巡回GAS→通知GAS」でサーバー間HMAC署名して送る。
+//   ブラウザは通知GASのURLも宛先(lwUserId)も持たない。
 // ==============================================================
-const NOTIFY_GAS_URL = 'https://script.google.com/macros/s/AKfycbxUrrMU3RbqDWU0F30evJy6jE9urhv7WFgbi7yxbWRyl4Zlc8wgJhTys6_W3w7G_ZI/exec';
-
-function sendNotify(message, lwUserId) {
-  if (!lwUserId) return;
-  fetch(NOTIFY_GAS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ app: 'junkaiCheck', message, directUserId: lwUserId })
-  }).catch(err => console.error('通知送信エラー:', err));
-}
 
 function findEmployeeByName(name) {
   return employees.find(e => e.name === name);
@@ -871,19 +859,7 @@ function saveRecord() {
         if (res && res.ok) {
           showToast('保存しました', 'success');
           loadHistoryFromServer();
-          // 該当の作業者に通知(全体購読者への一斉通知ではなく、本人だけへ)
-          const workerEmp = findEmployeeByName(record.worker);
-          if (workerEmp && workerEmp.lwUserId) {
-            const msg = '📋 巡回チェックの結果が届きました\n' +
-              '──────────────\n' +
-              '巡回日時: ' + record.date + ' ' + (record.time || '') + '\n' +
-              '品番: ' + (record.product || '-') + '\n' +
-              '巡回担当者: ' + (record.inspector || '-') + '\n' +
-              '×項目数: ' + record.ngTotal + '\n' +
-              '──────────────\n' +
-              'アプリで詳細を確認できます。';
-            sendNotify(msg, workerEmp.lwUserId);
-          }
+          // ★通知は巡回GAS(saveJunkaiRecord)がサーバー側で署名送信する。ブラウザからは送らない。
         } else {
           showToast('保存エラー: ' + (res && res.message || '不明なエラー'), 'error');
         }
