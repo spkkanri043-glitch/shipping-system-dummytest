@@ -677,7 +677,7 @@ textarea.fi2 { resize: none; line-height: 1.6; }
 // ▼▼▼ デプロイ後に各GASのURLをここに入力してください（固定。URLパラメータ差し替えは廃止）▼▼▼
 //   セキュリティ改修：?gas_url= 等での接続先差し替え・localStorage保持を撤去。
 //   任意サーバへトークンを送られる経路を塞ぐため、接続先は必ずこの定数のみを使う。
-const REPORT_GAS_URL  = 'https://script.google.com/macros/s/AKfycbyFCgghA3bTbdj8NdWT1dwTilJEVYMpC8airu6VUt0pK16Ml_NCwd4xlGExy8vMoACH/exec';   // 作業報告書GAS（saveReport・getReports）
+const REPORT_GAS_URL  = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_REPORT/exec';   // 作業報告書GAS（saveReport・getReports）
 const PRODUCT_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec';  // 製品マスタGAS（getProducts・searchProduct／現状は匿名読取）
 
 // ============================================================
@@ -1284,14 +1284,24 @@ function removePhoto(idx) {
   document.getElementById('btn-photo').disabled = false;
 }
 
+// ============================================================
+// XSS対策：innerHTMLに動的値を入れる箇所は必ずエスケープを通す。
+//   escapeHtml=要素本文用 / escapeAttr=二重引用符属性値用（& < > " ' を実体参照化）。
+// ============================================================
+function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escapeAttr(s){ return escapeHtml(s); }
+
 function renderPhotos() {
   const list = document.getElementById('photo-list');
-  list.innerHTML = photos.map((src, i) => `
+  // src は端末で撮影/選択した data:image のみ許可（他形式のsrc注入を防ぐ）
+  list.innerHTML = photos.map((src, i) => {
+    const safeSrc = /^data:image\/(png|jpe?g|gif|webp);base64,/.test(String(src)) ? String(src) : '';
+    return `
     <div class="photo-thumb">
-      <img src="${src}" alt="写真${i+1}">
+      <img src="${escapeAttr(safeSrc)}" alt="写真${i+1}">
       <button class="photo-del" onclick="removePhoto(${i})">✕</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function resetPhotos() {
@@ -1326,7 +1336,7 @@ function renderDefects() {
         <label style="font-size:11px;color:var(--tx2);font-weight:600">不具合作業者</label>
         <select class="defect-fi" style="width:100%" onchange="updateDefect(${d.id},'worker',this.value)">
           <option value="">選択してください</option>
-          ${reportEmployees.map(e => `<option value="${e.name}" ${d.worker===e.name?'selected':''}>${e.name}（${e.dept||''}）</option>`).join('')}
+          ${reportEmployees.map(e => `<option value="${escapeAttr(e.name)}" ${d.worker===e.name?'selected':''}>${escapeHtml(e.name)}（${escapeHtml(e.dept||'')}）</option>`).join('')}
         </select>
       </div>` : ''}
       <div class="defect-grid">
@@ -1340,12 +1350,12 @@ function renderDefects() {
         </div>
         <div>
           <label style="font-size:11px;color:var(--tx2);font-weight:600">不良数</label>
-          <input class="defect-fi" type="number" value="${d.count}" placeholder="0"
+          <input class="defect-fi" type="number" value="${escapeAttr(d.count)}" placeholder="0"
             inputmode="numeric" onchange="updateDefect(${d.id},'count',this.value)">
         </div>
       </div>
       <textarea class="defect-textarea" placeholder="詳細を記入..."
-        onchange="updateDefect(${d.id},'detail',this.value)">${d.detail}</textarea>
+        onchange="updateDefect(${d.id},'detail',this.value)">${escapeHtml(d.detail)}</textarea>
     </div>`).join('');
 }
 
@@ -1472,7 +1482,7 @@ function showComplete(r) {
     ['合計',     r.合計 + ' 個'],
     ['作業時間', r.作業時間分 + ' 分'],
     ['不具合数', r.不具合数 + ' 個'],
-  ].map(([l, v]) => `<div class="cmp-row"><span class="cmp-l">${l}</span><span class="cmp-v">${v}</span></div>`).join('');
+  ].map(([l, v]) => `<div class="cmp-row"><span class="cmp-l">${escapeHtml(l)}</span><span class="cmp-v">${escapeHtml(v)}</span></div>`).join('');
 }
 
 function startNew() {
