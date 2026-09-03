@@ -498,6 +498,20 @@ async function loadData() {
   }
 }
 
+// XSS対策ヘルパー（要素本文用 / 二重引用符属性値用）。集計元の保存データ(品番・担当者・不具合内容等)を必ず通す。
+function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escapeAttr(s){ return escapeHtml(s); }
+
+// ★ランキング表の行クリック/展開ボタンは data-* ＋文書レベル委譲で処理（インラインonclickに保存文字列を入れない）。
+document.addEventListener('click', function(ev){
+  const row = ev.target.closest && ev.target.closest('[data-drill-key]');
+  if (row) { rankDrilldown(row.getAttribute('data-drill-key'), row.getAttribute('data-drill-val')); return; }
+  const more = ev.target.closest && ev.target.closest('[data-toggle]');
+  if (more) { toggleRank(more.getAttribute('data-toggle')); return; }
+  const applyBtn = ev.target.closest && ev.target.closest('[data-apply-key]');
+  if (applyBtn) { applyDrillFilter(applyBtn.getAttribute('data-apply-key'), applyBtn.getAttribute('data-apply-val')); return; }
+});
+
 function showLoadingAll() {
   ['type-area','part-area','customer-area','worker-area','defect-worker-area','record-area','type-pie-legend'].forEach(id => {
     document.getElementById(id).innerHTML = '<div class="loading"><div class="spinner"></div>読み込み中</div>';
@@ -607,7 +621,7 @@ function renderActiveTags({fWorker, fDefectWorker, fPart, fCustomer}) {
   if (fCustomer)     tags.push({label:'取引先: '+fCustomer,     clear:()=>{ document.getElementById('f-customer').value=''; applyFilter(); }});
   const el = document.getElementById('active-filters');
   el.innerHTML = tags.map((t,i) =>
-    `<span class="filter-tag">${t.label}<span class="filter-tag-del" onclick="clearTag(${i})">✕</span></span>`
+    `<span class="filter-tag">${escapeHtml(t.label)}<span class="filter-tag-del" onclick="clearTag(${i})">✕</span></span>`
   ).join('');
   // クロージャを保存
   window._tagClears = tags.map(t => t.clear);
@@ -789,15 +803,14 @@ function buildRankHtml(rows, nameFn, valLabel, barClass, filterKey) {
   const SHOW = 10;
 
   const rowHtml = (r, idx, isExtra) => {
-    const clsExtra = isExtra ? `class="rank-extra" data-uid="${uid}"` : '';
-    const rawKey = r.k.replace(/'/g, "\\'");
-    return `<tr ${clsExtra} style="cursor:pointer" title="クリックしてこの項目を集計"
-        onclick="rankDrilldown('${filterKey}','${rawKey}')">
+    // ★XSS対策：ドリルダウンのキーは保存データ。インラインonclickに入れず data-* ＋委譲で渡す。
+    const clsExtra = isExtra ? `rank-extra` : '';
+    return `<tr class="rank-row ${clsExtra}" data-uid="${uid}" data-drill-key="${escapeAttr(filterKey)}" data-drill-val="${escapeAttr(r.k)}" style="cursor:pointer" title="クリックしてこの項目を集計">
       <td class="rank-num">${idx+1}</td>
       <td>${nameFn(r)}</td>
-      <td><span class="badge badge-r">${r.v}</span></td>
-      <td>${r.count}</td>
-      <td style="width:80px"><div class="bar-bg"><div class="bar-fill ${barClass}" style="width:${Math.round(r.v/max*100)}%"></div></div></td>
+      <td><span class="badge badge-r">${Number(r.v)||0}</span></td>
+      <td>${Number(r.count)||0}</td>
+      <td style="width:80px"><div class="bar-bg"><div class="bar-fill ${barClass}" style="width:${Math.round((Number(r.v)||0)/max*100)}%"></div></div></td>
     </tr>`;
   };
 
@@ -818,7 +831,7 @@ function buildRankHtml(rows, nameFn, valLabel, barClass, filterKey) {
 
   const moreBtn = rows.length > SHOW
     ? `<tr class="rank-more-row"><td colspan="5">
-        <button class="btn-rank-more" id="btn-${uid}" onclick="toggleRank('${uid}')">
+        <button class="btn-rank-more" id="btn-${uid}" data-toggle="${uid}">
           <i class="arrow">▼</i> 残り ${rows.length - SHOW} 件を表示
         </button>
       </td></tr>`
@@ -897,9 +910,9 @@ function rankDrilldown(filterKey, keyVal) {
         </tr></thead>
         <tbody>
           ${crows.map(([v,d]) => `<tr>
-            <td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${v}">${v}</td>
-            <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--bd)"><span class="badge badge-r">${d.cnt}</span></td>
-            <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--bd)">${d.count}</td>
+            <td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeAttr(v)}">${escapeHtml(v)}</td>
+            <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--bd)"><span class="badge badge-r">${Number(d.cnt)||0}</span></td>
+            <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--bd)">${Number(d.count)||0}</td>
             <td style="padding:5px 6px;border-bottom:1px solid var(--bd)">
               <div class="bar-bg"><div class="bar-fill bar-b" style="width:${Math.round(d.cnt/cmax*100)}%"></div></div>
             </td>
@@ -924,22 +937,22 @@ function rankDrilldown(filterKey, keyVal) {
           ${dayKeys.map(d => {
             const h = Math.max(4, Math.round(dayMap[d]/dayMax*46));
             return `<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
-              <div title="${d}: ${dayMap[d]}件" style="width:18px;height:${h}px;background:var(--r);border-radius:3px 3px 0 0;opacity:.85"></div>
-              <div style="font-size:9px;color:var(--tx3);writing-mode:vertical-rl;transform:rotate(180deg);margin-top:2px">${d.slice(5)}</div>
+              <div title="${escapeAttr(d)}: ${Number(dayMap[d])||0}件" style="width:18px;height:${h}px;background:var(--r);border-radius:3px 3px 0 0;opacity:.85"></div>
+              <div style="font-size:9px;color:var(--tx3);writing-mode:vertical-rl;transform:rotate(180deg);margin-top:2px">${escapeHtml(d.slice(5))}</div>
             </div>`;
           }).join('')}
         </div>
       </div>`
     : '';
 
-  // レコード一覧
+  // レコード一覧（openDetail2の引数は数値インデックスなので安全。表示フィールドはエスケープ）
   const recordRows = target.slice(0,50).map((r,i) => `
     <tr onclick="openDetail2(${i})" style="cursor:pointer">
-      <td>${String(r.date||'').slice(0,10)}</td>
-      <td>${r.worker||'—'}</td>
-      <td style="font-size:11px;font-family:monospace">${r.part||'—'}</td>
-      <td>${r.defectType||'—'}</td>
-      <td style="text-align:center;font-weight:700;color:var(--r)">${r.defectCount||0}</td>
+      <td>${escapeHtml(String(r.date||'').slice(0,10))}</td>
+      <td>${escapeHtml(r.worker||'—')}</td>
+      <td style="font-size:11px;font-family:monospace">${escapeHtml(r.part||'—')}</td>
+      <td>${escapeHtml(r.defectType||'—')}</td>
+      <td style="text-align:center;font-weight:700;color:var(--r)">${Number(r.defectCount)||0}</td>
     </tr>`).join('');
 
   window._drillRecords = target;
@@ -981,7 +994,7 @@ function rankDrilldown(filterKey, keyVal) {
     <!-- フィルタ適用ボタン -->
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn-primary" style="font-size:12px;padding:7px 14px"
-        onclick="applyDrillFilter('${filterKey}','${keyVal.replace(/'/g,"\\'")}')">
+        data-apply-key="${escapeAttr(filterKey)}" data-apply-val="${escapeAttr(keyVal)}">
         🔍 この条件でフィルターを適用する
       </button>
     </div>
@@ -1018,7 +1031,7 @@ function applyDrillFilter(filterKey, keyVal) {
 
 function toggleRank(uid) {
   const btn = document.getElementById('btn-' + uid);
-  const extras = document.querySelectorAll(`tr[data-uid="${uid}"]`);
+  const extras = document.querySelectorAll(`tr.rank-extra[data-uid="${uid}"]`);
   const isOpen = btn.classList.contains('open');
   extras.forEach(el => el.classList.toggle('shown', !isOpen));
   btn.classList.toggle('open', !isOpen);
@@ -1040,7 +1053,7 @@ function groupBy(records, keyFn) {
 
 function renderTypeRank() {
   const rows = groupBy(filtered, r => r.defectType);
-  document.getElementById('type-area').innerHTML = buildRankHtml(rows, r=>r.k, '件数', 'bar-r', 'defectType');
+  document.getElementById('type-area').innerHTML = buildRankHtml(rows, r=>escapeHtml(r.k), '件数', 'bar-r', 'defectType');
 }
 
 const PIE_COLORS = ['#1a3a5c','#b53030','#d99a2b','#3a8a5c','#6a4c93','#2b8ba3','#c46a1a','#8a8f99','#a35c8f','#4c7ab5'];
@@ -1095,34 +1108,34 @@ function renderTypePie() {
 
   legendEl.innerHTML = rows.map((r,i) => {
     const pct = (r.v/total*100).toFixed(1);
-    const rawKey = r.k.replace(/'/g, "\\'");
+    // ★XSS対策：キーは data-* ＋委譲（文書レベルの [data-drill-key] リスナーで処理）。本文もエスケープ。
     return `<div class="type-pie-legend-row" title="クリックしてこの項目を集計"
-        onclick="rankDrilldown('defectType','${rawKey}')"
+        data-drill-key="defectType" data-drill-val="${escapeAttr(r.k)}"
         style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #eef0f3;cursor:pointer;">
       <span style="width:11px;height:11px;border-radius:3px;background:${colors[i]};flex:none;"></span>
-      <span style="flex:1;">${r.k}</span>
-      <span style="color:#5a5f6a;">${r.v}件</span>
+      <span style="flex:1;">${escapeHtml(r.k)}</span>
+      <span style="color:#5a5f6a;">${Number(r.v)||0}件</span>
       <span style="font-weight:600;min-width:48px;text-align:right;">${pct}%</span>
     </div>`;
   }).join('');
 }
 function renderPartRank() {
   const rows = groupBy(filtered, r => r.part);
-  document.getElementById('part-area').innerHTML = buildRankHtml(rows, r=>`<span style="font-size:11px;font-family:monospace">${r.k}</span>`, '件数', 'bar-a', 'part');
+  document.getElementById('part-area').innerHTML = buildRankHtml(rows, r=>`<span style="font-size:11px;font-family:monospace">${escapeHtml(r.k)}</span>`, '件数', 'bar-a', 'part');
 }
 function renderCustomerRank() {
   const rows = groupBy(filtered, r => r.customer);
-  document.getElementById('customer-area').innerHTML = buildRankHtml(rows, r=>r.k, '件数', 'bar-b', 'customer');
+  document.getElementById('customer-area').innerHTML = buildRankHtml(rows, r=>escapeHtml(r.k), '件数', 'bar-b', 'customer');
 }
 function renderWorkerRank() {
   const rows = groupBy(filtered, r => r.worker);
-  document.getElementById('worker-area').innerHTML = buildRankHtml(rows, r=>r.k, '報告', 'bar-g', 'worker');
+  document.getElementById('worker-area').innerHTML = buildRankHtml(rows, r=>escapeHtml(r.k), '報告', 'bar-g', 'worker');
 }
 function renderDefectWorkerRank() {
   const rows = groupBy(filtered, r => r.defectWorker || r.workerId || '（未設定）');
   const named = rows.filter(r => r.k && !/^\d+$/.test(r.k) && r.k !== '（未設定）');
   const final = named.length ? named : rows;
-  document.getElementById('defect-worker-area').innerHTML = buildRankHtml(final, r=>r.k, '件数', 'bar-r', 'defectWorker');
+  document.getElementById('defect-worker-area').innerHTML = buildRankHtml(final, r=>escapeHtml(r.k), '件数', 'bar-r', 'defectWorker');
 }
 
 // === レコード一覧 ===
@@ -1137,13 +1150,13 @@ function renderRecordList() {
   const more = filtered.length > 100;
   const rows = show.map((r,i) => `
     <tr onclick="openDetail(${i})" style="cursor:pointer">
-      <td>${String(r.date||'').slice(0,10)}</td>
-      <td>${r.worker||'—'}</td>
-      <td>${r.defectWorker || r.workerId || '—'}</td>
-      <td style="font-family:monospace;font-size:11px">${r.part||'—'}</td>
-      <td>${r.customer||'—'}</td>
-      <td>${r.defectType||'—'}</td>
-      <td style="text-align:center;font-weight:700;color:var(--r)">${r.defectCount||0}</td>
+      <td>${escapeHtml(String(r.date||'').slice(0,10))}</td>
+      <td>${escapeHtml(r.worker||'—')}</td>
+      <td>${escapeHtml(r.defectWorker || r.workerId || '—')}</td>
+      <td style="font-family:monospace;font-size:11px">${escapeHtml(r.part||'—')}</td>
+      <td>${escapeHtml(r.customer||'—')}</td>
+      <td>${escapeHtml(r.defectType||'—')}</td>
+      <td style="text-align:center;font-weight:700;color:var(--r)">${Number(r.defectCount)||0}</td>
     </tr>`).join('');
   document.getElementById('record-area').innerHTML = `
     <div style="overflow-x:auto">
@@ -1178,29 +1191,35 @@ function openDetail(idx) {
           ['不具合種類', r.defectType],
           ['不良数', r.defectCount + ' 個'],
           ['不具合詳細', r.detail || '—'],
-        ].map(([l,v]) => `<tr><td style="font-weight:700;width:130px;background:var(--sf2)">${l}</td><td>${v||'—'}</td></tr>`).join('')}
+        ].map(([l,v]) => `<tr><td style="font-weight:700;width:130px;background:var(--sf2)">${escapeHtml(l)}</td><td>${escapeHtml(v||'—')}</td></tr>`).join('')}
       </tbody>
     </table>
     ${r.photo1 || r.photo2 || r.photo3 ? `
       <div style="font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:8px">写真</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${[r.photo1,r.photo2,r.photo3].filter(Boolean).map(url =>
-          url.includes('/preview')
-            ? `<iframe src="${url}" width="200" height="150" frameborder="0" style="border-radius:6px;border:1px solid var(--bd)"></iframe>`
-            : `<img src="${url}" style="width:200px;height:150px;object-fit:cover;border-radius:6px;border:1px solid var(--bd)" onerror="this.style.display='none'">`
-        ).join('')}
+        ${[r.photo1,r.photo2,r.photo3].filter(Boolean).map(url => {
+          const su = /^https:\/\//i.test(String(url)) ? String(url) : '';
+          if (!su) return '';
+          return su.includes('/preview')
+            ? `<iframe src="${escapeAttr(su)}" width="200" height="150" frameborder="0" style="border-radius:6px;border:1px solid var(--bd)"></iframe>`
+            : `<img src="${escapeAttr(su)}" style="width:200px;height:150px;object-fit:cover;border-radius:6px;border:1px solid var(--bd)" onerror="this.style.display='none'">`;
+        }).join('')}
       </div>` : ''}
     <div style="margin-top:12px">
-      <button onclick="
-        document.getElementById('f-worker').value='${r.worker||''}';
-        document.getElementById('f-part').value='${r.part||''}';
-        closeModal(); applyFilter();"
+      <button id="drill-worker-part-btn" data-worker="${escapeAttr(r.worker||'')}" data-part="${escapeAttr(r.part||'')}"
         class="btn-primary" style="font-size:12px;padding:6px 12px;margin-right:8px">
         この担当者・品番で絞り込む
       </button>
     </div>
   `;
   document.getElementById('modal').classList.add('open');
+  // ★保存文字列をインラインJSに入れず data-* ＋リスナーで絞り込む
+  const dbtn = document.getElementById('drill-worker-part-btn');
+  if (dbtn) dbtn.addEventListener('click', () => {
+    document.getElementById('f-worker').value = dbtn.getAttribute('data-worker') || '';
+    document.getElementById('f-part').value   = dbtn.getAttribute('data-part') || '';
+    closeModal(); applyFilter();
+  });
 }
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
@@ -1295,20 +1314,20 @@ function renderPattern() {
     const sparkDays = [...new Set(r.dates)].sort().slice(-14);
     const sparkHtml = sparkDays.map(d => {
       const h = Math.round((dayCounts[d]||0)/maxDC*28);
-      return `<span title="${d}: ${dayCounts[d]}件" style="display:inline-block;width:10px;height:${h}px;background:${level==='high'?'var(--r)':level==='mid'?'var(--ac)':'var(--g)'};border-radius:2px 2px 0 0;vertical-align:bottom;margin-right:2px"></span>`;
+      return `<span title="${escapeAttr(d)}: ${Number(dayCounts[d])||0}件" style="display:inline-block;width:10px;height:${h}px;background:${level==='high'?'var(--r)':level==='mid'?'var(--ac)':'var(--g)'};border-radius:2px 2px 0 0;vertical-align:bottom;margin-right:2px"></span>`;
     }).join('');
 
     return `<div class="pattern-item ${level}">
       <div class="pattern-header">
-        <span class="pattern-key">${r.k}</span>
+        <span class="pattern-key">${escapeHtml(r.k)}</span>
         <span class="pattern-badge ${level}">${levelLabel}</span>
       </div>
       <div class="pattern-meta">
-        <span>🔢 ${r.cnt}回発生</span>
-        <span>❌ 不良数: ${r.count}個</span>
-        <span>📅 期間: ${r.span}日間</span>
-        <span>🕐 直近30日: ${r.recentCnt}回</span>
-        <span>📆 最終: ${r.dates[r.dates.length-1]||'—'}</span>
+        <span>🔢 ${Number(r.cnt)||0}回発生</span>
+        <span>❌ 不良数: ${Number(r.count)||0}個</span>
+        <span>📅 期間: ${Number(r.span)||0}日間</span>
+        <span>🕐 直近30日: ${Number(r.recentCnt)||0}回</span>
+        <span>📆 最終: ${escapeHtml(r.dates[r.dates.length-1]||'—')}</span>
       </div>
       ${sparkDays.length ? `<div style="margin-top:8px;display:flex;align-items:flex-end;height:32px;gap:0">${sparkHtml}</div>` : ''}
     </div>`;
@@ -1368,8 +1387,8 @@ function renderPerson() {
 
     return `<div class="person-card">
       <div class="person-name">
-        <span>${name}</span>
-        <span style="font-size:11px;color:var(--tx3);font-weight:400">全体の ${share}%</span>
+        <span>${escapeHtml(name)}</span>
+        <span style="font-size:11px;color:var(--tx3);font-weight:400">全体の ${Number(share)||0}%</span>
       </div>
       <div class="person-stats">
         <div class="person-stat">
@@ -1405,12 +1424,12 @@ function renderPerson() {
       </div>
       <div style="font-size:10px;color:var(--tx2);margin-bottom:4px;font-weight:700">主な不具合種類</div>
       <div class="person-type-list">
-        ${topTypes.map(([t,c])=>`<span class="person-type-tag">${t} (${c})</span>`).join('')}
+        ${topTypes.map(([t,c])=>`<span class="person-type-tag">${escapeHtml(t)} (${Number(c)||0})</span>`).join('')}
       </div>
       ${topParts.length ? `
       <div style="font-size:10px;color:var(--tx2);margin-top:6px;margin-bottom:4px;font-weight:700">主な品番</div>
       <div style="display:flex;flex-wrap:wrap;gap:4px">
-        ${topParts.map(([p,c])=>`<span style="padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;background:#e8f0fe;color:var(--pr)">${p} (${c})</span>`).join('')}
+        ${topParts.map(([p,c])=>`<span style="padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;background:#e8f0fe;color:var(--pr)">${escapeHtml(p)} (${Number(c)||0})</span>`).join('')}
       </div>` : ''}
     </div>`;
   }).join('');
@@ -1474,8 +1493,8 @@ function renderRisk() {
     const typeList  = [...e.types].slice(0,3).join('、');
     return `<div class="risk-card ${e.level}">
       <div class="risk-header">
-        <div class="risk-label">${e.k}</div>
-        <div class="risk-score-badge">スコア ${e.total}<br><span style="font-size:10px;font-weight:600">${e.levelLabel}</span></div>
+        <div class="risk-label">${escapeHtml(e.k)}</div>
+        <div class="risk-score-badge">スコア ${Number(e.total)||0}<br><span style="font-size:10px;font-weight:600">${escapeHtml(e.levelLabel)}</span></div>
       </div>
       <div class="risk-bars">
         <div class="risk-bar-row">
@@ -1495,9 +1514,9 @@ function renderRisk() {
         </div>
       </div>
       <div class="risk-footer">
-        ${typeList ? `主な不具合: ${typeList}` : ''}
-        　直近30日 ${e.recent}件 / 過去 ${e.older}件
-        　最終: ${e.dates[e.dates.length-1]||'—'}
+        ${typeList ? `主な不具合: ${escapeHtml(typeList)}` : ''}
+        　直近30日 ${Number(e.recent)||0}件 / 過去 ${Number(e.older)||0}件
+        　最終: ${escapeHtml(e.dates[e.dates.length-1]||'—')}
       </div>
     </div>`;
   }).join('');
