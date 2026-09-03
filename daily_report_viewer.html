@@ -401,7 +401,7 @@ async function loadData() {
     buildFilterOptions();
     applyFilter();
   } catch(e) {
-    document.getElementById('table-area').innerHTML = '<div class="empty">❌ データ取得失敗<br><small>' + e.message + '</small></div>';
+    document.getElementById('table-area').innerHTML = '<div class="empty">❌ データ取得失敗<br><small>' + escapeHtml(e.message) + '</small></div>';
     showToast('取得失敗: ' + e.message, 'err');
   }
 }
@@ -532,19 +532,29 @@ function renderWorkerSummary() {
   const sec = document.getElementById('worker-summary-sec');
   if (workers.length < 2) { sec.style.display='none'; return; }
   sec.style.display = 'block';
-  document.getElementById('worker-grid').innerHTML = workers.map(([name, d]) => `
-    <div class="worker-summary-card ${activeWorker===name?'active':''}" onclick="toggleWorkerFilter('${name.replace(/'/g,"\\'")}')">
+  // ★XSS対策：作業者名は保存データ。インラインonclickに文字列を入れず data-name＋委譲にする。
+  const grid = document.getElementById('worker-grid');
+  grid.innerHTML = workers.map(([name, d]) => `
+    <div class="worker-summary-card ${activeWorker===name?'active':''}" data-name="${escapeAttr(name)}">
       <div class="wsc-name">
-        <div class="wsc-avatar">${name.slice(0,1)}</div>
-        <span>${name}</span>
+        <div class="wsc-avatar">${escapeHtml(String(name).slice(0,1))}</div>
+        <span>${escapeHtml(name)}</span>
       </div>
       <div class="wsc-stats">
-        <div class="wsc-stat"><div class="wsc-stat-val">${d.cnt}</div><div class="wsc-stat-lbl">件数</div></div>
-        <div class="wsc-stat"><div class="wsc-stat-val">${d.total.toLocaleString()}</div><div class="wsc-stat-lbl">合計数</div></div>
-        <div class="wsc-stat"><div class="wsc-stat-val red">${d.defect}</div><div class="wsc-stat-lbl">不具合</div></div>
+        <div class="wsc-stat"><div class="wsc-stat-val">${Number(d.cnt)||0}</div><div class="wsc-stat-lbl">件数</div></div>
+        <div class="wsc-stat"><div class="wsc-stat-val">${(Number(d.total)||0).toLocaleString()}</div><div class="wsc-stat-lbl">合計数</div></div>
+        <div class="wsc-stat"><div class="wsc-stat-val red">${Number(d.defect)||0}</div><div class="wsc-stat-lbl">不具合</div></div>
       </div>
     </div>`).join('');
+  // 委譲：カードクリックで作業者フィルタ切替（名前はdata属性から取得）
+  grid.querySelectorAll('.worker-summary-card').forEach(card => {
+    card.addEventListener('click', () => toggleWorkerFilter(card.getAttribute('data-name') || ''));
+  });
 }
+
+// XSS対策ヘルパー（要素本文用 / 二重引用符属性値用）。
+function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escapeAttr(s){ return escapeHtml(s); }
 
 function toggleWorkerFilter(name) {
   activeWorker = activeWorker === name ? '' : name;
@@ -574,16 +584,16 @@ function renderTable() {
     const date = dt.slice(0,10);
     const timeStr = dt.slice(11,16);
     return `<tr onclick="openDetail(${idx})">
-      <td style="white-space:nowrap;color:var(--tx2);font-size:11px">${date}<br><span style="color:var(--tx3)">${timeStr}</span></td>
-      <td style="font-weight:600">${r['担当者']||'—'}</td>
-      <td>${r['作業項目']||'—'}</td>
-      <td style="font-family:monospace;font-size:11px">${r['品番']||'—'}</td>
-      <td style="text-align:center">${r['カウント']||0} 箱</td>
-      <td style="text-align:center;color:var(--tx2)">${Number(r['端数個数']||0) > 0 ? `+${r['端数個数']}個` : '—'}</td>
+      <td style="white-space:nowrap;color:var(--tx2);font-size:11px">${escapeHtml(date)}<br><span style="color:var(--tx3)">${escapeHtml(timeStr)}</span></td>
+      <td style="font-weight:600">${escapeHtml(r['担当者']||'—')}</td>
+      <td>${escapeHtml(r['作業項目']||'—')}</td>
+      <td style="font-family:monospace;font-size:11px">${escapeHtml(r['品番']||'—')}</td>
+      <td style="text-align:center">${Number(r['カウント'])||0} 箱</td>
+      <td style="text-align:center;color:var(--tx2)">${Number(r['端数個数']||0) > 0 ? `+${Number(r['端数個数'])||0}個` : '—'}</td>
       <td style="text-align:center;font-weight:700;color:var(--pr)">${(Number(r['合計'])||0).toLocaleString()}</td>
-      <td style="text-align:center">${r['作業時間分']||0} 分</td>
+      <td style="text-align:center">${Number(r['作業時間分'])||0} 分</td>
       <td style="text-align:center">
-        ${hasDefect ? `<span class="defect-badge">${r['不具合数']}個</span>` : `<span class="no-defect">なし</span>`}
+        ${hasDefect ? `<span class="defect-badge">${Number(r['不具合数'])||0}個</span>` : `<span class="no-defect">なし</span>`}
       </td>
       <td style="text-align:center">${hasPhoto ? '<span class="photo-icon">📷</span>' : '—'}</td>
     </tr>`;
@@ -651,13 +661,17 @@ function openDetail(idx) {
 
   // 写真
   const photos = [r['写真1'], r['写真2'], r['写真3']].filter(Boolean);
+  // ★写真URLは https のみ許可（javascript: 等のスキーム注入を防ぐ）＋属性エスケープ
+  const safeUrl = u => /^https:\/\//i.test(String(u)) ? String(u) : '';
   const photoHtml = photos.length
     ? `<div class="photo-grid">
         ${photos.map(url => {
-          if (url.includes('/preview')) {
-            return `<div class="photo-frame"><iframe src="${url}" allowfullscreen></iframe></div>`;
+          const su = safeUrl(url);
+          if (!su) return '';
+          if (su.includes('/preview')) {
+            return `<div class="photo-frame"><iframe src="${escapeAttr(su)}" allowfullscreen></iframe></div>`;
           }
-          return `<div class="photo-frame"><a href="${url}" target="_blank"><img src="${url}" alt="写真" onerror="this.parentElement.innerHTML='📷'"></a></div>`;
+          return `<div class="photo-frame"><a href="${escapeAttr(su)}" target="_blank" rel="noopener"><img src="${escapeAttr(su)}" alt="写真" onerror="this.parentElement.innerHTML='📷'"></a></div>`;
         }).join('')}
       </div>`
     : '<span style="color:var(--tx3);font-size:12px">写真なし</span>';
@@ -668,14 +682,14 @@ function openDetail(idx) {
         <div class="defect-list-item">
           <div class="defect-list-header">
             <span style="font-weight:700;color:var(--r)">不具合 #${i+1}</span>
-            ${d.worker ? `<span>作業者: <strong>${d.worker}</strong></span>` : ''}
-            ${d.type   ? `<span>種類: <strong>${d.type}</strong></span>` : ''}
-            ${d.count  ? `<span>不良数: <strong>${d.count}個</strong></span>` : ''}
+            ${d.worker ? `<span>作業者: <strong>${escapeHtml(d.worker)}</strong></span>` : ''}
+            ${d.type   ? `<span>種類: <strong>${escapeHtml(d.type)}</strong></span>` : ''}
+            ${d.count  ? `<span>不良数: <strong>${escapeHtml(d.count)}個</strong></span>` : ''}
           </div>
-          ${d.detail ? `<div class="defect-list-detail">${d.detail}</div>` : ''}
+          ${d.detail ? `<div class="defect-list-detail">${escapeHtml(d.detail)}</div>` : ''}
         </div>`).join('')
     : (Number(r['不具合数'])>0
-        ? `<div class="defect-list-item"><div class="defect-list-header"><span style="color:var(--r)">不具合数: ${r['不具合数']}個</span></div>${r['不具合内容']?`<div class="defect-list-detail">${r['不具合内容']}</div>`:''}</div>`
+        ? `<div class="defect-list-item"><div class="defect-list-header"><span style="color:var(--r)">不具合数: ${Number(r['不具合数'])||0}個</span></div>${r['不具合内容']?`<div class="defect-list-detail">${escapeHtml(r['不具合内容'])}</div>`:''}</div>`
         : '<span style="color:var(--tx3);font-size:12px">不具合なし</span>');
 
   // 一時停止ログ → 休憩の時間帯（pause〜resume）に組み立てる
@@ -726,10 +740,10 @@ function openDetail(idx) {
     <div class="detail-section">
       <div class="detail-section-title">📋 基本情報</div>
       <div class="detail-grid">
-        <div class="detail-item"><div class="detail-label">報告ID</div><div class="detail-value" style="font-size:11px;font-family:monospace">${r['id']||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">報告ID</div><div class="detail-value" style="font-size:11px;font-family:monospace">${escapeHtml(r['id']||'—')}</div></div>
         <div class="detail-item"><div class="detail-label">ステータス</div><div class="detail-value"><span class="status-badge ${isFinal?'status-complete':'status-working'}">${isFinal?'✔ 完了':'作業中'}</span></div></div>
-        <div class="detail-item"><div class="detail-label">担当者(報告者)</div><div class="detail-value" style="font-weight:700">${r['担当者']||'—'}</div></div>
-        <div class="detail-item"><div class="detail-label">作業項目</div><div class="detail-value">${r['作業項目']||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">担当者(報告者)</div><div class="detail-value" style="font-weight:700">${escapeHtml(r['担当者']||'—')}</div></div>
+        <div class="detail-item"><div class="detail-label">作業項目</div><div class="detail-value">${escapeHtml(r['作業項目']||'—')}</div></div>
         <div class="detail-item"><div class="detail-label">作成日時</div><div class="detail-value">${fmtDateTime(r['作成日時'])}</div></div>
         <div class="detail-item"><div class="detail-label">終了日時</div><div class="detail-value">${fmtDateTime(r['終了日時'])}</div></div>
       </div>
@@ -739,8 +753,8 @@ function openDetail(idx) {
     <div class="detail-section">
       <div class="detail-section-title">📦 製品・数量</div>
       <div class="detail-grid">
-        <div class="detail-item"><div class="detail-label">品番</div><div class="detail-value" style="font-family:monospace">${r['品番']||'—'}</div></div>
-        <div class="detail-item"><div class="detail-label">基本取引先</div><div class="detail-value">${r['基本取引先']||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">品番</div><div class="detail-value" style="font-family:monospace">${escapeHtml(r['品番']||'—')}</div></div>
+        <div class="detail-item"><div class="detail-label">基本取引先</div><div class="detail-value">${escapeHtml(r['基本取引先']||'—')}</div></div>
         <div class="detail-item"><div class="detail-label">箱入数</div><div class="detail-value">${r['箱入数']||'—'} 個/箱</div></div>
         <div class="detail-item"><div class="detail-label">カウント</div><div class="detail-value">${r['カウント']||0} 箱</div></div>
         <div class="detail-item"><div class="detail-label">端数個数</div><div class="detail-value">${Number(r['端数個数']||0)} 個</div></div>
@@ -753,7 +767,7 @@ function openDetail(idx) {
     <div class="detail-section">
       <div class="detail-section-title">⚠️ 不具合情報</div>
       ${defectHtml}
-      ${r['不具合内容'] && !defectItems.length ? '' : (r['不具合内容'] ? `<div style="margin-top:8px;font-size:12px;color:var(--tx2)">フリー記入: ${r['不具合内容']}</div>` : '')}
+      ${r['不具合内容'] && !defectItems.length ? '' : (r['不具合内容'] ? `<div style="margin-top:8px;font-size:12px;color:var(--tx2)">フリー記入: ${escapeHtml(r['不具合内容'])}</div>` : '')}
     </div>
 
     <!-- 写真 -->
