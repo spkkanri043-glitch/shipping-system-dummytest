@@ -449,21 +449,26 @@ function getStatusBadge(id) {
   return `<span class="badge badge-none">● 未確認</span>`;
 }
 
+// XSS対策ヘルパー（要素本文用 / 二重引用符属性値用）。保存データ(不具合内容等)を必ず通す。
+function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escapeAttr(s){ return escapeHtml(s); }
+
 function renderTable(records) {
   document.getElementById('table-count').textContent = `${records.length} 件`;
   if (records.length === 0) { setTableArea('<div class="empty">📋 該当する不具合がありません</div>'); return; }
 
+  // ★XSS対策：保存データはエスケープ。行クリックは data-detail-id ＋委譲（インラインonclickに文字列を入れない）。
   // PC テーブル
   const pcRows = records.map(r => {
     const hasPhoto = r.photo1 || r.photo2 || r.photo3;
     const myDone = iConfirmed(r.id);
-    return `<tr onclick="openDetail('${r.id}')" style="${!myDone ? 'background:#fff9f9' : ''}">
-      <td class="td-date">${r.date ? r.date.slice(0,10) : '—'}</td>
-      <td class="td-name">${r.worker || '—'}</td>
-      <td style="font-family:monospace;font-size:12px">${r.part || '—'}</td>
-      <td>${r.customer || '—'}</td>
-      <td>${r.defectType || '—'}</td>
-      <td class="td-count">${r.defectCount || 0}</td>
+    return `<tr class="detail-row" data-detail-id="${escapeAttr(r.id)}" style="${!myDone ? 'background:#fff9f9' : ''}">
+      <td class="td-date">${escapeHtml(r.date ? r.date.slice(0,10) : '—')}</td>
+      <td class="td-name">${escapeHtml(r.worker || '—')}</td>
+      <td style="font-family:monospace;font-size:12px">${escapeHtml(r.part || '—')}</td>
+      <td>${escapeHtml(r.customer || '—')}</td>
+      <td>${escapeHtml(r.defectType || '—')}</td>
+      <td class="td-count">${Number(r.defectCount)||0}</td>
       <td>${getStatusBadge(r.id)}</td>
       <td>${hasPhoto ? '📷' : '—'}</td>
     </tr>`;
@@ -473,19 +478,19 @@ function renderTable(records) {
   const cards = records.map(r => {
     const myDone = iConfirmed(r.id);
     const hasPhoto = r.photo1 || r.photo2 || r.photo3;
-    return `<div class="defect-card" onclick="openDetail('${r.id}')" style="${!myDone ? 'border-left:3px solid var(--danger)' : 'border-left:3px solid var(--ok)'}">
+    return `<div class="defect-card detail-row" data-detail-id="${escapeAttr(r.id)}" style="${!myDone ? 'border-left:3px solid var(--danger)' : 'border-left:3px solid var(--ok)'}">
       <div class="card-top">
-        <div class="card-part">${r.part || '—'}</div>
-        <div class="card-count">${r.defectCount || 0}個</div>
+        <div class="card-part">${escapeHtml(r.part || '—')}</div>
+        <div class="card-count">${Number(r.defectCount)||0}個</div>
       </div>
       <div class="card-mid">
-        <span class="card-worker">👤 ${r.worker || '—'}</span>
-        <span class="card-customer">🏭 ${r.customer || '—'}</span>
+        <span class="card-worker">👤 ${escapeHtml(r.worker || '—')}</span>
+        <span class="card-customer">🏭 ${escapeHtml(r.customer || '—')}</span>
         ${hasPhoto ? '<span style="font-size:11px">📷</span>' : ''}
       </div>
-      <div class="card-defect">${r.defectType || '—'}</div>
+      <div class="card-defect">${escapeHtml(r.defectType || '—')}</div>
       <div class="card-bottom" style="margin-top:6px">
-        <div class="card-date">${r.date ? r.date.slice(0,10) : '—'}</div>
+        <div class="card-date">${escapeHtml(r.date ? r.date.slice(0,10) : '—')}</div>
         ${getStatusBadge(r.id)}
       </div>
     </div>`;
@@ -503,6 +508,10 @@ function renderTable(records) {
     </div>
     <div class="card-list">${cards}</div>
   `);
+  // 委譲：行/カードのクリックで詳細を開く（idはdata属性から）
+  document.getElementById('table-area').querySelectorAll('.detail-row').forEach(el => {
+    el.addEventListener('click', () => openDetail(el.getAttribute('data-detail-id')));
+  });
 }
 
 function setTableArea(html) { document.getElementById('table-area').innerHTML = html; }
@@ -514,10 +523,12 @@ function openDetail(id) {
   const myDone = iConfirmed(r.id);
 
   const photos = [r.photo1, r.photo2, r.photo3].filter(Boolean);
+  const safeUrl = u => /^https:\/\//i.test(String(u)) ? String(u) : '';
   const photoHtml = photos.length > 0
     ? `<div class="photo-row">${photos.map(url => {
-        if (url.includes('/preview')) return `<div style="width:100%;max-width:320px;height:220px;border-radius:8px;overflow:hidden;border:1px solid var(--border)"><iframe src="${url}" width="100%" height="220" frameborder="0" allowfullscreen style="border:none"></iframe></div>`;
-        return `<a href="${url}" target="_blank"><img style="width:100%;max-width:280px;height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border)" src="${url}" alt="写真" onerror="this.style.display='none'"></a>`;
+        const su = safeUrl(url); if (!su) return '';
+        if (su.includes('/preview')) return `<div style="width:100%;max-width:320px;height:220px;border-radius:8px;overflow:hidden;border:1px solid var(--border)"><iframe src="${escapeAttr(su)}" width="100%" height="220" frameborder="0" allowfullscreen style="border:none"></iframe></div>`;
+        return `<a href="${escapeAttr(su)}" target="_blank" rel="noopener"><img style="width:100%;max-width:280px;height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border)" src="${escapeAttr(su)}" alt="写真" onerror="this.style.display='none'"></a>`;
       }).join('')}</div>`
     : '<div class="photo-placeholder">📷 写真なし</div>';
 
@@ -525,9 +536,9 @@ function openDetail(id) {
     ? logs.map(l => {
         const isMe = currentUser && l.name === currentUser.name;
         return `<div class="log-item">
-          <div class="log-avatar ${isMe ? 'me' : ''}">${l.name.slice(0,1)}</div>
-          <div class="log-name">${l.name}${isMe ? ' <span style="font-size:10px;color:var(--ok)">(あなた)</span>' : ''}</div>
-          <div class="log-time">${l.time}</div>
+          <div class="log-avatar ${isMe ? 'me' : ''}">${escapeHtml(String(l.name||'').slice(0,1))}</div>
+          <div class="log-name">${escapeHtml(l.name)}${isMe ? ' <span style="font-size:10px;color:var(--ok)">(あなた)</span>' : ''}</div>
+          <div class="log-time">${escapeHtml(l.time)}</div>
         </div>`;
       }).join('')
     : '<div class="confirm-log-empty">まだ確認者がいません</div>';
@@ -543,14 +554,14 @@ function openDetail(id) {
   document.getElementById('modal-body').innerHTML = `
     ${myBanner}
     <div class="detail-grid">
-      <div><div class="detail-label">報告書ID</div><div class="detail-value" style="font-size:11px;font-family:monospace">${r.id}</div></div>
-      <div><div class="detail-label">発生日</div><div class="detail-value">${r.date || '—'}</div></div>
-      <div><div class="detail-label">担当者</div><div class="detail-value">${r.worker || '—'}</div></div>
-      <div><div class="detail-label">基本取引先</div><div class="detail-value">${r.customer || '—'}</div></div>
-      <div><div class="detail-label">品番</div><div class="detail-value">${r.part || '—'}</div></div>
-      <div><div class="detail-label">不良数</div><div class="detail-value large">${r.defectCount || 0} 個</div></div>
-      <div style="grid-column:1/-1"><div class="detail-label">不具合内容</div><div class="detail-value">${r.defectType || '—'}</div></div>
-      <div style="grid-column:1/-1"><div class="detail-label">不具合詳細</div><div class="detail-value">${r.detail || '—'}</div></div>
+      <div><div class="detail-label">報告書ID</div><div class="detail-value" style="font-size:11px;font-family:monospace">${escapeHtml(r.id)}</div></div>
+      <div><div class="detail-label">発生日</div><div class="detail-value">${escapeHtml(r.date || '—')}</div></div>
+      <div><div class="detail-label">担当者</div><div class="detail-value">${escapeHtml(r.worker || '—')}</div></div>
+      <div><div class="detail-label">基本取引先</div><div class="detail-value">${escapeHtml(r.customer || '—')}</div></div>
+      <div><div class="detail-label">品番</div><div class="detail-value">${escapeHtml(r.part || '—')}</div></div>
+      <div><div class="detail-label">不良数</div><div class="detail-value large">${Number(r.defectCount)||0} 個</div></div>
+      <div style="grid-column:1/-1"><div class="detail-label">不具合内容</div><div class="detail-value">${escapeHtml(r.defectType || '—')}</div></div>
+      <div style="grid-column:1/-1"><div class="detail-label">不具合詳細</div><div class="detail-value">${escapeHtml(r.detail || '—')}</div></div>
     </div>
     <div class="section-title">📷 写真</div>
     ${photoHtml}
@@ -559,7 +570,7 @@ function openDetail(id) {
     ${currentUser
       ? `<div class="confirm-area">
           <div class="confirm-note">${myDone ? 'あなたは確認済みです' : 'この不具合内容を確認しましたか？'}</div>
-          <button class="btn-confirm" id="confirm-btn" onclick="confirmRecord('${id}')" ${myDone ? 'disabled' : ''}>
+          <button class="btn-confirm" id="confirm-btn" ${myDone ? 'disabled' : ''}>
             ${myDone ? '✔ 確認済み' : '✔ 確認する'}
           </button>
         </div>`
@@ -570,6 +581,9 @@ function openDetail(id) {
     }
   `;
   document.getElementById('detail-modal').classList.add('open');
+  // ★確認ボタンはインラインonclickをやめ、idをクロージャで渡す委譲に変更（保存文字列をJS属性に入れない）。
+  const cbtn = document.getElementById('confirm-btn');
+  if (cbtn && !cbtn.disabled) cbtn.addEventListener('click', () => confirmRecord(id));
 }
 
 function closeModal() { document.getElementById('detail-modal').classList.remove('open'); }
