@@ -1172,15 +1172,20 @@ function renderClientList() {
     list.innerHTML = '<div style="padding:16px;text-align:center;color:#aaa;font-size:12px">取引先がありません</div>';
     return;
   }
+  // ★XSS対策：id/名前はインラインonclickに入れず data-* ＋委譲（escHは引用符を残すため突破され得た）。
   list.innerHTML = clients.map(c => `
     <div class="client-list-item">
       <span class="client-name">${escH(c.name)}</span>
-      <span class="client-ssid" title="${escH(c.ssId||'')}">SS: ${escH((c.ssId||'').substring(0,20))}…</span>
-      <button class="btn-client-edit" onclick="openEditClientForm('${escH(c.id)}','${escH(c.name)}','${escH(c.ssId||'')}')">編集</button>
+      <span class="client-ssid" title="${escAttr(c.ssId||'')}">SS: ${escH((c.ssId||'').substring(0,20))}…</span>
+      <button class="btn-client-edit" data-act="edit-client" data-id="${escAttr(c.id)}" data-name="${escAttr(c.name)}" data-ssid="${escAttr(c.ssId||'')}">編集</button>
       ${c.id !== selCid
-        ? `<button class="btn-client-del" onclick="onDeleteClient('${escH(c.id)}','${escH(c.name)}')">削除</button>`
+        ? `<button class="btn-client-del" data-act="del-client" data-id="${escAttr(c.id)}" data-name="${escAttr(c.name)}">削除</button>`
         : '<span style="font-size:10px;color:#1D9E75;font-weight:500">使用中</span>'}
     </div>`).join('');
+  list.querySelectorAll('[data-act="edit-client"]').forEach(b =>
+    b.addEventListener('click', () => openEditClientForm(b.getAttribute('data-id'), b.getAttribute('data-name'), b.getAttribute('data-ssid'))));
+  list.querySelectorAll('[data-act="del-client"]').forEach(b =>
+    b.addEventListener('click', () => onDeleteClient(b.getAttribute('data-id'), b.getAttribute('data-name'))));
 }
 
 function openAddClientForm() {
@@ -1269,15 +1274,19 @@ function renderGroupTabBar() {
   ];
 
   bar.innerHTML = tabs.map(t =>
-    `<div class="gtab${selGroupId===t.id?' active':''}" data-gid="${escH(t.id)}">
+    `<div class="gtab${selGroupId===t.id?' active':''}" data-gid="${escAttr(t.id)}">
       ${t.icon} ${escH(t.name)}
       ${t.id!=='all'&&t.id!=='unset'
-        ? `<span class="gtab-edit-btn" onclick="event.stopPropagation();openEditGroupModal('${escH(t.id)}','${escH(t.name)}')">✎</span>`
+        ? `<span class="gtab-edit-btn" data-act="edit-group" data-id="${escAttr(t.id)}" data-name="${escAttr(t.name)}">✎</span>`
         : ''}
     </div>`
   ).join('') +
   `<div class="gtab-add" onclick="openAddGroupModal()">＋ グループ追加</div>`;
 
+  // 編集ボタン（保存名をインラインJSに入れず data-* ＋委譲）
+  bar.querySelectorAll('[data-act="edit-group"]').forEach(el => {
+    el.addEventListener('click', (ev) => { ev.stopPropagation(); openEditGroupModal(el.getAttribute('data-id'), el.getAttribute('data-name')); });
+  });
   bar.querySelectorAll('.gtab[data-gid]').forEach(el => {
     el.addEventListener('click', () => {
       selGroupId = el.dataset.gid;
@@ -1295,13 +1304,13 @@ function updateGroupSelects() {
   const confirmSel = document.getElementById('confirm-group');
   if (confirmSel) {
     confirmSel.innerHTML = '<option value="">未分類</option>' +
-      groups.map(g => `<option value="${escH(g.id)}">${escH(g.name)}</option>`).join('');
+      groups.map(g => `<option value="${escAttr(g.id)}">${escH(g.name)}</option>`).join('');
   }
   // 編集モーダルのグループセレクト
   const editSel = document.getElementById('me-group');
   if (editSel) {
     editSel.innerHTML = '<option value="">未分類</option>' +
-      groups.map(g => `<option value="${escH(g.id)}">${escH(g.name)}</option>`).join('');
+      groups.map(g => `<option value="${escAttr(g.id)}">${escH(g.name)}</option>`).join('');
   }
 }
 
@@ -2761,8 +2770,8 @@ async function doSearch() {
     results.style.display='block';
     results.innerHTML = items.map(p =>
       `<div class="search-result-item"
-          data-code="${escH(p.code)}" data-unit="${escH(p.unit||'')}"
-          data-name="${escH(p.name||'')}">
+          data-code="${escAttr(p.code)}" data-unit="${escAttr(p.unit||'')}"
+          data-name="${escAttr(p.name||'')}">
         <span style="flex:1;min-width:0">
           <span class="sr-code">${escH(p.code)}</span>
           ${p.name ? `<span class="sr-name">${escH(p.name)}</span>` : ''}
@@ -2863,6 +2872,9 @@ function hidePageLoad() {
   document.getElementById('page-loading').classList.add('hidden');
 }
 function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// ★属性値/インラインJS文脈用：escHは & < > のみで引用符を残すため、属性やonclick引数には不十分。
+//   二重引用符属性値に入れる動的値は必ずこちら（" ' も実体参照化）を使う。
+function escAttr(s) { return escH(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 let toastT;
 function showToast(msg) {
   const t=document.getElementById('toast');
