@@ -482,8 +482,10 @@ async function loadData() {
   if (!AUTH_TOKEN) { showToast('業務管理ポータルからご利用ください', 'err'); return; }
   showLoadingAll();
   try {
-    const d = await gasCall_('getDefects', {});
-    if (!d) { showToast('認証が無効です。ポータルから入り直してください', 'err'); return; }
+    // ★§3：集計ダッシュボードは master系専用の取得API（getDefectsAggregate）を使う。
+    //   一般 staff/leader の fuguaiTenkai トークンではサーバー側で拒否される。
+    const d = await gasCall_('getDefectsAggregate', {});
+    if (!d) { showToast('この画面は管理者・マスター専用です（またはポータルから入り直してください）', 'err'); return; }
     // 担当者（報告者）と不具合作業者のデータが入れ替わって届くため、ここでスワップして正しい項目に割り当てる
     allRecords = (d.records || []).map(r => ({
       ...r,
