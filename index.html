@@ -916,7 +916,7 @@ function showGuide(msg) {
 /** ポータルを開く */
 function goPortal() {
   const p = new URLSearchParams(window.location.search).get('portal_url');
-  window.location.href = p ? decodeURIComponent(p) : DEFAULT_PORTAL_URL;
+  window.location.href = safePortalUrl_(p);   // ★F10：検証済みURLのみ
 }
 
 function showMainScreen(user) {
@@ -961,13 +961,26 @@ function clearSession() {
 // ポータルへ戻る既定URL（ポータルからの起動時はportal_urlパラメータが優先される）
 const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PORTAL/exec';
 
+// ★F10：戻り先は https かつ許可ホスト(script.google.com)のURLのみ許可。
+//   javascript:/別ホスト/不正・二重デコードは既定URLへ。ホスト部分一致(includes)は使わない。
+function safePortalUrl_(raw) {
+  if (!raw) return DEFAULT_PORTAL_URL;
+  var s;
+  try { s = decodeURIComponent(String(raw)); } catch (e) { return DEFAULT_PORTAL_URL; }
+  var u;
+  try { u = new URL(s); } catch (e) { return DEFAULT_PORTAL_URL; }
+  if (u.protocol !== 'https:') return DEFAULT_PORTAL_URL;
+  if (u.hostname !== 'script.google.com') return DEFAULT_PORTAL_URL;
+  return u.href;
+}
+
 function closeTab() {
   notifyOfflineShipping();
   try { window.close(); } catch(e) {}
   // window.close()が効かない場合（タブがスクリプト経由で開かれていない等）のフォールバック
   setTimeout(function() {
     const portalUrl = new URLSearchParams(window.location.search).get('portal_url');
-    window.location.href = portalUrl ? decodeURIComponent(portalUrl) : DEFAULT_PORTAL_URL;
+    window.location.href = safePortalUrl_(portalUrl);   // ★F10：検証済みURLのみ
   }, 300);
 }
 
