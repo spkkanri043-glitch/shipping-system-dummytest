@@ -237,7 +237,7 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
 // 設定
 // ============================================================
 // セキュリティ改修：接続先は固定（?kumi_gas_url= 差し替えを撤去）。
-const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbxImZes4CtU7j98hY6No7xXhKPfco8-x8hrmMqls8NjYvCwpOKnfvPzTB0kY7_Z-6icnA/exec';
+const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_KUMI/exec';
 
 // ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
 const AUTH_TOKEN_KEY = 'kpk_kumi_token';
@@ -604,6 +604,9 @@ function splitCSVLine(line) {
   return cols;
 }
 
+// ★F03：CSV・サーバー由来の値を画面へ出す際は必ずテキスト化する（実行させない）。
+function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
 function parseCSVText(text) {
   if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   const lines = text.trim().split(/\r?\n/);
@@ -643,7 +646,7 @@ function loadCSVFromFile(input) {
 function updateChips() {
   const wrap = document.getElementById('file-chips-wrap');
   wrap.style.display = loadedFileName ? 'block' : 'none';
-  document.getElementById('chip-list').innerHTML = loadedFileName ? `<span class="file-chip">${loadedFileName}</span>` : '';
+  document.getElementById('chip-list').innerHTML = loadedFileName ? `<span class="file-chip">${escapeHtml(loadedFileName)}</span>` : '';
 }
 
 // ============================================================
@@ -733,20 +736,20 @@ function renderList() {
     return `<div class="list-item ${done?'done':''} ${isTarget?'targeting':''}">
       <div class="item-body">
         <div class="item-top">
-          <span class="item-hinban">${isTarget ? '🎯 ' : ''}${r['整番']||''}</span>
+          <span class="item-hinban">${isTarget ? '🎯 ' : ''}${escapeHtml(r['整番']||'')}</span>
           <span style="display:flex;gap:6px;align-items:center;flex-shrink:0">
             ${isTarget ? `<span class="badge badge-target">対象</span>` : ''}
-            ${r['色調'] ? `<span class="badge badge-color">${r['色調']}</span>` : ''}
-            <span class="remain-count ${done?'done':'pending'}">残 ${r['出荷数']||0}</span>
+            ${r['色調'] ? `<span class="badge badge-color">${escapeHtml(r['色調'])}</span>` : ''}
+            <span class="remain-count ${done?'done':'pending'}">残 ${escapeHtml(r['出荷数']||0)}</span>
             <span class="badge ${done?'badge-done':'badge-pending'}">${done?'済':'未'}</span>
           </span>
         </div>
         <div class="item-meta">
-          <span>品番:${r['品番']||''}</span>
-          <span>入数:${r['入数']||''}</span>
-          <span>箱数:${r['箱数']||''}</span>
-          <span>納期:${r['納期']||''}</span>
-          ${done ? `<span style="color:#1e8a55">消込:${r['消込日時']||''}</span>` : ''}
+          <span>品番:${escapeHtml(r['品番']||'')}</span>
+          <span>入数:${escapeHtml(r['入数']||'')}</span>
+          <span>箱数:${escapeHtml(r['箱数']||'')}</span>
+          <span>納期:${escapeHtml(r['納期']||'')}</span>
+          ${done ? `<span style="color:#1e8a55">消込:${escapeHtml(r['消込日時']||'')}</span>` : ''}
         </div>
       </div>
     </div>`;
@@ -767,13 +770,13 @@ function renderLog() {
   body.innerHTML = [...logEntries].reverse().map(l => `
     <div class="list-item">
       <div class="item-body">
-        <div class="item-top"><span class="item-hinban">${l['整番']||''}</span><span style="font-size:11px;color:#aaa">${l['ts']||''}</span></div>
+        <div class="item-top"><span class="item-hinban">${escapeHtml(l['整番']||'')}</span><span style="font-size:11px;color:#aaa">${escapeHtml(l['ts']||'')}</span></div>
         <div class="item-meta">
-          <span>品番:${l['品番']||''}</span>
-          <span>色調:${l['色調']||''}</span>
-          <span>収容数:${l['収容数']||''}</span>
-          <span>残数:${l['残数']||''}</span>
-          <span>ロットNo:${l['ロットNo']||''}</span>
+          <span>品番:${escapeHtml(l['品番']||'')}</span>
+          <span>色調:${escapeHtml(l['色調']||'')}</span>
+          <span>収容数:${escapeHtml(l['収容数']||'')}</span>
+          <span>残数:${escapeHtml(l['残数']||'')}</span>
+          <span>ロットNo:${escapeHtml(l['ロットNo']||'')}</span>
         </div>
       </div>
     </div>`).join('');
@@ -800,10 +803,16 @@ async function exportCSV() {
   if (AUTH_TOKEN) {
     showFB('ok', '📤 ドライブに書き出し中...');
     try {
-      const data = await gasCall_('saveCSVByStatus', { records, today: todayStr(), baseName });
+      const data = await gasCall_('saveCSVByStatus', { records, logEntries, today: todayStr(), baseName });
       if (!data) { showFB('err', '認証が無効です。ポータルから入り直してください'); return; }
       if (!data.ok) throw new Error(data.message);
-      const msgs = data.results.map(r => (r.type === 'pending' ? '未完了フォルダ: ' : '完了フォルダ: ') + r.count + '件（' + r.filename + '）');
+      const msgs = (data.results || []).map(r => {
+        if (r.type === 'history') {
+          if (r.ok === false) return '⚠ 履歴記録: ' + (r.message || '失敗');
+          return '📖 出荷履歴: ' + (r.historyAdded || 0) + '件 / 消込ログ: ' + (r.logAdded || 0) + '件を追記';
+        }
+        return (r.type === 'pending' ? '未完了フォルダ: ' : '完了フォルダ: ') + r.count + '件（' + r.filename + '）';
+      });
       showFB('ok', '☁️ ドライブに保存しました\n' + msgs.join('\n'));
     } catch (err) {
       showFB('err', 'ドライブ書き出し失敗: ' + err.message);
@@ -839,16 +848,18 @@ async function loadDriveFileList() {
       return;
     }
     listEl.style.display = 'block';
+    // ★F03：Drive由来の name/label/updated はテキスト化。onclick へ name/id を埋め込まず data-*＋委譲。
     listEl.innerHTML = data.files.map(f => {
       const labelColor = f.folder === 'pending' ? '#b56e00' : '#3a7bdc';
-      return `<div style="padding:10px 12px;border-bottom:1px solid #f0f0ea;cursor:pointer" onclick="loadSelectedDriveFile('${f.id}','${f.name.replace(/'/g,"\\'")}')">
-        <div style="font-size:13px;font-weight:600;word-break:break-all">${f.name}</div>
+      return `<div class="drive-file-row" data-id="${escapeHtml(f.id)}" data-name="${escapeHtml(f.name)}" style="padding:10px 12px;border-bottom:1px solid #f0f0ea;cursor:pointer">
+        <div style="font-size:13px;font-weight:600;word-break:break-all">${escapeHtml(f.name)}</div>
         <div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center">
-          <span style="color:${labelColor};font-weight:600">${f.label}</span>
-          <span style="color:#888">${f.updated}</span>
+          <span style="color:${labelColor};font-weight:600">${escapeHtml(f.label)}</span>
+          <span style="color:#888">${escapeHtml(f.updated)}</span>
         </div>
       </div>`;
     }).join('');
+    listEl.onclick = function(ev){ const row = ev.target.closest && ev.target.closest('.drive-file-row'); if(row) loadSelectedDriveFile(row.getAttribute('data-id'), row.getAttribute('data-name')); };
     showCsvFb(data.files.length + '件見つかりました。読み込むファイルをタップしてください', 'ok');
   } catch (err) {
     showCsvFb('エラー: ' + err.message, 'err');
@@ -928,11 +939,19 @@ function doLogout() {
 }
 
 const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PORTAL/exec';
+// ★F10：戻り先は https かつ許可ホスト(script.google.com)のURLのみ。javascript:/別ホスト/不正は既定URLへ。
+function safePortalUrl_(raw) {
+  if (!raw) return DEFAULT_PORTAL_URL;
+  var s; try { s = decodeURIComponent(String(raw)); } catch (e) { return DEFAULT_PORTAL_URL; }
+  var u; try { u = new URL(s); } catch (e) { return DEFAULT_PORTAL_URL; }
+  if (u.protocol !== 'https:' || u.hostname !== 'script.google.com') return DEFAULT_PORTAL_URL;
+  return u.href;
+}
 function closeTab() {
   try { window.close(); } catch(e) {}
   setTimeout(function() {
     const portalUrl = new URLSearchParams(window.location.search).get('portal_url');
-    window.location.href = portalUrl ? decodeURIComponent(portalUrl) : DEFAULT_PORTAL_URL;
+    window.location.href = safePortalUrl_(portalUrl);   // ★F10：検証済みURLのみ
   }, 300);
 }
 
