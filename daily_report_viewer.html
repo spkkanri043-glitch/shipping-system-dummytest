@@ -371,14 +371,23 @@ function saveUrl() {
   loadData();
 }
 
+// ★F10：戻り先は https かつ許可ホスト(script.google.com)のURLのみ。無効なら '' を返す（部分一致/二重デコードは使わない）。
+function safePortalUrl_(raw) {
+  if (!raw) return '';
+  var s; try { s = decodeURIComponent(String(raw)); } catch (e) { return ''; }
+  var u; try { u = new URL(s); } catch (e) { return ''; }
+  if (u.protocol !== 'https:' || u.hostname !== 'script.google.com') return '';
+  return u.href;
+}
 function goPortal() {
   // 別タブで開かれているので、このタブを閉じてポータルに戻る
   try {
     window.close();
     // window.close() が効かない場合（直接開いた場合）はポータルURLへ遷移
     setTimeout(() => {
-      if (portalUrl && !portalUrl.includes('googleusercontent')) {
-        window.location.href = portalUrl;
+      const safe = safePortalUrl_(portalUrl);   // ★F10：検証済みURLのみ
+      if (safe) {
+        window.location.href = safe;
       } else {
         showToast('このタブを閉じてポータルに戻ってください', '');
       }
