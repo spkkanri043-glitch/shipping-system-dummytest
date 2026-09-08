@@ -1768,7 +1768,7 @@ function clearVreqForm(){
   onVreqTypeChange();
   document.getElementById('vreq-remain-preview').innerHTML='';
 }
-function submitVreq(){
+async function submitVreq(){
   if(!cUser)return;
   // 申請対象者の決定（管理者は選択、従業員は自分）
   const targetId=isA
@@ -1797,19 +1797,16 @@ function submitVreq(){
     return !(to<r.from||from>r.to);
   });
   if(overlap){alert('同じ期間に既に申請があります。');return;}
-  const req={
-    id:genReqId(),eid:emp.id,name:emp.name,
-    dept:emp.dept,type,from,to,days,
-    tstart,tend,reason,
-    status:'pending',
-    appliedAt:new Date().toISOString(),reviewedAt:null,reviewNote:''
-  };
+  // ★サーバー権威：申請はcreateRequestで作成（idは server が採番、所有者=トークンのsub）
+  const cres = await gasCall_('createRequest', { kind:'vac', req:{
+    eid:emp.id, name:emp.name, dept:emp.dept, type, from, to, days, tstart, tend, reason
+  }});
+  if (!cres || !cres.ok) { alert('申請の保存に失敗しました' + (cres&&cres.message?'\n'+cres.message:'')); return; }
+  const req = cres.request;
   VAC_REQUESTS.unshift(req);
-  persistData();
-  scheduleSave();
   clearVreqForm();
   rVreq();updVreqBadge();rDB();
- 
+
   // ★LINEWORKS通知（申請時→管理者へ）
   sendShiftNotify('apply', {
     name:   emp.name,
@@ -1821,12 +1818,14 @@ function submitVreq(){
 }
 
 // 管理者操作
-function approveReq(id){
+async function approveReq(id){
   const req=VAC_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('承認コメント（任意）','');
   if(note===null)return;
-  req.status='approved';req.reviewedAt=new Date().toISOString();req.reviewNote=note;
-  req.reviewedBy=cUser?cUser.name:'管理者'; // 承認者名を記録
+  // ★サーバー決裁（leader以上のみ）。状態遷移・審査者はサーバーが確定する。
+  const dres=await gasCall_('decideRequest',{id:req.id,decision:'approved',reviewNote:note||'',baseVersion:req.version});
+  if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('承認に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
+  Object.assign(req,dres.request); // status/reviewedAt/reviewedBy/version をサーバー値に同期
   // シフトに反映（全休・半休の場合）
   if(req.type==='全休'||req.type==='半休前'||req.type==='半休後'){
     const from=new Date(req.from),to=new Date(req.to);
@@ -1862,15 +1861,15 @@ function approveReq(id){
   }
   alert(`✅ ${req.id} を承認しました。シフトに反映されました。`);
 }
-function rejectReq(id){
+async function rejectReq(id){
   const req=VAC_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('却下理由を入力してください','');
   if(note===null)return;
   if(!note.trim()){alert('却下理由を入力してください');return;}
-  req.status='rejected';req.reviewedAt=new Date().toISOString();req.reviewNote=note;
-  req.reviewedBy=cUser?cUser.name:'管理者'; // 却下者名を記録
+  const dres=await gasCall_('decideRequest',{id:req.id,decision:'rejected',reviewNote:note,baseVersion:req.version});
+  if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('却下に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
+  Object.assign(req,dres.request);
   rVreq();updVreqBadge();rDB();
-  persistData();scheduleSave();
 
   // ★LINEWORKS通知（却下時→申請者へ）
   const empNotifyVR = EMPLOYEES.find(x => x.id === req.eid);
@@ -1884,11 +1883,18 @@ function rejectReq(id){
   }
   alert(`❌ ${req.id} を却下しました。`);
 }
-function cancelReq(id){
+async function cancelReq(id){
   const req=VAC_REQUESTS.find(r=>r.id===id);if(!req)return;
-  if(req.status==='approved'){
+  const wasApproved=req.status==='approved';
+  if(wasApproved){
     if(!confirm('承認済みの申請を取り消しますか？シフトの有給も削除されます。'))return;
-    // シフトから削除
+  }else if(req.status!=='pending'){alert('取消できない状態です');return;}
+  // ★サーバー権威で取消（pending＝本人or管理者／approved＝管理者のみ）
+  const cres=await gasCall_('cancelRequest',{id:req.id,baseVersion:req.version});
+  if(!cres||!cres.ok){ if(cres&&cres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('取消に失敗しました'+(cres&&cres.message?'\n'+cres.message:''));} return; }
+  Object.assign(req,cres.request);
+  if(wasApproved){
+    // シフトから削除（承認済みの反映を戻す）
     const from=new Date(req.from),to=new Date(req.to);
     let cur=new Date(from);
     while(cur<=to){
@@ -1904,10 +1910,9 @@ function cancelReq(id){
       emp.alOverride=Math.round((cur+req.days)*10)/10;
     }
     rSh();rPL();rEmp();
-  }else if(req.status!=='pending'){alert('取消できない状態です');return;}
-  req.status='cancelled';req.reviewedAt=new Date().toISOString();
+    scheduleSave(); // シフト反映の巻き戻しを保存
+  }
   rVreq();updVreqBadge();rDB();
-  persistData();scheduleSave();
 }
 
 let curRF='all';
@@ -2024,7 +2029,7 @@ function clearOTReqForm(){
   document.getElementById('otreq-preview').textContent='';
   document.getElementById('otreq-month-preview').innerHTML='';
 }
-function submitOTReq(){
+async function submitOTReq(){
   if(!cUser)return;
   const targetId=isA?(document.getElementById('otreq-target')?.value||''):cUser.id;
   const emp = isA ? EMPLOYEES.find(x=>x.id===targetId) : getEmpOrCurrent(targetId);
@@ -2044,14 +2049,12 @@ function submitOTReq(){
   // 重複チェック
   const overlap=OT_REQUESTS.some(r=>r.eid===emp.id&&r.date===date&&r.status!=='cancelled'&&r.status!=='rejected');
   if(overlap){alert('同じ日に既に残業申請があります');return;}
-  const req={
-    id:genOTReqId(),eid:emp.id,name:emp.name,dept:emp.dept,
-    date,shift,hours,reason,status:'pending',
-    appliedAt:new Date().toISOString(),reviewedAt:null,reviewNote:''
-  };
+  const cres = await gasCall_('createRequest', { kind:'ot', req:{
+    eid:emp.id, name:emp.name, dept:emp.dept, date, shift, hours, reason
+  }});
+  if (!cres || !cres.ok) { alert('申請の保存に失敗しました' + (cres&&cres.message?'\n'+cres.message:'')); return; }
+  const req = cres.request;
   OT_REQUESTS.unshift(req);
-  persistData();
-  scheduleSave();
   clearOTReqForm();
   rOTReq();updAllBadges();rDB();
 
@@ -2075,12 +2078,13 @@ function submitOTReq(){
   }
   alert(`✅ 残業申請を提出しました（${req.id}）\n管理者の承認をお待ちください。`);
 }
-function approveOTReq(id){
+async function approveOTReq(id){
   const req=OT_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('承認コメント（任意）','');
   if(note===null)return;
-  req.status='approved';req.reviewedAt=new Date().toISOString();req.reviewNote=note;
-  req.reviewedBy=cUser?cUser.name:'管理者'; // 承認者名を記録
+  const dres=await gasCall_('decideRequest',{id:req.id,decision:'approved',reviewNote:note||'',baseVersion:req.version});
+  if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('承認に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
+  Object.assign(req,dres.request);
   // シフトの残業時間を更新
   const dt=new Date(req.date);
   const k=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
@@ -2091,13 +2095,14 @@ function approveOTReq(id){
   persistData();scheduleSave(); // ★追加
   alert(`✅ ${req.id} を承認しました。シフトの残業時間に反映されました。`);
 }
-function rejectOTReq(id){
+async function rejectOTReq(id){
   const req=OT_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('却下理由を入力してください','');
   if(note===null)return;
   if(!note.trim()){alert('却下理由を入力してください');return;}
-  req.status='rejected';req.reviewedAt=new Date().toISOString();req.reviewNote=note;
-  req.reviewedBy=cUser?cUser.name:'管理者'; // 却下者名を記録
+  const dres=await gasCall_('decideRequest',{id:req.id,decision:'rejected',reviewNote:note,baseVersion:req.version});
+  if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('却下に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
+  Object.assign(req,dres.request);
   rOTReq();updAllBadges();rDB();
 
   // ★LINEWORKS通知（却下時→申請者へ）
@@ -2113,18 +2118,23 @@ function rejectOTReq(id){
   persistData();scheduleSave(); // ★追加
   alert(`❌ ${req.id} を却下しました。`);
 }
-function cancelOTReq(id){
+async function cancelOTReq(id){
   const req=OT_REQUESTS.find(r=>r.id===id);if(!req)return;
-  if(req.status==='approved'){
+  const wasApproved=req.status==='approved';
+  if(wasApproved){
     if(!confirm('承認済みの残業申請を取り消しますか？シフトの残業時間も削除されます。'))return;
+  }else if(req.status!=='pending'){alert('取消できない状態です');return;}
+  const cres=await gasCall_('cancelRequest',{id:req.id,baseVersion:req.version});
+  if(!cres||!cres.ok){ if(cres&&cres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('取消に失敗しました'+(cres&&cres.message?'\n'+cres.message:''));} return; }
+  Object.assign(req,cres.request);
+  if(wasApproved){
     const dt=new Date(req.date);
     const k=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
     if(SHIFTS[req.eid]?.[k]?.reqId===req.id){
       SHIFTS[req.eid][k]={...SHIFTS[req.eid][k],ot:0};
     }
-    rSh();rOT();
-  }else if(req.status!=='pending'){alert('取消できない状態です');return;}
-  req.status='cancelled';req.reviewedAt=new Date().toISOString();
+    rSh();rOT();scheduleSave();
+  }
   rOTReq();updAllBadges();rDB();
 }
 let curOTRF='all';
@@ -2232,7 +2242,7 @@ function clearHReqForm(){
   const dc=document.getElementById('hreq-day-check');if(dc)dc.textContent='';
   const hp=document.getElementById('hreq-hours-preview');if(hp)hp.textContent='';
 }
-function submitHReq(){
+async function submitHReq(){
   if(!cUser)return;
   const targetId=isA?(document.getElementById('hreq-target')?.value||''):cUser.id;
   const emp = isA ? EMPLOYEES.find(x=>x.id===targetId) : getEmpOrCurrent(targetId);
@@ -2255,14 +2265,12 @@ function submitHReq(){
   // 重複チェック
   const overlap=H_REQUESTS.some(r=>r.eid===emp.id&&r.date===date&&r.status!=='cancelled'&&r.status!=='rejected');
   if(overlap){alert('同じ日に既に休日出勤申請があります');return;}
-  const req={
-    id:genHReqId(),eid:emp.id,name:emp.name,dept:emp.dept,
-    date,start,end,hours,furikae,reason,status:'pending',
-    appliedAt:new Date().toISOString(),reviewedAt:null,reviewNote:''
-  };
+  const cres = await gasCall_('createRequest', { kind:'h', req:{
+    eid:emp.id, name:emp.name, dept:emp.dept, date, start, end, hours, furikae, reason
+  }});
+  if (!cres || !cres.ok) { alert('申請の保存に失敗しました' + (cres&&cres.message?'\n'+cres.message:'')); return; }
+  const req = cres.request;
   H_REQUESTS.unshift(req);
-  persistData();
-  scheduleSave();
   clearHReqForm();
   rHReq();updAllBadges();rDB();
 
@@ -2275,12 +2283,13 @@ function submitHReq(){
   });
   alert(`✅ 休日出勤申請を提出しました（${req.id}）\n管理者の承認をお待ちください。`);
 }
-function approveHReq(id){
+async function approveHReq(id){
   const req=H_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('承認コメント（任意）','');
   if(note===null)return;
-  req.status='approved';req.reviewedAt=new Date().toISOString();req.reviewNote=note;
-  req.reviewedBy=cUser?cUser.name:'管理者'; // 承認者名を記録
+  const dres=await gasCall_('decideRequest',{id:req.id,decision:'approved',reviewNote:note||'',baseVersion:req.version});
+  if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('承認に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
+  Object.assign(req,dres.request);
   const dt=new Date(req.date);
   const k=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
   if(!SHIFTS[req.eid])SHIFTS[req.eid]={};
@@ -2307,13 +2316,14 @@ function approveHReq(id){
   }
   alert(`✅ ${req.id} を承認しました。シフトに「休出」として反映されました。${req.furikae?'\n振替休日('+req.furikae+')もシフトに反映されました。':''}`);
 }
-function rejectHReq(id){
+async function rejectHReq(id){
   const req=H_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('却下理由を入力してください','');
   if(note===null)return;
   if(!note.trim()){alert('却下理由を入力してください');return;}
-  req.status='rejected';req.reviewedAt=new Date().toISOString();req.reviewNote=note;
-  req.reviewedBy=cUser?cUser.name:'管理者'; // 却下者名を記録
+  const dres=await gasCall_('decideRequest',{id:req.id,decision:'rejected',reviewNote:note,baseVersion:req.version});
+  if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('却下に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
+  Object.assign(req,dres.request);
   rHReq();updAllBadges();rDB();
   persistData();scheduleSave();
 
@@ -2330,7 +2340,7 @@ function rejectHReq(id){
   alert(`❌ ${req.id} を却下しました。`);
 }
 // 振替休日の後日設定
-function editFurikae(id){
+async function editFurikae(id){
   const req=H_REQUESTS.find(r=>r.id===id);
   if(!req||req.status!=='approved'){alert('承認済みの申請にのみ設定できます');return;}
   const val=prompt(`${escapeHtml(req.name)} の振替休日を入力してください\n例: 2026-05-10`,'');
@@ -2339,19 +2349,28 @@ function editFurikae(id){
   const dt=new Date(val.trim());
   if(isNaN(dt)){alert('正しい日付形式で入力してください（例: 2026-05-10）');return;}
   const fk=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
-  req.furikae=val.trim();
+  // ★サーバー権威で振替休日を保存（本人or管理者・承認済みのみ）
+  const fres=await gasCall_('setFurikae',{id:req.id,furikae:val.trim(),baseVersion:req.version});
+  if(!fres||!fres.ok){ if(fres&&fres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('設定に失敗しました'+(fres&&fres.message?'\n'+fres.message:''));} return; }
+  Object.assign(req,fres.request);
   // シフトに振替休日（OFF）を反映
   if(!SHIFTS[req.eid])SHIFTS[req.eid]={};
   SHIFTS[req.eid][fk]={type:'OFF',ot:0,note:'振替休日'};
   rHReqList();rSh();rDB();
-  persistData();scheduleSave();
+  scheduleSave();
   alert(`✅ 振替休日（${val.trim()}）をシフトに反映しました。`);
 }
 
-function cancelHReq(id){
+async function cancelHReq(id){
   const req=H_REQUESTS.find(r=>r.id===id);if(!req)return;
-  if(req.status==='approved'){
+  const wasApproved=req.status==='approved';
+  if(wasApproved){
     if(!confirm('承認済みの休日出勤申請を取り消しますか？シフトも戻されます。'))return;
+  }else if(req.status!=='pending'){alert('取消できない状態です');return;}
+  const cres=await gasCall_('cancelRequest',{id:req.id,baseVersion:req.version});
+  if(!cres||!cres.ok){ if(cres&&cres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('取消に失敗しました'+(cres&&cres.message?'\n'+cres.message:''));} return; }
+  Object.assign(req,cres.request);
+  if(wasApproved){
     const dt=new Date(req.date);
     const k=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
     if(SHIFTS[req.eid]?.[k]?.reqId===req.id)SHIFTS[req.eid][k]={type:'OFF',ot:0};
@@ -2360,11 +2379,9 @@ function cancelHReq(id){
       const fk=dkey(fdt.getFullYear(),fdt.getMonth(),fdt.getDate());
       if(SHIFTS[req.eid]?.[fk]?.note==='振替休日')delete SHIFTS[req.eid][fk];
     }
-    rSh();rOT();
-  }else if(req.status!=='pending'){alert('取消できない状態です');return;}
-  req.status='cancelled';req.reviewedAt=new Date().toISOString();
+    rSh();rOT();scheduleSave();
+  }
   rHReq();updAllBadges();rDB();
-  persistData();scheduleSave();
 }
 let curHRF='all';
 function setHRF(f,el){curHRF=f;document.querySelectorAll('#hreq-filter .rfbtn').forEach(b=>b.classList.remove('on'));el.classList.add('on');rHReqList();}
@@ -2953,6 +2970,29 @@ async function gasCall_(action, payload) {
   } catch(e) { console.error('[gasCall_]', action, e); return null; }
 }
 
+// ══ 申請システム（サーバー権威・1件単位）══
+//   申請一覧はサーバー(listRequests)を唯一の真実として取得する。
+//   staffトークンでは本人分のみ、leader以上は全件が返る（サーバー側でフィルタ）。
+async function refreshRequests_() {
+  const res = await gasCall_('listRequests', {});
+  if (!res || !res.ok) return false;
+  const all = res.requests || [];
+  VAC_REQUESTS.length = 0; OT_REQUESTS.length = 0; H_REQUESTS.length = 0;
+  all.forEach(r => {
+    if (r.kind === 'vac') VAC_REQUESTS.push(r);
+    else if (r.kind === 'ot') OT_REQUESTS.push(r);
+    else if (r.kind === 'h') H_REQUESTS.push(r);
+  });
+  const byNew = (a, b) => String(b.appliedAt || '').localeCompare(String(a.appliedAt || ''));
+  VAC_REQUESTS.sort(byNew); OT_REQUESTS.sort(byNew); H_REQUESTS.sort(byNew);
+  return true;
+}
+// 競合(conflict)時などにサーバー最新へ揃えて再描画する
+async function reloadReqsAndRender_() {
+  await refreshRequests_();
+  try { rVreq(); rOTReq(); rHReq(); rDB(); updAllBadges(); } catch(e) {}
+}
+
 // ══ オンライン状態通知（関数は上部で定義済み）══
 
 // ページを閉じる・離れる時にオフライン通知（pagehideのみ使用）
@@ -3061,7 +3101,11 @@ async function loadSyncLog() {
       const ts = r.ts ? new Date(r.ts) : null;
       const fmtTs = ts ? `${ts.getMonth()+1}/${ts.getDate()} ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}` : (r.ts||'');
       const okIcon = (r.action||'').includes(':OK') ? '✅' : (r.action||'').includes(':NG') ? '❌' : '📝';
-      return `<div class="sync-log-row"><span class="sync-log-ts">${fmtTs}</span><span class="sync-log-who">${r.user||'?'}</span><span style="font-size:9px;color:var(--tx3)">${r.device||''}</span><span class="sync-log-act">${okIcon} ${(r.action||'').replace(':OK','').replace(':NG','')}</span></div>`;
+      // ★F02：ログの値(user/device/action)は staff が投稿し得る。管理者画面で実行されないよう必ずエスケープ。
+      const who = escapeHtml(r.user || '?');
+      const dev = escapeHtml(r.device || '');
+      const act = escapeHtml((r.action || '').replace(':OK','').replace(':NG',''));
+      return `<div class="sync-log-row"><span class="sync-log-ts">${escapeHtml(fmtTs)}</span><span class="sync-log-who">${who}</span><span style="font-size:9px;color:var(--tx3)">${dev}</span><span class="sync-log-act">${okIcon} ${act}</span></div>`;
     }).join('');
     if (data.logs[0]) updateSyncInfoBar({ ts: data.logs[0].ts, user: data.logs[0].user, device: data.logs[0].device });
   } catch(e) { el.innerHTML = `<div style="font-size:11px;color:var(--r);text-align:center;padding:8px">読込エラー: ${e.message}</div>`; }
@@ -3073,11 +3117,10 @@ async function saveToSheet() {
     showSyncBadge('saving');
     const shiftsJson = JSON.stringify(SHIFTS);
     console.log('[saveToSheet] SHIFTSサイズ:', shiftsJson.length, 'bytes');
+    // ★申請(vacReqs/otReqs/hReqs)はブロブ一括保存を廃止。
+    //   申請は1件単位API(createRequest/decideRequest/…)でその都度サーバーへ保存される。
     const results = await Promise.all([
       saveShiftKey('shifts',     shiftsJson),
-      saveShiftKey('vacReqs',    JSON.stringify(VAC_REQUESTS)),
-      saveShiftKey('otReqs',     JSON.stringify(OT_REQUESTS)),
-      saveShiftKey('hReqs',      JSON.stringify(H_REQUESTS)),
       saveShiftKey('calSpecial', JSON.stringify(CAL_SPECIAL)),
       saveShiftKey('employees',  JSON.stringify(EMPLOYEES)),
     ]);
@@ -3113,14 +3156,8 @@ async function loadFromSheet() {
     const shifts = safeParseObj(d.shifts, 'shifts');
     if (shifts) { Object.keys(SHIFTS).forEach(k=>delete SHIFTS[k]); Object.assign(SHIFTS, shifts); }
 
-    const vacReqs = safeParseObj(d.vacReqs, 'vacReqs');
-    if (vacReqs) { VAC_REQUESTS.length=0; vacReqs.forEach(r=>VAC_REQUESTS.push(r)); }
-
-    const otReqs = safeParseObj(d.otReqs, 'otReqs');
-    if (otReqs) { OT_REQUESTS.length=0; otReqs.forEach(r=>OT_REQUESTS.push(r)); }
-
-    const hReqs = safeParseObj(d.hReqs, 'hReqs');
-    if (hReqs) { H_REQUESTS.length=0; hReqs.forEach(r=>H_REQUESTS.push(r)); }
+    // ★申請はブロブ(d.vacReqs等)から読まない。listRequests（サーバー権威）で取得する。
+    await refreshRequests_();
 
     const calSpecial = safeParseObj(d.calSpecial, 'calSpecial');
     if (calSpecial) { Object.keys(CAL_SPECIAL).forEach(k=>delete CAL_SPECIAL[k]); Object.assign(CAL_SPECIAL, calSpecial); }
