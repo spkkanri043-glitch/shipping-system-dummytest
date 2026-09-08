@@ -746,7 +746,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 // CONFIG & USER
 // ══════════════════════════════════════════════
 // セキュリティ改修：接続先は固定（?seikei_gas_url= 等の差し替えを撤去）。
-const GAS_URL         = 'https://script.google.com/macros/s/AKfycbwq2iPvBY26qD7zdCFI5nKu87ZKde55cXZg4phNRLKBgGfrBWrG5xbNY4aahAXVNTB4/exec';
+const GAS_URL         = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_SEIKEIKIROKU/exec';
 const PRODUCT_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec'; // 製品マスタ（現状は匿名読取）
 
 // ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
@@ -1346,18 +1346,25 @@ function applyProdEdit() {
 // ══════════════════════════════════════════════
 // 写真展開（Googleドライブ）
 // ══════════════════════════════════════════════
-// 共有リンク等から埋め込み用URLへ変換（/preview 形式に統一）
-function driveEmbedUrl(url) {
-  const u = String(url || '').trim();
-  if (!u) return '';
-  if (u.includes('drive.google.com')) {
-    if (u.includes('/preview')) return u;
-    const m = u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
-           || u.match(/[?&]id=([a-zA-Z0-9_-]+)/)
-           || u.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
-  }
-  return u;   // 通常の画像URLはそのまま
+// ★F03：写真URLは「許可ホストの Drive ファイルID」から正規の /preview URL だけを生成する。
+//   includes 判定・任意URL素通し・javascript:/data: を排除。fileId 優先、無ければ URL を
+//   厳格パース（https かつ host が drive.google.com と完全一致）して id を取り出す。
+function drivePreviewFromId_(id) {
+  return /^[a-zA-Z0-9_-]{10,}$/.test(String(id || '')) ? 'https://drive.google.com/file/d/' + id + '/preview' : '';
+}
+function safeDrivePreview_(p) {
+  const byId = drivePreviewFromId_(p && p.fileId);
+  if (byId) return byId;
+  const raw = String((p && p.url) || '').trim();
+  if (!raw) return '';
+  let u;
+  try { u = new URL(raw); } catch (e) { return ''; }
+  if (u.protocol !== 'https:') return '';
+  if (u.hostname !== 'drive.google.com') return '';   // 部分一致(includes)は使わない
+  const m = u.pathname.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/)
+         || u.pathname.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+  const id = m ? m[1] : (u.searchParams.get('id') || '');
+  return drivePreviewFromId_(id);
 }
 
 // ── 写真の名前をドライブ側にも反映 ──
@@ -1485,12 +1492,11 @@ async function onPhotoFile(inp, isMaster) {
 
 // 写真1枚分の表示HTML（/preview はiframe、それ以外はimg）
 function photoItemHtml(p) {
-  const url = driveEmbedUrl(p && p.url);
+  // ★F03：許可された Drive プレビューURLのみ表示。それ以外(別ホスト/javascript:/data:等)は非表示。
+  const url = safeDrivePreview_(p);
   if (!url) return '';
   const name = (p && p.name) ? p.name : '写真';
-  const media = url.includes('/preview')
-    ? `<div class="ph-frame"><iframe src="${esc(url)}" frameborder="0" allowfullscreen style="border:none;width:100%;height:100%"></iframe></div>`
-    : `<a href="${esc(url)}" target="_blank"><img class="ph-img" src="${esc(url)}" alt="${esc(name)}" onerror="this.style.display='none'"></a>`;
+  const media = `<div class="ph-frame"><iframe src="${esc(url)}" frameborder="0" allowfullscreen style="border:none;width:100%;height:100%"></iframe></div>`;
   return `<figure class="ph-item">${media}<figcaption class="ph-cap">${esc(name)}</figcaption></figure>`;
 }
 
