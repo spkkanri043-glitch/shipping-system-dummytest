@@ -1240,20 +1240,27 @@ document.getElementById('client-edit-ok').addEventListener('click', async () => 
   if (!name) { document.getElementById('client-name-input').focus(); return; }
   if (!ssId) { document.getElementById('client-ssid-input').focus(); return; }
   showLoad(true);
-  if (editId) {
-    await api({ action:'updateClient', clientId:editId, name, ssId });
-    const c = clients.find(x => x.id === editId);
-    if (c) { c.name = name; c.ssId = ssId; }
-    showToast('取引先を更新しました');
-  } else {
-    const r = await api({ action:'addClient', name, ssId });
-    clients.push({ id:r.id, name, ssId });
-    showToast('取引先を追加しました');
+  try {
+    // ★O02：サーバーの成功(ok:true)を確認できるまでローカルの取引先情報を変更しない。
+    //   業務/認証/通信/不正応答はエラー表示し、偽の取引先（id欠落）を作らない。
+    if (editId) {
+      const r = await api({ action:'updateClient', clientId:editId, name, ssId });
+      if (!r || r.ok !== true) { showToast('取引先の更新に失敗しました' + (r && r.error ? '：' + r.error : '')); return; }
+      const c = clients.find(x => x.id === editId);
+      if (c) { c.name = name; c.ssId = ssId; }
+      showToast('取引先を更新しました');
+    } else {
+      const r = await api({ action:'addClient', name, ssId });
+      if (!r || r.ok !== true || !r.id) { showToast('取引先の追加に失敗しました' + (r && r.error ? '：' + r.error : '')); return; }
+      clients.push({ id:r.id, name, ssId });
+      showToast('取引先を追加しました');
+    }
+    document.getElementById('client-edit-area').style.display = 'none';
+    renderClientList();
+    renderTabs();
+  } finally {
+    showLoad(false);
   }
-  showLoad(false);
-  document.getElementById('client-edit-area').style.display = 'none';
-  renderClientList();
-  renderTabs();
 });
 document.getElementById('client-name-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('client-ssid-input').focus();
@@ -1891,12 +1898,14 @@ function renderTabs() {
   const manageBtn = `<div style="margin-left:auto;padding:4px 8px;flex-shrink:0">
     <button class="btn" id="btn-manage-clients" style="font-size:11px;padding:4px 10px" onclick="openClientsModal()">⚙ 取引先管理</button>
   </div>`;
-  if (!clients.length) {
+  // ★O02：id を持たない不正な取引先はタブに出さない（undefined等のclientIdでの誤操作を防ぐ）
+  const validClients = clients.filter(c => c && c.id && String(c.id).trim() && String(c.id) !== 'undefined');
+  if (!validClients.length) {
     bar.innerHTML = '<div style="padding:10px 16px;font-size:12px;color:#bbb;flex:1">取引先なし</div>' + manageBtn;
     return;
   }
-  bar.innerHTML = clients.map(c =>
-    `<div class="ctab${c.id===selCid?' active':''}" data-cid="${c.id}">${escH(c.name)}</div>`
+  bar.innerHTML = validClients.map(c =>
+    `<div class="ctab${c.id===selCid?' active':''}" data-cid="${escH(String(c.id))}">${escH(c.name)}</div>`
   ).join('') + manageBtn;
   bar.querySelectorAll('.ctab').forEach(t => {
     t.addEventListener('click', async () => {
