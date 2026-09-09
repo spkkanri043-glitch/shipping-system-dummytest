@@ -2582,7 +2582,26 @@ function clearHistFilters() {
   renderHistTabs();
 }
 
+// ★R01：履歴のクリックは data属性＋委譲で処理（品番/key/idをインラインJSに埋め込まない）。
+function bindHistDelegation_(){
+  const modal = document.getElementById('histModal');
+  if (!modal || modal._histBound) return;
+  modal.addEventListener('click', function(ev){
+    const t = ev.target;
+    const tabBtn = t.closest && t.closest('[data-histtab]');
+    if (tabBtn) { setHistTab(tabBtn.getAttribute('data-histtab')); return; }
+    const newBtn = t.closest && t.closest('[data-newkey]');
+    if (newBtn) { newFromMaster(newBtn.getAttribute('data-newkey')); return; }
+    const togBtn = t.closest && t.closest('[data-togglekey]');
+    if (togBtn) { toggleHistGroup(togBtn.getAttribute('data-togglekey')); return; }
+    const rec = t.closest && t.closest('[data-loadid]');
+    if (rec) { loadRecord(rec.getAttribute('data-loadid')); return; }
+  });
+  modal._histBound = true;
+}
+
 async function openHistory(){
+  bindHistDelegation_();
   document.getElementById('histModal').classList.add('show');
   document.getElementById('histList').innerHTML='<div class="hist-empty">読み込み中...</div>';
   document.getElementById('histTabs').innerHTML='';
@@ -2683,11 +2702,11 @@ function renderHistTabs() {
   if (HIST_TAB !== 'all' && !clientKeys.includes(HIST_TAB)) HIST_TAB = 'all';
 
   const tabsEl = document.getElementById('histTabs');
-  let html = `<button class="htab${HIST_TAB==='all'?' on':''}" onclick="setHistTab('all')">すべて <span class="hbadge">${base.length}</span></button>`;
+  let html = `<button type="button" class="htab${HIST_TAB==='all'?' on':''}" data-histtab="all">すべて <span class="hbadge">${base.length}</span></button>`;
   clientKeys.forEach(c => {
     const label = c === '__none__' ? '未設定' : c;
     const icon  = c === '__none__' ? '' : '🏢 ';
-    html += `<button class="htab${HIST_TAB===c?' on':''}" onclick="setHistTab('${esc(c).replace(/'/g,"\\'")}')">${icon}${esc(label)} <span class="hbadge">${clientsMap[c]}</span></button>`;
+    html += `<button type="button" class="htab${HIST_TAB===c?' on':''}" data-histtab="${esc(c)}">${icon}${esc(label)} <span class="hbadge">${clientsMap[c]}</span></button>`;
   });
   tabsEl.innerHTML = html;
   renderHistList();
@@ -2712,7 +2731,8 @@ function renderHistList(){
   Object.entries(groups).forEach(([key, g]) => {
     const isExp = !!HIST_EXPANDED[key];
     const latest = g.records[0];
-    const safeKey = key.replace(/'/g, "\\'");
+    // ★R01：品番由来の key はインラインJSに連結せず、data属性(esc済み)＋委譲で扱う。
+    const keyAttr = esc(key);
     const mst = PARTS.find(p => (p.nos||[p.no]).some(n => key.split('/').includes(n)));
     const client = mst ? (mst.client||'') : '';
     const groupColors = ['#1a3a6b','#2955a0','#1a6896','#16537e'];
@@ -2725,11 +2745,11 @@ function renderHistList(){
           + '<div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:1px;">' + esc(g.name) + (client ? ' ／ 🏢 ' + esc(client) : '') + '</div>'
         + '</div>'
         + '<span style="font-size:10px;color:rgba(255,255,255,.6);white-space:nowrap;">' + g.records.length + '件</span>'
-        + '<button onclick="newFromMaster(\'' + safeKey + '\')" style="padding:4px 10px;font-size:11px;border:none;border-radius:4px;background:#27ae60;color:#fff;cursor:pointer;font-weight:bold;white-space:nowrap;">＋ 新規作成</button>'
+        + '<button type="button" data-newkey="' + keyAttr + '" style="padding:4px 10px;font-size:11px;border:none;border-radius:4px;background:#27ae60;color:#fff;cursor:pointer;font-weight:bold;white-space:nowrap;">＋ 新規作成</button>'
       + '</div>'
       + '<div style="padding:8px 8px 0;">' + histRecordCard(latest) + '</div>'
       + (g.records.length > 1
-        ? '<button onclick="toggleHistGroup(\'' + safeKey + '\')" style="width:100%;padding:7px;font-size:11px;background:' + (isExp?'#eef2f9':'#f8f9fc') + ';border:none;border-top:1px solid #dce4f0;cursor:pointer;color:#5a6a85;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;">'
+        ? '<button type="button" data-togglekey="' + keyAttr + '" style="width:100%;padding:7px;font-size:11px;background:' + (isExp?'#eef2f9':'#f8f9fc') + ';border:none;border-top:1px solid #dce4f0;cursor:pointer;color:#5a6a85;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;">'
           + (isExp ? '▲ 閉じる' : '▽ 過去の記録を見る（あと' + (g.records.length-1) + '件）')
           + '</button>'
           + (isExp ? '<div style="padding:0 8px 8px;">' + g.records.slice(1).map(r => histRecordCard(r)).join('') + '</div>' : '')
@@ -2762,7 +2782,7 @@ function histRecordCard(r) {
   })();
   const date   = savedAtJST.substring(0, 10);
   const time   = savedAtJST.substring(11, 16);
-  const safeId = String(r.id||'').replace(/'/g,"\\'");
+  const idAttr = esc(String(r.id||''));   // ★R01：id も data属性(esc)＋委譲で扱う
   const master  = PARTS.find(p => (p.nos||[p.no]).some(n => nos.split(' / ').includes(n)));
   const client  = r.client || master?.client || '';
   const signs = r.signs || {};
@@ -2780,7 +2800,7 @@ function histRecordCard(r) {
   const operator    = safeStr(r.operator || r.operatorId || r.savedByName);
   const machineNo   = safeStr(r.machineNo);
   const recordDate  = safeStr(r.recordDate);
-  return '<div class="hrec' + (allSigned ? ' hrec-done' : '') + '" onclick="loadRecord(\'' + safeId + '\')">'
+  return '<div class="hrec' + (allSigned ? ' hrec-done' : '') + '" data-loadid="' + idAttr + '" style="cursor:pointer">'
     + '<div class="hrec-top">'
       + '<div style="flex:1;min-width:0;">'
         + '<div class="hrec-req">📋 ' + esc(reqs||'依頼番号なし')
