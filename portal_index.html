@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Da/fOqAv+xPH3tHiULLa7xtiePtE0gNl8nX7rgXGE2E=' 'sha256-9nUqiXxYfZKZwNjBRwUr/TKszMS2vuA5T2xNyu0JFjM='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://docs.google.com; frame-src 'none'; form-action 'none'">
+<script>/* MOGU_CSP_RUNTIME_V1 */
+const __moguCsp = (() => {
+  const handlers = {"h0": function(event, _p) { doLogin()
+},
+"h1": function(event, _p) { goPage('dashboard')
+},
+"h2": function(event, _p) { doLogout()
+},
+"h3": function(event, _p) { goPage('dashboard')
+},
+"h4": function(event, _p) { goPage('apps')
+},
+"h5": function(event, _p) { goPage('employees')
+},
+"h6": function(event, _p) { goPage('admin')
+},
+"h7": function(event, _p) { openApp('shipping')
+},
+"h8": function(event, _p) { openApp('shippingAdjust')
+},
+"h9": function(event, _p) { filterEmp(this.value)
+},
+"h10": function(event, _p) { setDept('all',this)
+},
+"h11": function(event, _p) { setDept('製造部',this)
+},
+"h12": function(event, _p) { setDept('生産管理部',this)
+},
+"h13": function(event, _p) { setDept('品質保証部',this)
+},
+"h14": function(event, _p) { setDept('事務・総務・経理',this)
+},
+"h15": function(event, _p) { loadEmployees()
+},
+"h16": function(event, _p) { openEmpModal()
+},
+"h17": function(event, _p) { saveAppPermissions()
+},
+"h18": function(event, _p) { doPasswordReset()
+},
+"h19": function(event, _p) { saveCsvUrl()
+},
+"h20": function(event, _p) { loadLogs()
+},
+"h21": function(event, _p) { saveNotifySettings()
+},
+"h22": function(event, _p) { loadNotifySettings()
+},
+"h23": function(event, _p) { closeEmpModal()
+},
+"h24": function(event, _p) { saveEmp()
+},
+"h25": function(event, _p) { closeConfirm()
+},
+"h26": function(event, _p) { openApp((String(_p[0])))
+},
+"h27": function(event, _p) { openApp('shipping')
+},
+"h28": function(event, _p) { if (_p[1] === "openApp('shippingAdjust')") { openApp('shippingAdjust') } else if (_p[1] === "") {  } else { throw new Error("Invalid compiled handler alternative"); }
+},
+"h29": function(event, _p) { openApp((String(_p[0])))
+},
+"h30": function(event, _p) { openEmpModalById(this)
+},
+"h31": function(event, _p) { delEmpById(this)
+},
+"h32": function(event, _p) { toggleStatusBtn(this)
+},
+"h33": function(event, _p) { toggleStatusBtn(this)
+}};
+  const events = ["click","input"];
+  const bound = new WeakMap();
+  function bind(el) {
+    if (!el || el.nodeType !== 1) return;
+    let state = bound.get(el); if (!state) { state = new Map(); bound.set(el, state); }
+    for (const type of events) {
+      const id = el.getAttribute('data-csp-' + type);
+      if (!id || state.get(type) === id) continue;
+      if (!Object.prototype.hasOwnProperty.call(handlers, id)) continue;
+      const fn = function(event) {
+        const value = this.getAttribute('data-csp-args-' + type);
+        const params = value ? JSON.parse(decodeURIComponent(value)) : [];
+        return handlers[id].call(this, event, params);
+      };
+      // Native event-handler properties preserve this/currentTarget, cancellation,
+      // async return behavior and later application assignments to .onclick etc.
+      el['on' + type] = fn;
+      state.set(type, id);
+    }
+  }
+  function scan(root) {
+    bind(root);
+    if (root.querySelectorAll) for (const el of root.querySelectorAll('*')) bind(el);
+  }
+  for (const type of events) document.addEventListener(type, event => {
+    for (const el of event.composedPath()) bind(el);
+  }, true);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') bind(record.target);
+      else for (const node of record.addedNodes) scan(node);
+    }
+  }).observe(document, {subtree:true, childList:true, attributes:true,
+    attributeFilter: events.map(type => 'data-csp-' + type)});
+  document.addEventListener('DOMContentLoaded', () => scan(document));
+  const encode = values => encodeURIComponent(JSON.stringify(values)).replace(/'/g, '%27');
+  function assign(el,type,id,values) {
+    el.setAttribute('data-csp-' + type,id);
+    el.setAttribute('data-csp-args-' + type,encode(values));
+    bind(el);
+  }
+  return Object.freeze({ encode, scan, assign });
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<style>
+html, body { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; margin: 0 !important; padding: 0 !important; }
+.lbox, .modal, .lcard { max-width: 420px !important; }
+img, video { max-width: 100% !important; }
+.emp-table, .log-table { max-width: none !important; }
+</style>
+<title>関ケ原プラ工業(株) 業務管理アプリ</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --pr: #1a3a5c; --prl: #2a5a8c; --ac: #e8a020;
+  --bg: #edf1f6; --sf: #fff; --sf2: #f2f6fb; --sf3: #e8edf4;
+  --tx: #1a2332; --tx2: #5a6a7a; --tx3: #9aabb8;
+  --bd: #cfd9e6; --bd2: #adbace;
+  --g: #0b7a3d; --gbg: #e3f6ed;
+  --a: #b07000; --abg: #fff7db;
+  --r: #b53030; --rbg: #fce8e8;
+  --b: #1655b0; --bbg: #e5effe;
+  --rad: 10px; --rads: 7px;
+}
+html { height: 100%; -webkit-text-size-adjust: 100%; overflow-x: hidden; }
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--tx); font-size: 14px; min-height: 100%; width: 100%; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+.hid { display: none !important; }
+.screen { display: none; width: 100%; }
+.screen.on { display: block; }
+#s-login { min-height: 100vh; width: 100%; background: linear-gradient(150deg, #071828 0%, #1a3a5c 55%, #071828 100%); display: none; align-items: center; justify-content: center; padding: 20px 16px; }
+#s-login.on { display: flex; }
+.lbox { width: 100%; max-width: 360px; margin: 0 auto; }
+.llogo { text-align: center; margin-bottom: 1.6rem; }
+.lring { width: 60px; height: 60px; border-radius: 50%; border: 2px solid rgba(232,160,32,.6); background: rgba(232,160,32,.15); display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 10px; }
+.lco { font-size: 19px; font-weight: 700; color: #fff; letter-spacing: .5px; }
+.lsub { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 3px; }
+.lcard { background: #fff; border-radius: 14px; padding: 1.5rem; box-shadow: 0 20px 60px rgba(0,0,0,.5); width: 100%; }
+.lcard-title { font-size: 14px; font-weight: 700; color: var(--tx); text-align: center; margin-bottom: 1.1rem; padding-bottom: 10px; border-bottom: 1px solid var(--bd); }
+.fg { margin-bottom: .75rem; }
+.fl { font-size: 12px; color: var(--tx2); display: block; margin-bottom: 4px; font-weight: 500; }
+.fi { width: 100%; padding: 11px 12px; font-size: 16px; border: 1px solid var(--bd2); border-radius: var(--rads); background: #f8fafc; color: var(--tx); outline: none; transition: border .2s; font-family: inherit; -webkit-appearance: none; appearance: none; }
+.fi:focus { border-color: var(--pr); }
+select.fi { cursor: pointer; }
+.btnl { width: 100%; padding: 12px; background: var(--pr); color: #fff; border: none; border-radius: var(--rads); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; -webkit-appearance: none; }
+.btnl:active { background: var(--prl); }
+.btnl:disabled { opacity: .6; cursor: not-allowed; }
+.lerr { background: var(--rbg); color: var(--r); border: 1px solid rgba(181,48,48,.2); border-radius: var(--rads); padding: 9px 12px; font-size: 12px; margin-bottom: .75rem; text-align: center; }
+#s-main { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
+#s-main.on { display: flex; }
+.topbar { background: var(--pr); padding: 0 14px; height: 48px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,.28); flex-shrink: 0; position: sticky; top: 0; z-index: 100; width: 100%; }
+.tbl { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.tbic { width: 30px; height: 30px; border-radius: 50%; background: rgba(232,160,32,.2); border: 1px solid rgba(232,160,32,.4); display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; flex-shrink: 0; }
+.tbco { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbmd { font-size: 10px; color: rgba(255,255,255,.5); }
+.tbr { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.badge-role { padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.badge-admin { background: rgba(232,160,32,.25); color: #e8a020; border: 1px solid rgba(232,160,32,.4); }
+.badge-master { background: rgba(181,48,48,.25); color: #b53030; border: 1px solid rgba(181,48,48,.4); }
+.badge-user { background: rgba(255,255,255,.12); color: rgba(255,255,255,.8); border: 1px solid rgba(255,255,255,.22); }
+.btn-logout { padding: 5px 10px; font-size: 11px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); color: #fff; border-radius: 5px; cursor: pointer; white-space: nowrap; }
+.user-name { font-size: 11px; color: rgba(255,255,255,.8); white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+.main-nav { background: #112540; display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-shrink: 0; width: 100%; scrollbar-width: none; }
+.main-nav::-webkit-scrollbar { display: none; }
+.nav-item { padding: 10px 14px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,.5); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all .18s; user-select: none; flex-shrink: 0; }
+.nav-item.on { color: var(--ac); border-bottom-color: var(--ac); background: rgba(255,255,255,.04); }
+.content { padding: 14px; flex: 1; width: 100%; }
+.page { display: none; }
+.page.on { display: block; }
+.badge { padding: 2px 8px; font-size: 11px; border-radius: 20px; font-weight: 600; }
+.bg-g { background: var(--gbg); color: var(--g); }
+.bg-a { background: var(--abg); color: var(--a); }
+.bg-r { background: var(--rbg); color: var(--r); }
+.bg-gray { background: #f1f5f9; color: #475569; }
+.bg-master { background: rgba(181,48,48,.15); color: #b53030; }
+.btn { padding: 7px 14px; font-size: 12px; font-weight: 600; border-radius: var(--rads); cursor: pointer; border: 1px solid var(--bd2); background: var(--sf2); color: var(--tx); transition: all .15s; font-family: inherit; -webkit-appearance: none; }
+.btn.pri { background: var(--pr); color: #fff; border-color: transparent; }
+.btn.danger { background: var(--r); color: #fff; border-color: transparent; }
+.btn.sm { padding: 5px 11px; font-size: 11px; }
+.btn.xs { padding: 3px 9px; font-size: 11px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.section-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--bd); display: flex; align-items: center; gap: 7px; color: var(--pr); }
+.greeting { margin-bottom: 14px; }
+.greeting h2 { font-size: 17px; font-weight: 700; color: var(--pr); }
+.greeting p { font-size: 12px; color: var(--tx2); margin-top: 3px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat-card { background: var(--sf); border: 1px solid var(--bd); border-radius: var(--rad); padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.04); position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-card.blue::before { background: var(--pr); }
+.stat-card.gold::before { background: var(--ac); }
+.stat-card.green::before { background: var(--g); }
+.stat-ico { font-size: 18px; margin-bottom: 4px; }
+.stat-val { font-size: 20px; font-weight: 700; line-height: 1.2; color: var(--pr); }
+.stat-lbl { font-size: 10px; color: var(--tx2); margin-top: 2px; }
+.app-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+.app-card { background: var(--sf); border: 1px solid var(--bd); border-radius: var(--rad); padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.04); cursor: pointer; transition: all .2s; display: flex; flex-direction: column; gap: 6px; -webkit-tap-highlight-color: transparent; }
+.app-card:active { transform: scale(.98); background: var(--sf2); }
+.app-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 2px; }
+.app-icon.blue { background: #dbeafe; }
+.app-icon.green { background: #d1fae5; }
+.app-icon.orange { background: #fef3c7; }
+.app-icon.red { background: #fee2e2; }
+.app-icon.purple { background: #ede9fe; }
+.app-name { font-size: 13px; font-weight: 700; color: var(--tx); }
+.app-desc { font-size: 11px; color: var(--tx2); line-height: 1.5; }
+.app-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; display: inline-block; }
+.app-badge.active { background: var(--gbg); color: var(--g); }
+.app-badge.coming { background: var(--abg); color: var(--a); }
+/* ▼ カナモリ専用カード枠 */
+.kanamori-section { margin-bottom: 14px; }
+.kanamori-section-label { font-size: 11px; font-weight: 700; color: var(--tx3); letter-spacing: .05em; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+.kanamori-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.app-card.locked { opacity: .5; cursor: not-allowed; pointer-events: none; }
+.app-card.locked:active { transform: none; }
+.admin-tag { font-size: 10px; font-weight: 700; color: var(--r); margin-top: 2px; }
+/* ▲ カナモリ専用カード枠ここまで */
+.notice-card { background: var(--abg); border: 1px solid rgba(176,112,0,.25); border-radius: var(--rad); padding: 12px 14px; margin-bottom: 12px; }
+.notice-card h4 { font-size: 12px; font-weight: 700; color: var(--a); margin-bottom: 6px; }
+.notice-item { font-size: 12px; color: var(--tx2); padding: 5px 0; border-bottom: 1px solid rgba(176,112,0,.12); display: flex; align-items: flex-start; gap: 7px; line-height: 1.5; }
+.notice-item:last-child { border-bottom: none; }
+.notice-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ac); flex-shrink: 0; margin-top: 5px; }
+.toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 120px; padding: 9px 12px; font-size: 16px; border: 1px solid var(--bd2); border-radius: var(--rads); background: #f8fafc; color: var(--tx); outline: none; font-family: inherit; -webkit-appearance: none; }
+.search-input:focus { border-color: var(--pr); }
+.filter-btn { padding: 6px 12px; font-size: 12px; border: 1px solid var(--bd2); border-radius: 20px; background: #fff; cursor: pointer; color: var(--tx2); white-space: nowrap; -webkit-appearance: none; }
+.filter-btn.on { background: var(--pr); color: #fff; border-color: transparent; }
+.emp-table-wrap { overflow-x: auto; border-radius: var(--rad); border: 1px solid var(--bd); -webkit-overflow-scrolling: touch; }
+.emp-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; min-width: 480px; }
+.emp-table th { padding: 9px 10px; background: var(--sf2); border-bottom: 2px solid var(--bd); font-weight: 600; color: var(--tx2); white-space: nowrap; text-align: left; }
+.emp-table td { padding: 9px 10px; border-bottom: 1px solid var(--bd); vertical-align: middle; }
+.emp-table tr:last-child td { border-bottom: none; }
+.sync-bar { border-radius: var(--rads); padding: 7px 12px; font-size: 12px; display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+.sync-bar.ok { background: #f0fdf4; border: 1px solid #86efac; color: var(--g); }
+.sync-bar.err { background: var(--rbg); border: 1px solid #fca5a5; color: var(--r); }
+.sync-bar.loading { background: var(--abg); border: 1px solid #fcd34d; color: var(--a); }
+.admin-card { background: var(--sf); border: 1px solid var(--bd); border-radius: var(--rad); padding: 1rem; margin-bottom: 12px; }
+.admin-card-title { font-size: 13px; font-weight: 700; color: var(--tx); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--bd); }
+.log-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.log-table th { padding: 6px 8px; background: var(--sf2); border-bottom: 1px solid var(--bd); color: var(--tx2); font-weight: 600; text-align: left; }
+.log-table td { padding: 5px 8px; border-bottom: 1px solid var(--bd); color: var(--tx2); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 500; padding: 16px; -webkit-overflow-scrolling: touch; }
+.modal { background: #fff; border-radius: 14px; padding: 1.4rem; width: 100%; max-width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,.35); max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.modal-title { font-size: 14px; font-weight: 700; color: var(--pr); margin-bottom: 1.1rem; padding-bottom: 8px; border-bottom: 1px solid var(--bd); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.1rem; padding-top: 10px; border-top: 1px solid var(--bd); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,.88); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 800; gap: 12px; }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--bd); border-top-color: var(--pr); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-msg { font-size: 13px; color: var(--tx2); }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px); background: #1a2332; color: #fff; padding: 11px 22px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.3); z-index: 999; transition: transform .3s; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--g); }
+.toast.error { background: var(--r); }
+.confirm-msg { font-size: 13px; color: var(--tx); line-height: 1.7; margin-bottom: .5rem; white-space: pre-wrap; }
+.online-users { font-size: 10px; color: var(--g); line-height: 1.6; }
+.online-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--g); margin-right: 3px; animation: pulse-g 1.5s infinite; }
+@keyframes pulse-g { 0%,100%{opacity:1} 50%{opacity:.4} }
+@media (max-width: 767px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .app-grid { grid-template-columns: 1fr 1fr; } .kanamori-grid { grid-template-columns: 1fr 1fr; } .form-row { grid-template-columns: 1fr; } .user-name { display: none; } .content { padding: 12px; } }
+@media (max-width: 375px) { .app-grid { grid-template-columns: 1fr; } .kanamori-grid { grid-template-columns: 1fr 1fr; } .greeting h2 { font-size: 15px; } .stat-val { font-size: 18px; } .content { padding: 10px; } .lcard { padding: 1.2rem; } }
+@media (min-width: 768px) and (max-width: 1023px) { .lbox { max-width: 400px; } .stats-grid { grid-template-columns: repeat(3, 1fr); } .app-grid { grid-template-columns: repeat(2, 1fr); } .content { padding: 20px 24px; } .topbar { padding: 0 20px; height: 52px; } .nav-item { padding: 12px 18px; font-size: 13px; } .greeting h2 { font-size: 20px; } .stat-val { font-size: 24px; } .modal { max-width: 420px; } }
+@media (min-width: 1024px) { .lbox { max-width: 420px !important; width: 420px !important; margin: 0 auto !important; } .stats-grid { grid-template-columns: repeat(4, 1fr); } .app-grid { grid-template-columns: repeat(3, 1fr); } .content { padding: 24px 32px; max-width: 1200px; margin: 0 auto; } .topbar { padding: 0 32px; height: 54px; } .tbco { font-size: 15px; } .nav-item { padding: 12px 22px; font-size: 13px; } .greeting h2 { font-size: 22px; } .stat-val { font-size: 26px; } .stat-card { padding: 16px 18px; } .app-card { padding: 18px 20px; } .app-name { font-size: 14px; } .modal { max-width: 460px; } .emp-table { font-size: 13px; } .emp-table th, .emp-table td { padding: 10px 14px; } #page-admin .admin-card { max-width: 800px; } }
+@media (max-width: 767px) and (orientation: landscape) { #s-login { padding: 10px 16px; } .lring { width: 44px; height: 44px; font-size: 18px; margin-bottom: 6px; } .llogo { margin-bottom: .8rem; } .lcard { padding: 1rem; } .fg { margin-bottom: .5rem; } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="s-login" class="screen on">
+  <div class="lbox">
+    <div class="llogo">
+      <div class="lring">&#x1F3ED;</div>
+      <div class="lco">関ケ原プラ工業(株)</div>
+      <div class="lsub">業務管理アプリ</div>
+    </div>
+    <div class="lcard">
+      <div class="lcard-title">&#x1F510; ログイン</div>
+      <div id="login-err" class="lerr hid"></div>
+      <div class="fg"><label class="fl">社員ID / ログインID</label><input class="fi" type="text" id="inp-id" placeholder="例: admin" autocomplete="username" autocorrect="off" autocapitalize="none"></div>
+      <div class="fg"><label class="fl">パスワード</label><input class="fi" type="password" id="inp-pw" placeholder="パスワードを入力" autocomplete="current-password"></div>
+      <button class="btnl" id="btn-login" data-csp-click="h0" data-csp-source-click="doLogin()">ログイン</button>
+      <div style="font-size:14px;font-weight:700;color:var(--tx3);text-align:center;margin-top:10px;line-height:1.7">⚠️ 他人にIDとパスワードを教えないでください</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="s-main" class="screen">
+  <div class="topbar">
+    <div class="tbl">
+      <div class="tbic" data-csp-click="h1" data-csp-source-click="goPage('dashboard')">&#x1F3ED;</div>
+      <div style="min-width:0"><div class="tbco">関ケ原プラ工業(株)</div><div class="tbmd">業務管理アプリ</div></div>
+    </div>
+    <div class="tbr">
+      <span class="user-name" id="disp-name"></span>
+      <span class="badge-role" id="disp-role"></span>
+      <button class="btn-logout" data-csp-click="h2" data-csp-source-click="doLogout()">ログアウト</button>
+    </div>
+  </div>
+  <div class="main-nav">
+    <div class="nav-item on" data-csp-click="h3" data-csp-source-click="goPage('dashboard')" id="nav-dashboard">&#x1F3E0; ダッシュボード</div>
+    <div class="nav-item" data-csp-click="h4" data-csp-source-click="goPage('apps')" id="nav-apps">&#x1F4F1; アプリ一覧</div>
+    <div class="nav-item admin-only hid" data-csp-click="h5" data-csp-source-click="goPage('employees')" id="nav-employees">&#x1F465; 従業員マスター</div>
+    <div class="nav-item admin-only hid" data-csp-click="h6" data-csp-source-click="goPage('admin')" id="nav-admin">&#x2699;&#xFE0F; 管理者</div>
+  </div>
+  <div class="content">
+    <div class="page on" id="page-dashboard">
+      <div class="greeting"><h2 id="greet-name">ようこそ</h2><p id="greet-date"></p></div>
+      <div class="stats-grid">
+        <div class="stat-card blue"><div class="stat-ico">&#x1F465;</div><div class="stat-val" id="stat-emp">--</div><div class="stat-lbl">登録従業員数</div></div>
+        <div class="stat-card gold"><div class="stat-ico">&#x1F4F1;</div><div class="stat-val">5</div><div class="stat-lbl">稼働中アプリ</div></div>
+        <div class="stat-card green"><div class="stat-ico">&#x1F504;</div><div class="stat-val" id="stat-sync">--</div><div class="stat-lbl">最終同期</div></div>
+      </div>
+      <div class="notice-card">
+  <h4>&#x1F4E2; お知らせ</h4>
+  <div class="notice-item">
+    <span class="notice-dot"></span>
+    <a href="https://drive.google.com/file/d/TEST_DRIVE_FILE_ID_DOC1/view?usp=sharing" target="_blank" rel="noopener" style="color:var(--a);text-decoration:underline;">
+      経営方針
+    </a>
+  </div>
+  <div class="notice-item">
+    <span class="notice-dot"></span>
+    <a href="https://drive.google.com/file/d/TEST_DRIVE_FILE_ID_DOC2/view?usp=sharing" target="_blank" rel="noopener" style="color:var(--a);text-decoration:underline;">
+      【2026年度】会社カレンダー
+    </a>
+  </div>
+</div>
+
+      <!-- ▼▼▼ カナモリ出荷システム 2枚カード ▼▼▼ -->
+      <div class="kanamori-section">
+        <div class="kanamori-section-label">&#x1F4E6; カナモリ出荷システム</div>
+        <div class="kanamori-grid">
+          <!-- 出荷照合カード（全員アクセス可） -->
+          <div class="app-card" data-csp-click="h7" data-csp-source-click="openApp('shipping')">
+            <div class="app-icon green">&#x1F4E6;</div>
+            <div class="app-name">出荷照合システム（カナモリ）</div>
+            <div class="app-desc">出荷データ照合・チェックリスト</div>
+            <span class="app-badge active">稼働中</span>
+            <div class="online-users" id="online-shipping" style="margin-top:6px;min-height:18px"></div>
+          </div>
+          <!-- 出荷調整カード（管理者のみ） -->
+          <div class="app-card" id="kanamori-adjust-card" data-csp-click="h8" data-csp-source-click="openApp('shippingAdjust')">
+            <div class="app-icon red">&#x1F4CB;</div>
+            <div class="app-name">出荷調整システム（カナモリ）</div>
+            <div class="app-desc">前倒し・後ろ倒し・キャンセル管理</div>
+            <span class="app-badge active">稼働中</span>
+            <div class="admin-tag">&#x1F512; 管理者専用</div>
+          </div>
+        </div>
+      </div>
+      <!-- ▲▲▲ カナモリ出荷システム 2枚カードここまで ▲▲▲ -->
+
+      <div class="section-title">&#x1F680; クイックアクセス</div>
+      <div class="app-grid" id="dash-app-grid"></div>
+    </div>
+    <div class="page" id="page-apps">
+      <div class="section-title">&#x1F4F1; アプリ一覧</div>
+      <div style="display:grid;gap:10px" id="apps-list-grid"></div>
+    </div>
+    <div class="page admin-only hid" id="page-employees">
+      <div class="section-title">&#x1F465; 従業員マスター</div>
+      <div class="sync-bar loading hid" id="sync-bar">&#x1F504; 同期中...</div>
+      <div class="toolbar">
+        <input class="search-input" type="text" placeholder="名前・IDで検索..." data-csp-input="h9" data-csp-source-input="filterEmp(this.value)" autocorrect="off" autocapitalize="none">
+        <button class="filter-btn on" data-csp-click="h10" data-csp-source-click="setDept('all',this)">全て</button>
+        <button class="filter-btn" data-csp-click="h11" data-csp-source-click="setDept('製造部',this)">製造部</button>
+        <button class="filter-btn" data-csp-click="h12" data-csp-source-click="setDept('生産管理部',this)">生産管理部</button>
+        <button class="filter-btn" data-csp-click="h13" data-csp-source-click="setDept('品質保証部',this)">品質保証部</button>
+        <button class="filter-btn" data-csp-click="h14" data-csp-source-click="setDept('事務・総務・経理',this)">事務・総務・経理</button>
+        <button class="btn" data-csp-click="h15" data-csp-source-click="loadEmployees()">&#x1F504;</button>
+        <button class="btn pri master-only hid" id="btn-add-emp" data-csp-click="h16" data-csp-source-click="openEmpModal()">&#xFF0B; 新規追加</button>
+      </div>
+      <div class="emp-table-wrap">
+        <table class="emp-table">
+          <thead><tr><th>社員ID</th><th>氏名</th><th>部署</th><th>役割</th><th>ログインID</th><th>状態</th><th>雇用形態</th><th>雇用区分</th><th class="master-only hid" id="emp-act-col">操作</th></tr></thead>
+          <tbody id="emp-tbody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--tx3)">読み込み中...</td></tr></tbody>
+        </table>
+      </div>
+      <div style="font-size:11px;color:var(--tx3);margin-top:8px;text-align:right" id="emp-count"></div>
+    </div>
+    <div class="page admin-only hid" id="page-admin">
+      <div class="section-title">&#x2699;&#xFE0F; 管理者設定</div>
+      <div class="admin-card">
+        <div class="admin-card-title">&#x1F4F1; アプリ権限設定</div>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:12px;line-height:1.7">各アプリを利用できる権限を設定します。マスター管理者は常に全アプリ利用可能です。</p>
+        <div id="app-permission-list"></div>
+        <button class="btn pri sm" style="margin-top:10px" data-csp-click="h17" data-csp-source-click="saveAppPermissions()">&#x1F4BE; 権限を保存</button>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-title">&#x1F511; パスワードリセット</div>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:10px;line-height:1.7">社員がパスワードを忘れた場合、管理者が新しいパスワードを設定できます。</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <div style="flex:1;min-width:140px"><label class="fl">対象社員</label><select class="fi" id="reset-emp-select" style="font-size:14px"><option value="">社員を選択...</option></select></div>
+          <div style="flex:1;min-width:140px"><label class="fl">新しいパスワード</label><input class="fi" type="password" id="reset-new-pw" placeholder="新パスワード（12文字以上・英大小文字と数字）" autocomplete="new-password" style="font-size:16px" autocorrect="off" autocapitalize="none"></div>
+          <button class="btn pri" data-csp-click="h18" data-csp-source-click="doPasswordReset()" style="flex-shrink:0;height:44px">リセット実行</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2);margin-top:8px;cursor:pointer"><input type="checkbox" id="reset-legacy"> 既存のパスワードをそのまま登録する（12文字・英大小文字・数字の規則を適用しない。旧方式からの引き継ぎ時だけ使う）</label>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-title">&#x1F4CB; CSV読込URL設定（BT-A2000M向け）</div>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:10px;line-height:1.7">GoogleスプレッドシートのCSV公開URLを登録しておくと、BT-A2000Mの「CSVを開く→URLから読み込む」で自動入力されます。</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <div style="flex:1;min-width:200px"><label class="fl">CSV公開URL</label><input class="fi" type="text" id="csv-url-input" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" style="font-size:12px;font-family:monospace"></div>
+          <button class="btn pri" data-csp-click="h19" data-csp-source-click="saveCsvUrl()" style="flex-shrink:0;height:44px">&#x1F4BE; 保存</button>
+        </div>
+        <div id="csv-url-status" style="margin-top:8px;font-size:12px;display:none"></div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-title">&#x1F6AA; 退職者・アカウント無効化</div>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:10px;line-height:1.7">退職した社員を「退職」状態にするとログインできなくなります。</p>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <table class="emp-table" style="min-width:360px">
+            <thead><tr><th>氏名</th><th>部署</th><th>ログインID</th><th>状態</th><th>操作</th></tr></thead>
+            <tbody id="status-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-title">&#x1F4CB; ログイン履歴（直近50件）</div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--bd);border-radius:var(--rads)">
+          <div style="max-height:370px;overflow-y:auto;-webkit-overflow-scrolling:touch">
+            <table class="log-table" style="width:100%">
+              <thead style="position:sticky;top:0;z-index:1;background:var(--sf2)">
+                <tr><th>日時</th><th>ユーザー</th><th>アクション</th><th>結果</th></tr>
+              </thead>
+              <tbody id="log-tbody"><tr><td colspan="4" style="text-align:center;color:var(--tx3);padding:10px">読み込み中...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <button class="btn sm" style="margin-top:8px" data-csp-click="h20" data-csp-source-click="loadLogs()">&#x1F504; 更新</button>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-title">&#x1F514; 通知設定</div>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:12px;line-height:1.7">各アプリの通知を受け取る従業員を設定します。</p>
+        <div id="notify-setting-list"><div style="text-align:center;color:var(--tx3);padding:16px">読み込み中...</div></div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn pri" data-csp-click="h21" data-csp-source-click="saveNotifySettings()">&#x1F4BE; 通知設定を保存</button>
+          <button class="btn sm" data-csp-click="h22" data-csp-source-click="loadNotifySettings()">&#x1F504; 更新</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EMP MODAL -->
+<div class="modal-overlay hid" id="emp-modal">
+  <div class="modal">
+    <div class="modal-title" id="emp-modal-title">&#x1F464; 従業員追加</div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">社員ID *</label><input class="fi" type="text" id="em-id" placeholder="EMP001" autocorrect="off" autocapitalize="none"></div>
+      <div class="fg"><label class="fl">氏名 *</label><input class="fi" type="text" id="em-name" placeholder="山田 太郎"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">雇用形態</label><select class="fi" id="em-etype"><option value="正社員">正社員</option><option value="準社員">準社員</option><option value="派遣">派遣</option></select></div>
+      <div class="fg"><label class="fl">雇用区分</label><select class="fi" id="em-ecat"><option value="無期雇用">無期雇用</option><option value="有期雇用">有期雇用</option></select></div>
+    </div>
+    <div class="fg">
+  <label class="fl">勤続年数</label>
+  <input class="fi" type="number" id="em-years" min="0" step="0.5" placeholder="0" style="font-size:16px">
+</div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">部署 *</label><select class="fi" id="em-dept"><option value="">選択...</option><option>製造部</option><option>生産管理部</option><option>品質保証部</option><option>事務・総務・経理</option></select></div>
+      <div class="fg"><label class="fl">役割</label><select class="fi" id="em-role"><option value="staff">一般</option><option value="leader">リーダー</option><option value="admin">管理者</option><option value="master">マスター管理者</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">ログインID *</label><input class="fi" type="text" id="em-loginid" placeholder="例: yasuda001" autocorrect="off" autocapitalize="none"></div>
+      <div class="fg"><label class="fl">パスワード *</label><input class="fi" type="password" id="em-pw" placeholder="12文字以上・英大小文字と数字" autocomplete="new-password"></div>
+    </div>
+    <div class="fg"><label class="fl">ステータス</label><select class="fi" id="em-status"><option value="active">在職</option><option value="inactive">退職</option></select></div>
+    <div class="fg"><label class="fl">LINEWORKSユーザーID</label><input class="fi" type="text" id="em-lwuserid" placeholder="例: xxx@works-xxxxx" autocorrect="off" autocapitalize="none"></div>
+    <div id="emp-modal-err" class="lerr hid" style="margin-top:.5rem"></div>
+    <div class="modal-footer">
+      <button class="btn" data-csp-click="h23" data-csp-source-click="closeEmpModal()">キャンセル</button>
+      <button class="btn pri" id="btn-save-emp" data-csp-click="h24" data-csp-source-click="saveEmp()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="modal-overlay hid" id="confirm-modal">
+  <div class="modal" style="max-width:300px">
+    <div class="modal-title">&#x26A0;&#xFE0F; 確認</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="modal-footer">
+      <button class="btn" data-csp-click="h25" data-csp-source-click="closeConfirm()">キャンセル</button>
+      <button class="btn danger" id="confirm-ok">実行</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay hid" id="loading"><div class="spinner"></div><div class="loading-msg" id="loading-msg">処理中...</div></div>
+<div class="toast" id="toast"></div>
+<script>
+
+// Business drafts are page-memory only. SSO tokens stay in sessionStorage;
+// static HTML/GAS cannot issue HttpOnly cookies.
+const pageMemoryStorage = (() => {
+  const entries = new Map();
+  return {
+    getItem: key => entries.has(key) ? entries.get(key) : null,
+    setItem: (key, value) => entries.set(key, String(value)),
+    removeItem: key => entries.delete(key),
+    clear: () => entries.clear()
+  };
+})();
+function clearBrowserBusinessData_() {
+  pageMemoryStorage.clear();
+  const known = new Set(['kpk_app_perms', 'kpk_shift_employees', 'kpk_shift_data',
+    'kpk_cal_special', 'kpk_data_ver', 'kpk_session', 'kpk_vac_req', 'kpk_ot_req',
+    'kpk_h_req', 'kpk_sync_log', 'sakugyo_wip_backup', 'inv_current_user',
+    'inv_sat_v2', 'inv_portal_url', 'inv_gas_url', 'inv_master_url',
+    'sakugyo_portal_url', 'daily_report_portal_url']);
+  for (const name of ['localStorage', 'sessionStorage']) {
+    try {
+      const storage = window[name];
+      for (let i = storage.length - 1; i >= 0; i--) {
+        const key = storage.key(i);
+        if (known.has(key) || (key && key.startsWith('inv_sat_v2_'))) storage.removeItem(key);
+      }
+    } catch (e) {}
+  }
+}
+clearBrowserBusinessData_();
+
+(function fixIframeWidth() {
+  function forceWidth() {
+    document.documentElement.style.width = '100%';
+    document.documentElement.style.maxWidth = '100%';
+    document.body.style.width = '100%';
+    document.body.style.maxWidth = '100%';
+    document.body.style.overflowX = 'hidden';
+    try { if (window.frameElement) { window.frameElement.style.width = '100%'; window.frameElement.style.maxWidth = '100%'; } } catch(e) {}
+  }
+  forceWidth();
+  window.addEventListener('resize', forceWidth);
+  window.addEventListener('orientationchange', function() { setTimeout(forceWidth, 300); });
+})();
+
+let currentUser = null, allEmployees = [], empSearch = '', deptFilter = 'all';
+let notifySettings = [], notifyMatrix = {};
+let editingEmpId = null, confirmCb = null;
+
+// ============================================================
+// テスト環境／本番環境の分離（もぐプラス指示 2026-08-11）
+//
+// ★このクローンは TEST 固定。本番へ載せるときだけ 'PROD' にする。
+//   TEST では、本番ドメイン・本番GAS へは遷移しない（下の openApp のガード）。
+// ============================================================
+const ENV = 'TEST';
+
+// 本番と判定するホスト・識別子（TEST では遷移禁止の対象）。
+// ・本番GitHub Pages のホスト
+// ・本番GAS のデプロイID接頭辞（'AKfycb'）
+const PROD_HOST_MARKERS = ['spkkanri043-glitch.github.io'];
+const PROD_GAS_MARKER   = 'AKfycb';   // 本番GASデプロイURLの識別子（クローンは TEST_DEPLOY_ID_* なので該当しない）
+
+/** 遷移先URLが本番向けかどうか（ホスト or 本番GAS識別子で判定）。 */
+/** 遷移先URLが本番向けか（＝TESTで遷移禁止か）。同一ホストなので「ページのパス」で判定する。 */
+function isProdTarget_(u) {
+  // dummytest 配下のページだけ許可。? と # より前（ページのベース）だけで判定するので、
+  // クエリの portal_url 等に本番GAS識別子やホスト名が混じっても誤判定しない。
+  const TEST_APP_BASE = 'https://spkkanri043-glitch.github.io/shipping-system-dummytest';
+  const base = String(u || '').split('#')[0].split('?')[0];
+  return base.indexOf(TEST_APP_BASE + '/') !== 0;  // dummytest配下でなければ本番扱い→遷移禁止
+}
+
+/** トークンの本文（署名前の部分）を復号して主要クレームだけ取り出す（検査用・非秘密）。 */
+function decodeTokenClaims_(t) {
+  try {
+    let b64 = String(t).split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const bin = atob(b64);
+    let json = bin;
+    try {
+      json = decodeURIComponent(bin.split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+    } catch (e) {}
+    const p = JSON.parse(json);
+    // 氏名(name)は載せない。検証に必要な非秘密クレームだけ返す。
+    return { aud: p.aud, role: p.role, iat: p.iat, exp: p.exp, jti: p.jti, sub: p.sub };
+  } catch (e) { return null; }
+}
+
+const GITHUB_BASE = 'https://spkkanri043-glitch.github.io/shipping-system-dummytest';
+let appUrls = {
+  shift:             GITHUB_BASE + '/sekigahara_shift_app.html',
+  shipping:          GITHUB_BASE + '/index.html',
+  shippingAdjust:    GITHUB_BASE + '/shipping_adjust.html',
+  report:            GITHUB_BASE + '/sakugyouhokokusho.html',
+  fuguaiTenkai:      GITHUB_BASE + '/Fuguai_tenkai_shiito.html',
+  inventory:         GITHUB_BASE + '/inventory_v21.html',
+  kumi:              GITHUB_BASE + '/kumikasei_shipping_check.html',
+  fuguaiTenkaiGas:   '',
+  shippingAdjustGas: '',
+  inventoryGas:      '',
+  kumiGas:           '',
+  products:          '#'
+};
+
+const APP_DEFS = [
+  { id: 'shift',        name: 'シフト表',  icon: '&#x1F4C5;', iconCls: 'blue',   desc: '月次シフト作成・承認・残業管理' },
+  { id: 'report',       name: '作業報告書',          icon: '&#x1F4CB;', iconCls: 'orange', desc: '作業実績の入力・QR/バーコードスキャン対応' },
+  { id: 'fuguaiTenkai', name: '不具合展開シート',    icon: '&#x26A0;&#xFE0F;', iconCls: 'red', desc: '不具合情報の共有・確認ログ管理' },
+  { id: 'seikeiKiroku', name: '成形記録書',          icon: '📋', iconCls: 'blue', desc: '射出成形の生産記録入力・Excel出力・品番別履歴管理' },
+  { id: 'dailyReport', name: '日報確認', icon: '📄', iconCls: 'green', desc: '作業報告書の日報を確認・検索・CSV出力' },
+  { id: 'defectDashboard', name: '不具合集計ダッシュボード', icon: '&#x1F4CA;', iconCls: 'red', desc: '不具合データの集計・分析・リスク評価ダッシュボード' },
+  { id: 'junkaiCheck', name: '作業巡回チェックシート', icon: '&#x1F50D;', iconCls: 'green', desc: '工場内巡回・作業環境チェック、品質不具合の未然防止' },
+  { id: 'inventory',    name: '在庫管理',            icon: '&#x1F4E6;', iconCls: 'purple', desc: '製品・部品の在庫管理、入出荷・消費数の追跡' },
+  { id: 'kumi',         name: '出荷照合（クミ化成）', icon: '&#x1F3F7;&#xFE0F;', iconCls: 'green', desc: 'クミ化成向け出荷ピッキング照合・QRスキャン消込' },
+  { id: 'products',     name: '製品マスタ管理',      icon: '&#x1F4E6;', iconCls: 'blue', desc: 'CSVインポート・製品一覧管理（管理者専用）', adminOnly: true },
+];
+const DEFAULT_PERMS = {
+  shift:        ['staff','leader','admin','master'],
+  shipping:     ['staff','leader','admin','master'],
+  report:       ['staff','leader','admin','master'],
+  fuguaiTenkai: ['staff','leader','admin','master'],
+  products:     ['master'],
+  seikeiKiroku: ['staff','leader','admin','master'],
+  dailyReport:  ['staff','leader','admin','master'],
+  defectDashboard: ['master'],
+  inventory:    ['leader','admin','master'],
+  junkaiCheck: ['staff','leader','admin','master'],
+  kumi:         ['staff','leader','admin','master'],
+};
+const PERM_KEY = 'kpk_app_perms';
+const APP_LABELS = { report: '作業報告書', shift: 'シフト管理', shipping: '出荷照合', fuguaiTenkai: '不具合展開', seikeiKiroku: '成形記録書', junkaiCheck: '作業巡回チェックシート', kumi: '出荷照合（クミ化成）' };
+const NOTIFY_APPS = ['report', 'shift', 'shipping', 'seikeiKiroku', 'junkaiCheck', 'kumi'];
+
+window.addEventListener('load', async function() {
+  try {
+    const saved = sessionStorage.getItem('kpk_portal_user');
+    // ★利用者情報だけでなくトークンも揃っていなければ復帰させない。
+    //   （利用者情報はブラウザ側で書き換えられるが、トークンは偽造できない）
+    if (saved && getToken()) { currentUser = JSON.parse(saved); await enterMain(); return; }
+    clearToken();
+    try { sessionStorage.removeItem('kpk_portal_user'); } catch(e) {}
+  } catch(e) {}
+});
+
+// ============================================================
+// アプリ権限管理（スプレッドシート保存）
+// ============================================================
+let appPerms = null; // サーバーから取得した権限データ（キャッシュ）
+
+function loadPerms() {
+  if (appPerms) return appPerms;
+  try {
+    const s = pageMemoryStorage.getItem(PERM_KEY);
+    return s ? JSON.parse(s) : JSON.parse(JSON.stringify(DEFAULT_PERMS));
+  } catch(e) { return JSON.parse(JSON.stringify(DEFAULT_PERMS)); }
+}
+
+// ★注意：ここで読み込む権限は「画面にどのカードを出すか」だけに使う見た目の制御。
+//   localStorage を書き換えればカードは出せるが、実際にアプリを開くときは
+//   サーバー側が canUseApp_ で判定してトークンを発行しないので、開けない。
+async function fetchAppPermsFromServer() {
+  try {
+    const res = await gasAuth('getAppPermissions');
+    if (res && res.ok && res.data && Object.keys(res.data).length > 0) {
+      appPerms = { ...JSON.parse(JSON.stringify(DEFAULT_PERMS)), ...res.data };
+    } else {
+      appPerms = JSON.parse(JSON.stringify(DEFAULT_PERMS));
+    }
+    pageMemoryStorage.setItem(PERM_KEY, JSON.stringify(appPerms));
+  } catch(err) {
+    console.error('権限取得エラー:', err);
+    appPerms = loadPerms();
+  }
+}
+
+async function savePermsToServer(perms) {
+  appPerms = perms;
+  pageMemoryStorage.setItem(PERM_KEY, JSON.stringify(perms));
+  return await gasAuth('saveAppPermissions', perms);
+}
+
+function getAccessibleApps() {
+  const p = loadPerms(), role = currentUser ? currentUser.role : 'staff';
+  return APP_DEFS.filter(app => {
+    if (app.adminOnly && role !== 'master') return false;
+    return (p[app.id] || []).includes(role);
+  });
+}
+
+// ▼ カナモリ調整カードの表示制御
+function updateKanamoriAdjustCard() {
+  const card = document.getElementById('kanamori-adjust-card');
+  if (!card) return;
+  const role = currentUser ? currentUser.role : 'staff';
+  const isAdminOrMaster = role === 'admin' || role === 'master';
+  if (isAdminOrMaster) {
+    card.classList.remove('locked');
+    card.onclick = function() { openApp('shippingAdjust'); };
+  } else {
+    card.classList.add('locked');
+    card.onclick = null;
+  }
+}
+
+function renderDashApps() {
+  const grid = document.getElementById('dash-app-grid');
+  if (!grid) return;
+  // shipping は2枚カードセクションに固定表示するのでDash一覧からは除外
+  const apps = getAccessibleApps().filter(a => a.id !== 'shipping' && a.id !== 'shippingAdjust');
+  grid.innerHTML = apps.length
+    ? apps.map(a => `<div class="app-card" data-csp-click="h26" data-csp-source-click="openApp('')" data-csp-args-click="${__moguCsp.encode([(a.id),null,null,null,null,null])}">
+        <div class="app-icon ${a.iconCls}">${a.icon}</div>
+        <div class="app-name">${a.name}</div>
+        <div class="app-desc">${a.desc}</div>
+        <span class="app-badge active">稼働中</span>
+        <div class="online-users" id="online-${a.id}" style="margin-top:6px;min-height:18px"></div>
+      </div>`).join('')
+    : '<div style="color:var(--tx3);font-size:12px;padding:16px">他にアクセスできるアプリがありません</div>';
+}
+
+function renderAppsList() {
+  const grid = document.getElementById('apps-list-grid');
+  if (!grid) return;
+  const role = currentUser ? currentUser.role : 'staff';
+  const isAdminOrMaster = role === 'admin' || role === 'master';
+
+  // カナモリ2枚を先頭に固定
+  const kanamoriRows = `
+    <div class="app-card" data-csp-click="h27" data-csp-source-click="openApp('shipping')" style="flex-direction:row;align-items:center;gap:14px">
+      <div class="app-icon green" style="flex-shrink:0">&#x1F4E6;</div>
+      <div style="flex:1;min-width:0">
+        <div class="app-name">出荷照合システム(カナモリ)</div>
+        <div class="app-desc" style="margin-top:3px">出荷データ照合・チェックリスト</div>
+        <span class="app-badge active" style="margin-top:5px">稼働中</span>
+      </div>
+    </div>
+    <div class="app-card${isAdminOrMaster ? '' : ' locked'}" data-csp-click="h28" data-csp-source-click="" data-csp-args-click="${__moguCsp.encode([null,(isAdminOrMaster ? "openApp('shippingAdjust')" : '')])}" style="flex-direction:row;align-items:center;gap:14px">
+      <div class="app-icon red" style="flex-shrink:0">&#x1F4CB;</div>
+      <div style="flex:1;min-width:0">
+        <div class="app-name">出荷調整システム(カナモリ)</div>
+        <div class="app-desc" style="margin-top:3px">前倒し・後ろ倒し・キャンセル管理</div>
+        <span class="app-badge active" style="margin-top:5px">稼働中</span>
+        <div class="admin-tag">&#x1F512; 管理者専用</div>
+      </div>
+    </div>`;
+
+  const otherApps = getAccessibleApps().filter(a => a.id !== 'shipping' && a.id !== 'shippingAdjust');
+  const otherRows = otherApps.map(a => `
+    <div class="app-card" data-csp-click="h29" data-csp-source-click="openApp('')" data-csp-args-click="${__moguCsp.encode([(a.id),null,null,null,null])}" style="flex-direction:row;align-items:center;gap:14px">
+      <div class="app-icon ${a.iconCls}" style="flex-shrink:0">${a.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="app-name">${a.name}</div>
+        <div class="app-desc" style="margin-top:3px">${a.desc}</div>
+        <span class="app-badge active" style="margin-top:5px">稼働中</span>
+      </div>
+    </div>`);
+  otherRows.push(`
+    <div class="app-card" style="flex-direction:row;align-items:center;gap:14px;opacity:.6;cursor:default">
+      <div class="app-icon orange" style="flex-shrink:0">&#x1F6D2;</div>
+      <div style="flex:1;min-width:0">
+        <div class="app-name">受発注管理システム</div>
+        <div class="app-desc" style="margin-top:3px">発注・受注・在庫状況の一元管理（開発予定）</div>
+        <span class="app-badge coming" style="margin-top:5px">開発中</span>
+      </div>
+    </div>`);
+  grid.innerHTML = kanamoriRows + otherRows.join('');
+}
+
+function renderAppPermissions() {
+  const container = document.getElementById('app-permission-list');
+  if (!container) return;
+  const perms = loadPerms();
+  const roleLabels = { staff:'一般', leader:'リーダー', admin:'管理者', master:'マスター管理者' };
+  container.innerHTML = APP_DEFS.map(app => {
+    const allowed = perms[app.id] || [];
+    return `<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rads);padding:12px;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px">${app.icon} ${app.name}</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        ${['staff','leader','admin','master'].map(role => `
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="perm-${app.id}-${role}"
+              ${allowed.includes(role)?'checked':''}
+              ${role==='master'?'disabled checked':''}
+              style="width:16px;height:16px">
+            ${roleLabels[role]}
+          </label>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveAppPermissions() {
+  const perms = {};
+  APP_DEFS.forEach(app => {
+    perms[app.id] = ['master'];
+    ['staff','leader','admin'].forEach(role => {
+      const cb = document.getElementById(`perm-${app.id}-${role}`);
+      if (cb && cb.checked) perms[app.id].push(role);
+    });
+  });
+  showLoading('権限を保存中...');
+  try {
+    const res = await savePermsToServer(perms);
+    if (res && res.ok) {
+      renderDashApps();
+      renderAppsList();
+      showToast('権限設定を保存しました', 'success');
+    } else {
+      showToast((res && res.message) || '保存に失敗しました', 'error');
+    }
+  } catch(e) {
+    showToast('エラー: ' + e.message, 'error');
+  }
+  hideLoading();
+}
+
+// ============================================================
+// サーバー呼び出し
+//
+// gasRun  … トークンを付けない。login 専用。
+// gasAuth … トークンを先頭の引数として必ず付ける。login 以外は全部こちら。
+// ============================================================
+const TOKEN_KEY = 'kpk_portal_token';
+const PORTAL_GAS_URL = 'https://script.google.com/macros/s/AKfycbyFCgghA3bTbdj8NdWT1dwTilJEVYMpC8airu6VUt0pK16Ml_NCwd4xlGExy8vMoACH/exec';
+const PORTAL_HTTP_ARGUMENTS = {
+  getLoginChallenge:['loginId'], login:['loginId','credential'],
+  whoami:[],logout:[],boot:[],getMyProfile:[],getEmployeesLite:[],getEmployees:[],
+  getAppUrls:[],getGasUrl:[],getCsvUrl:[],setCsvUrl:['url'],getLogs:[],addLog:['act','result'],
+  saveEmployee:['employee','isNew'],deleteEmployee:['id'],
+  getAppPermissions:[],saveAppPermissions:['perms'],openApp:['appId'],
+  getOnlineUsers:[],setOnlineStatus:['appId','act'],getNotifySettings:[],
+  saveNotifySetting:['setting'],deleteNotifySetting:['rowIndex'],updateNotifyEnabled:['rowIndex','enabled']
+};
+
+function hasGasBridge_() { return typeof google !== 'undefined' && google.script && google.script.run; }
+
+async function portalHttpRequest_(fn, args, authenticated) {
+  if (!Object.prototype.hasOwnProperty.call(PORTAL_HTTP_ARGUMENTS, fn) ||
+      !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{1,200}\/exec$/.test(PORTAL_GAS_URL)) throw new Error('接続設定が不正です');
+  const body = {action:fn};
+  PORTAL_HTTP_ARGUMENTS[fn].forEach((key,index)=>{if(args[index]!==undefined)body[key]=args[index];});
+  if (authenticated) {
+    body.token = getToken();
+    if (!body.token) { forceRelogin(); throw new Error('unauthorized'); }
+  } else if (!['login','getLoginChallenge'].includes(fn)) throw new Error('unauthorized');
+  const controller = new AbortController();
+  const timeout = setTimeout(()=>controller.abort(),30000);
+  try {
+    const response = await fetch(PORTAL_GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(body),credentials:'omit',referrerPolicy:'no-referrer',signal:controller.signal});
+    if(!response.ok)throw new Error('transport_failed');
+    const result = await response.json();
+    if(!result || typeof result!=='object' || Array.isArray(result))throw new Error('invalid_response');
+    if(authenticated && getToken()!==body.token)throw new Error('unauthorized');
+    if(result.ok===false && result.error==='unauthorized') { if(authenticated)forceRelogin(); throw new Error('unauthorized'); }
+    return result;
+  } catch(error) {
+    if(error.message==='unauthorized')throw error;
+    throw new Error('通信結果を確認できません。再送前に保存状態を確認してください');
+  } finally {
+    clearTimeout(timeout);
+    if(body.credential)body.credential.proof='';
+    if(body.employee && body.employee.credential)body.employee.credential.proof='';
+  }
+}
+
+function getToken() {
+  try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch(e) { return ''; }
+}
+function setToken(t) {
+  try { sessionStorage.setItem(TOKEN_KEY, t || ''); } catch(e) {}
+}
+function clearToken() {
+  try { sessionStorage.removeItem(TOKEN_KEY); } catch(e) {}
+}
+
+function gasRun(fn, ...args) {
+  if (!['getLoginChallenge','login'].includes(fn)) return Promise.reject(new Error('unauthorized'));
+  if (!hasGasBridge_()) return portalHttpRequest_(fn,args,false);
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(err => reject(new Error(err.message || String(err))))
+      [fn](...args);
+  });
+}
+
+/**
+ * 認証が要る呼び出し。トークンを第1引数として渡す。
+ * サーバーが unauthorized を返したら、セッションを捨ててログイン画面に戻す。
+ */
+function gasAuth(fn, ...args) {
+  const t = getToken();
+  if (!t) { forceRelogin(); return Promise.reject(new Error('unauthorized')); }
+  if (!hasGasBridge_()) return portalHttpRequest_(fn,args,true);
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res && res.ok === false && res.error === 'unauthorized') {
+          forceRelogin(); reject(new Error('unauthorized')); return;
+        }
+        resolve(res);
+      })
+      .withFailureHandler(function(err) {
+        const msg = (err && err.message) ? String(err.message) : String(err);
+        // サーバー側は例外の中身を unauthorized に固定している
+        if (msg.indexOf('unauthorized') >= 0) { forceRelogin(); }
+        reject(new Error(msg));
+      })
+      [fn](t, ...args);
+  });
+}
+
+/**
+ * P0-2：HTML用エスケープ（& < > " ' を実体参照へ変換）。
+ * 要素本文と「二重引用符で囲った属性値」の両方に使える。
+ * ★スプレッドシート由来・利用者由来の値を innerHTML に入れるときは必ず通すこと。
+ * ★インラインの onclick 等（JS文字列の文脈）に生値を入れてはいけない。
+ *   その場合は data-* 属性（esc経由）＋委譲に置き換える。
+ *
+ * ★GAS配信対策（最小限の対処）：小なり記号の正規表現だけ文字クラス（角かっこ）で囲う。
+ *   小なり記号のすぐ後ろにスラッシュが並ぶと、GASのHtmlServiceが「閉じタグ」と
+ *   誤認して画面配信が壊れる（「形式が正しくないHTMLコンテンツ」エラー）。
+ *   角かっこで囲えば小なり記号がスラッシュと隣接しないため安全。
+ *   （壊れたのはこの一点だけなので、他の記号は通常の置換に戻す。小なり記号を
+ *     丸ごと文字コードへ置換するような全面対応はしない。）
+ */
+function esc(v) {
+  return String(v === undefined || v === null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/[<]/g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** トークンが無効になったとき、ログイン画面へ戻す */
+function forceRelogin() {
+  clearToken();
+  try { sessionStorage.removeItem('kpk_portal_user'); } catch(e) {}
+  currentUser = null; allEmployees = [];
+  const main = document.getElementById('s-main');
+  const login = document.getElementById('s-login');
+  if (main && login && main.classList.contains('on')) {
+    main.classList.remove('on');
+    login.classList.add('on');
+    const err = document.getElementById('login-err');
+    if (err) { err.textContent = 'セッションの有効期限が切れました。もう一度ログインしてください'; err.classList.remove('hid'); }
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hid'));
+    document.querySelectorAll('.master-only').forEach(el => el.classList.add('hid'));
+    window.scrollTo(0, 0);
+  }
+}
+
+async function derivePasswordCredential_(password, params) {
+  if (!window.isSecureContext || !window.crypto || !crypto.subtle || !window.TextEncoder) throw new Error('安全な認証に対応したHTTPSのブラウザを使用してください');
+  if (!params || params.version !== 'pbkdf2-sha256-600000-v1' || params.iterations !== 600000 ||
+      typeof params.salt !== 'string' || !/^[a-f0-9]{64}$/.test(params.salt) ||
+      typeof password !== 'string' || !password.length || password.length > 128) throw new Error('認証情報が不正です');
+  const bytes = new TextEncoder().encode(password);
+  const salt = Uint8Array.from(params.salt.match(/../g), hex => parseInt(hex, 16));
+  let result;
+  try {
+    const key = await crypto.subtle.importKey('raw', bytes, 'PBKDF2', false, ['deriveBits']);
+    result = new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2', hash:'SHA-256', salt, iterations:600000}, key, 256));
+    return {version:params.version, salt:params.salt, proof:Array.from(result, b=>b.toString(16).padStart(2,'0')).join('')};
+  } finally { bytes.fill(0); salt.fill(0); if (result) result.fill(0); }
+}
+
+// 新しいパスワードの規則（オーナー決定 2026-09-11）: 12〜128文字、英大文字・英小文字・数字を各1つ以上。記号は任意
+// ★この規則は画面側にしかない（GASは生パスワードを受け取らない）。変えたらCSPのhashを取り直すこと
+// legacy=true（管理者が「既存のパスワードをそのまま登録」を選んだとき）は規則を掛けず、空と128文字超だけ弾く。
+//   旧方式の平文パスワードを、値を変えずに新方式（ブラウザ側KDF＋サーバー側検証子）へ移すためのもの。
+//   サーバーは生パスワードを受け取らないので、この規則は元々画面側の入力検査でしかない。
+function passwordPolicyError_(password, legacy) {
+  if (typeof password !== 'string' || !password.length || password.length > 128) return legacy ? 'パスワードは1〜128文字で入力してください' : 'パスワードは12〜128文字で、英大文字・英小文字・数字をそれぞれ含めてください';
+  if (legacy) return '';
+  if (password.length < 12) return 'パスワードは12〜128文字で、英大文字・英小文字・数字をそれぞれ含めてください';
+  if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) return 'パスワードは12〜128文字で、英大文字・英小文字・数字をそれぞれ含めてください';
+  return '';
+}
+
+async function newPasswordCredential_(password, legacy) {
+  const policyError = passwordPolicyError_(password, legacy === true);
+  if (policyError) throw new Error(policyError);
+  if (!window.isSecureContext || !window.crypto || !crypto.getRandomValues) throw new Error('安全な認証に対応したHTTPSのブラウザを使用してください');
+  const salt = Array.from(crypto.getRandomValues(new Uint8Array(32)), b=>b.toString(16).padStart(2,'0')).join('');
+  return derivePasswordCredential_(password, {version:'pbkdf2-sha256-600000-v1',iterations:600000,salt});
+}
+
+async function doLogin() {
+  const id = document.getElementById('inp-id').value.trim();
+  const pw = document.getElementById('inp-pw').value;
+  const errEl = document.getElementById('login-err');
+  const btn = document.getElementById('btn-login');
+  if (!id || !pw) { errEl.textContent = 'IDとパスワードを入力してください'; errEl.classList.remove('hid'); return; }
+  btn.disabled = true; btn.textContent = 'ログイン中...'; errEl.classList.add('hid');
+  try {
+    const challenge = await gasRun('getLoginChallenge', id);
+    if (!challenge || challenge.ok !== true) throw new Error('ログイン処理を完了できません');
+    const credential = await derivePasswordCredential_(pw, challenge);
+    document.getElementById('inp-pw').value = '';
+    let res;
+    try { res = await gasRun('login', id, credential); }
+    finally { credential.proof = ''; }
+    if (res.ok) {
+      currentUser = res.user;
+      setToken(res.token);            // ★以後の呼び出しはこのトークンを使う
+      try { sessionStorage.setItem('kpk_portal_user', JSON.stringify(currentUser)); } catch(e) {}
+      // ログインの成功・失敗はサーバー側で記録するようになったので、ここでは記録しない
+      enterMain();
+    } else {
+      errEl.textContent = res.message || 'ログイン失敗';
+      errEl.classList.remove('hid');
+    }
+  } catch(e) {
+    errEl.textContent = 'エラー: ' + e.message;
+    errEl.classList.remove('hid');
+  }
+  document.getElementById('inp-pw').value = '';
+  btn.disabled = false; btn.textContent = 'ログイン';
+}
+
+document.getElementById('inp-pw').addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+document.getElementById('inp-id').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('inp-pw').focus(); });
+
+async function enterMain() {
+  document.getElementById('s-login').classList.remove('on');
+  document.getElementById('s-main').classList.add('on');
+  window.scrollTo(0, 0);
+  document.getElementById('disp-name').textContent = currentUser.name;
+  const roleEl = document.getElementById('disp-role');
+  const isMaster = currentUser.role === 'master';
+  const isAdmin  = currentUser.role === 'admin';
+  if (isMaster) {
+    roleEl.textContent = 'マスター管理者'; roleEl.className = 'badge-role badge-master';
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hid'));
+    document.querySelectorAll('.master-only').forEach(el => el.classList.remove('hid'));
+  } else if (isAdmin) {
+    roleEl.textContent = '管理者'; roleEl.className = 'badge-role badge-admin';
+  } else {
+    roleEl.textContent = currentUser.role === 'leader' ? 'リーダー' : '一般';
+    roleEl.className = 'badge-role badge-user';
+  }
+  const now = new Date();
+  const h = now.getHours();
+  document.getElementById('greet-name').textContent = (h < 12 ? 'おはようございます' : h < 17 ? 'こんにちは' : 'お疲れさまです') + '、' + currentUser.name + 'さん';
+  document.getElementById('greet-date').textContent = now.toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric', weekday:'long'});
+  try { const urls = await gasAuth('getAppUrls'); if (urls && urls.shift) appUrls = { ...appUrls, ...urls }; } catch(e) {}
+  try { const gasRes = await gasAuth('getGasUrl'); if (gasRes && gasRes.ok && gasRes.url) window._gasUrl = gasRes.url; } catch(e) {}
+  await fetchAppPermsFromServer();   // ★追加：権限をサーバーから読み込み
+  goPage('dashboard');
+  updateKanamoriAdjustCard();
+  refreshOnlineUsers();
+  setInterval(refreshOnlineUsers, 60000);
+  renderDashApps();
+  renderAppsList();
+  loadEmployees();
+  if (isMaster || isAdmin) loadLogs();
+}
+
+async function doLogout() {
+  clearBrowserBusinessData_();
+  try { await gasAuth('logout'); } catch(e) {}
+  currentUser = null; allEmployees = [];
+  clearToken();
+  try { sessionStorage.removeItem('kpk_portal_user'); } catch(e) {}
+  document.getElementById('s-main').classList.remove('on');
+  document.getElementById('s-login').classList.add('on');
+  document.getElementById('inp-id').value = '';
+  document.getElementById('inp-pw').value = '';
+  document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hid'));
+  document.querySelectorAll('.master-only').forEach(el => el.classList.add('hid'));
+  window.scrollTo(0, 0);
+}
+
+function goPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('on'));
+  if (page === 'admin' && currentUser.role !== 'master') { page = 'dashboard'; showToast('マスター管理者のみアクセスできます', 'error'); }
+  if (page === 'employees' && currentUser.role !== 'master') { page = 'dashboard'; }
+  document.getElementById('page-' + page).classList.add('on');
+  const n = document.getElementById('nav-' + page); if(n) n.classList.add('on');
+  window.scrollTo(0, 0);
+  if (page === 'admin') { renderStatusTable(); refreshResetSelect(); renderAppPermissions(); loadCsvUrlSetting(); loadLogs(); loadNotifySettings(); }
+  if (page === 'apps') renderAppsList();
+  if (page === 'dashboard') { renderDashApps(); updateKanamoriAdjustCard(); }
+}
+
+async function refreshOnlineUsers() {
+  try {
+    const res = await gasAuth('getOnlineUsers');
+    if (!res || !res.data) return;
+    document.querySelectorAll('.online-users').forEach(el => {
+      const appId = el.id.replace('online-', '');
+      const users = (res.data[appId] || []);
+      const safe = users.map(u => esc(u)).join('・');   // ★氏名はスプレッドシート由来なのでエスケープ
+      el.innerHTML = users.length ? `<span class="online-dot"></span>${safe} がログイン中` : '';
+    });
+  } catch(e) {}
+}
+
+// ============================================================
+// アプリを開く
+//
+// 変更点（Step 10）
+//  ・トークンはブラウザで作らない。サーバーに openApp を頼んで発行してもらう。
+//    （旧方式は JSON を base64 にして逆順にしただけで、誰でも自作できた）
+//  ・トークンはクエリ(?)ではなくフラグメント(#)で渡す。
+//    フラグメントはサーバーに送信されないので、アクセスログや Referer に残らない。
+//  ・「このアプリを使ってよいか」はサーバー側が canUseApp_ で判定する。
+//    下のロール判定は、押せないように見せるための飾りにすぎない。
+// ============================================================
+async function openApp(app) {
+  // --- 見た目の制御（本当の判定はサーバー側） ---
+  if (app === 'shippingAdjust') {
+    const role = currentUser ? currentUser.role : 'staff';
+    if (role !== 'admin' && role !== 'master') {
+      showToast('出荷調整システムは管理者専用です', 'error');
+      return;
+    }
+  }
+  if (app === 'products' && currentUser.role !== 'master') {
+    showToast('製品マスタ管理はマスター管理者のみ利用できます', 'error'); return;
+  }
+
+  // --- 開く先のURLを決める ---
+  const url = appUrls[app];
+  if (!url || url === '#') { showToast('URLが設定されていません', 'error'); return; }
+
+  // --- サーバーにトークンを発行してもらう ---
+  let token = '';
+  try {
+    const res = await gasAuth('openApp', app);
+    if (!res || !res.ok || !res.token) {
+      showToast('このアプリを開く権限がありません', 'error');
+      return;
+    }
+    token = res.token;
+  } catch(e) {
+    showToast('アプリを開けませんでした', 'error');
+    return;
+  }
+
+  // --- クエリパラメータを組み立てる ---
+  const q = [];
+  const portalUrl = window.location.href.split('?')[0].split('#')[0];
+
+  // ▼▼▼ TODO（問題8の対応が済んだら、この *_gas_url の受け渡しは全部消す）▼▼▼
+  //   接続先GASのURLをクエリで渡す作りは、受け取る側が
+  //   「URLパラメータで接続先を差し替えられる」状態であることと表裏一体。
+  //   まだ移行していないアプリは、これを消すと接続先が無くなって動かなくなる
+  //   （成形記録書・作業巡回チェックシートには固定値のフォールバックが無い）。
+  //   各アプリ側で接続先を定数に固定したら、対応する行をここから削除すること。
+  if (app === 'report') {
+    if (window._gasUrl) q.push('gas_url=' + encodeURIComponent(window._gasUrl));
+    if (appUrls && appUrls.reportGas)  q.push('report_url=' + encodeURIComponent(appUrls.reportGas));
+    if (appUrls && appUrls.productGas) q.push('product_url=' + encodeURIComponent(appUrls.productGas));
+    q.push('portal_url=' + encodeURIComponent(portalUrl));
+  }
+  if (app === 'shift') {
+    if (appUrls && appUrls.shiftGas) q.push('shift_gas_url=' + encodeURIComponent(appUrls.shiftGas));
+  }
+  if (app === 'fuguaiTenkai') {
+    if (appUrls && appUrls.fuguaiTenkaiGas) q.push('fuguai_gas_url=' + encodeURIComponent(appUrls.fuguaiTenkaiGas));
+  }
+  if (app === 'seikeiKiroku') {
+    if (appUrls && appUrls.seikeiKirokuGas) q.push('seikei_gas_url=' + encodeURIComponent(appUrls.seikeiKirokuGas));
+    if (appUrls && appUrls.productGas)      q.push('product_url=' + encodeURIComponent(appUrls.productGas));
+    q.push('portal_url=' + encodeURIComponent(portalUrl));
+  }
+  if (app === 'junkaiCheck') {
+    if (appUrls && appUrls.junkaiCheckGas) q.push('junkai_gas_url=' + encodeURIComponent(appUrls.junkaiCheckGas));
+  }
+  if (app === 'dailyReport') {
+    if (appUrls && appUrls.reportGas) q.push('report_url=' + encodeURIComponent(appUrls.reportGas));
+    q.push('portal_url=' + encodeURIComponent(portalUrl));
+  }
+  if (app === 'shippingAdjust') {
+    if (appUrls && appUrls.shippingAdjustGas) q.push('adjust_gas_url=' + encodeURIComponent(appUrls.shippingAdjustGas));
+    q.push('portal_url=' + encodeURIComponent(portalUrl));
+  }
+  if (app === 'defectDashboard') {
+    if (appUrls && appUrls.fuguaiTenkaiGas) q.push('fuguai_gas_url=' + encodeURIComponent(appUrls.fuguaiTenkaiGas));
+    q.push('portal_url=' + encodeURIComponent(portalUrl));
+  }
+  if (app === 'inventory') {
+    if (appUrls && appUrls.inventoryGas) q.push('inventory_gas_url=' + encodeURIComponent(appUrls.inventoryGas));
+    q.push('portal_url=' + encodeURIComponent(portalUrl));
+  }
+  if (app === 'kumi') {
+    if (appUrls && appUrls.kumiGas) q.push('kumi_gas_url=' + encodeURIComponent(appUrls.kumiGas));
+    q.push('portal_url=' + encodeURIComponent(portalUrl));
+  }
+  // ▲▲▲ TODO ここまで ▲▲▲
+
+  // ★P0-8：従業員一覧のURL渡し（emps=）は完全に削除した。
+  //   以前はここで氏名・部署・ログインID・役割・在職状態・雇用区分・LINE WORKS ID 等が
+  //   URLに載っていた（パスワードはStep 1で除去済み）。URLは履歴・ログ・Referer に
+  //   残るため、従業員情報を載せない。
+  //   ※各アプリが必要な従業員情報を「自分のGASから認証付きで取得する」処理は
+  //     今回の対象外。emps= を前提にしている作業報告書・シフトは、
+  //     この対応で従業員一覧が渡らなくなる（影響は残存課題として一覧化）。
+
+  // ★トークンは必ず最後、フラグメントに置く
+  const finalUrl = url + (q.length ? '?' + q.join('&') : '') + '#sso=' + encodeURIComponent(token);
+
+  // ★テスト/本番の分離（もぐプラス指示 2026-08-11）：
+  //   TEST 環境では、本番ドメイン・本番GAS へは遷移しない。
+  //   ここまでで「トークン発行・aud・exp・jti」はポータル側で確認できているので、
+  //   遷移はせず、検査用にトークンの主要クレームだけコンソールへ出す（非秘密のみ）。
+  // ★TEST環境では「全アプリ」で遷移せず、トークン発行＋検査トーストに統一する
+  //   （安田さん依頼 2026-08-27）。dummytest配下でも遷移しない。
+  //   ※実アプリを開いて機能検証したい場合は、この条件を
+  //     `ENV === 'TEST' && isProdTarget_(finalUrl)` に戻すと dummytest配下のみ遷移する。
+  //     （isProdTarget_ は下に残してある）
+  if (ENV === 'TEST') {
+    const claims = decodeTokenClaims_(token);
+    if (claims) {
+      // Server token timestamps are milliseconds.
+      const remainMin = Number.isFinite(claims.exp) ? Math.round((claims.exp - Date.now()) / 60000) : '?';
+      // 検査用：aud / role / jti / 残り有効(分)。氏名やトークン本体は出さない。
+      console.log('[TEST] openApp トークン検査:', { app: app, aud: claims.aud, role: claims.role, jti: claims.jti, 残り有効分: remainMin });
+      window.__lastAppTokenClaims = { aud: claims.aud, exp: claims.exp, role: claims.role };
+    } else {
+      console.log('[TEST] openApp トークンの復号に失敗');
+    }
+    gasAuth('addLog', 'アプリ起動(TEST/遷移抑止): ' + app, '成功').catch(() => {});
+    showToast('TEST環境のため本番URLへは遷移しません（トークンは発行済み）', 'error');
+    return;
+  }
+
+  gasAuth('addLog', 'アプリ起動: ' + app, '成功').catch(() => {});
+  try {
+    window.top.open(finalUrl, '_blank', 'noopener,noreferrer');
+  } catch(e) {
+    const a = document.createElement('a');
+    a.href = finalUrl; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+  showToast('アプリを起動しています...', '');
+}
+
+async function loadEmployees() {
+  const bar = document.getElementById('sync-bar');
+  const isMaster = currentUser && currentUser.role === 'master';
+  if (bar) { bar.className = 'sync-bar loading'; bar.textContent = '🔄 同期中...'; bar.classList.remove('hid'); }
+  try {
+    // ★返却範囲の最小化（P0-2/最小権限）：
+    //   従業員一覧の管理用フル項目（loginId・lwUserId・雇用区分など）は master だけが取得。
+    //   一般利用者は最小一覧（id・name・dept・role・status）のみ取得し、
+    //   ダッシュボードの登録人数などの表示に使う。
+    const res = await gasAuth(isMaster ? 'getEmployees' : 'getEmployeesLite');
+    if (res.ok) {
+      allEmployees = res.data;
+      const statEmp = document.getElementById('stat-emp');
+      if (statEmp) statEmp.textContent = allEmployees.filter(e => e.status === 'active').length;
+      const statSync = document.getElementById('stat-sync');
+      if (statSync) statSync.textContent = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+      // 従業員マスター・退職者・PWリセットの各表は master 専用画面。master のときだけ描画する。
+      if (isMaster) { renderEmployees(); renderStatusTable(); refreshResetSelect(); }
+      if (bar) { bar.className = 'sync-bar ok'; bar.textContent = '✅ 同期完了'; setTimeout(() => bar.classList.add('hid'), 3000); }
+    } else throw new Error(res.message);
+  } catch(e) {
+    if (bar) { bar.className = 'sync-bar err'; bar.textContent = '❌ ' + e.message; }
+  }
+}
+
+function renderEmployees() {
+  const isMaster = currentUser && currentUser.role === 'master';
+  const filtered = allEmployees.filter(e => {
+    const md = deptFilter === 'all' || e.dept === deptFilter;
+    const ms = !empSearch || e.name.includes(empSearch) || String(e.id).toLowerCase().includes(empSearch.toLowerCase()) || String(e.loginId).toLowerCase().includes(empSearch.toLowerCase());
+    return md && ms;
+  });
+  const rL = {staff:'一般', leader:'リーダー', admin:'管理者', master:'マスター管理者'};
+  const sC = {active:'bg-g', inactive:'bg-gray'};
+  const sL = {active:'在職', inactive:'退職'};
+  document.getElementById('emp-tbody').innerHTML = filtered.length
+    ? filtered.map(e => `<tr>
+        <td style="font-family:monospace;font-size:11px">${esc(e.id)}</td>
+        <td style="font-weight:600">${esc(e.name)}</td>
+        <td style="font-size:11px">${esc(e.dept)||'-'}</td>
+        <td><span class="badge ${e.role==='master'?'bg-master':e.role==='admin'?'bg-r':e.role==='leader'?'bg-a':'bg-gray'}">${esc(rL[e.role]||e.role)}</span></td>
+        <td style="font-family:monospace;font-size:11px">${esc(e.loginId)}</td>
+        <td><span class="badge ${sC[e.status]||'bg-gray'}">${esc(sL[e.status]||e.status)}</span></td>
+        <td style="font-size:11px">${esc(e.etype)||'-'}</td>
+        <td style="font-size:11px">${esc(e.ecat)||'-'}</td>
+        ${isMaster ? `<td style="white-space:nowrap">
+          <button class="btn xs" data-id="${esc(e.id)}" data-csp-click="h30" data-csp-source-click="openEmpModalById(this)" style="margin-right:4px">編集</button>
+          <button class="btn xs danger" data-id="${esc(e.id)}" data-name="${esc(e.name)}" data-csp-click="h31" data-csp-source-click="delEmpById(this)">削除</button>
+        </td>` : '<td></td>'}
+      </tr>`).join('')
+    : `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--tx3)">該当なし</td></tr>`;
+  document.getElementById('emp-count').textContent = `${filtered.length}件 / 全${allEmployees.length}件`;
+}
+
+function filterEmp(v) { empSearch = v; renderEmployees(); }
+function setDept(d, btn) { deptFilter = d; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on')); btn.classList.add('on'); renderEmployees(); }
+
+function openEmpModal(id = null) {
+  editingEmpId = id;
+  document.getElementById('emp-modal-err').classList.add('hid');
+  document.getElementById('emp-modal-title').textContent = id ? '👤 従業員編集' : '👤 従業員追加';
+  if (id) {
+    const e = allEmployees.find(x => x.id === id); if (!e) return;
+    document.getElementById('em-id').value = e.id; document.getElementById('em-id').disabled = true;
+    document.getElementById('em-name').value = e.name; document.getElementById('em-etype').value = e.etype || '正社員';
+    document.getElementById('em-ecat').value = e.ecat || '無期雇用'; document.getElementById('em-dept').value = e.dept || '';
+    document.getElementById('em-role').value = e.role; document.getElementById('em-loginid').value = e.loginId;
+    document.getElementById('em-pw').value = ''; document.getElementById('em-status').value = e.status;
+   document.getElementById('em-lwuserid').value = e.lwUserId || '';
+    document.getElementById('em-years').value = e.years !== undefined && e.years !== '' ? e.years : '';
+  } else {
+    ['em-id','em-name','em-loginid','em-pw','em-lwuserid'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('em-years').value = '';
+    document.getElementById('em-etype').value = '正社員'; document.getElementById('em-ecat').value = '無期雇用';
+    document.getElementById('em-dept').value = ''; document.getElementById('em-role').value = 'staff';
+    document.getElementById('em-status').value = 'active'; document.getElementById('em-id').disabled = false;
+  }
+  document.getElementById('emp-modal').classList.remove('hid');
+}
+function closeEmpModal() { document.getElementById('emp-modal').classList.add('hid'); editingEmpId = null; }
+
+async function saveEmp() {
+  const id = document.getElementById('em-id').value.trim();
+  const name = document.getElementById('em-name').value.trim();
+  const dept = document.getElementById('em-dept').value;
+  const role = document.getElementById('em-role').value;
+  const loginId = document.getElementById('em-loginid').value.trim();
+  const pw = document.getElementById('em-pw').value;
+  const status = document.getElementById('em-status').value;
+  const etype = document.getElementById('em-etype').value;
+  const ecat = document.getElementById('em-ecat').value;
+ const lwUserId = document.getElementById('em-lwuserid').value.trim();
+  const years = parseFloat(document.getElementById('em-years').value) || 0;
+  const errEl = document.getElementById('emp-modal-err');
+  const btn = document.getElementById('btn-save-emp');
+  if (!id || !name || !dept || !loginId) { errEl.textContent = '必須項目をすべて入力してください'; errEl.classList.remove('hid'); return; }
+  if ((!editingEmpId || pw) && passwordPolicyError_(pw)) { errEl.textContent = passwordPolicyError_(pw); errEl.classList.remove('hid'); return; }
+  btn.disabled = true; btn.textContent = '保存中...';
+  try {
+   const employee = {id,name,dept,role,loginId,status,etype,ecat,lwUserId,years};
+   if (pw) employee.credential = await newPasswordCredential_(pw);
+   if (pw && editingEmpId) employee.credentialRevision = (allEmployees.find(e => e.id === editingEmpId) || {}).credentialRevision;
+   document.getElementById('em-pw').value = '';
+   let res;
+   try { res = await gasAuth('saveEmployee', employee, !editingEmpId); }
+   finally { if (employee.credential) employee.credential.proof = ''; }
+    if (res.ok) {
+      gasAuth('addLog', `従業員${editingEmpId?'編集':'追加'}: ${name}`, '成功').catch(() => {});
+      closeEmpModal(); await loadEmployees(); showToast('保存しました', 'success');
+    } else { errEl.textContent = res.message || '保存失敗'; errEl.classList.remove('hid'); }
+  } catch(e) { errEl.textContent = 'エラー: ' + e.message; errEl.classList.remove('hid'); }
+  btn.disabled = false; btn.textContent = '保存';
+}
+
+function openEmpModalById(btn) { openEmpModal(btn.getAttribute('data-id')); }
+function delEmpById(btn) { delEmp(btn.getAttribute('data-id'), btn.getAttribute('data-name')); }
+
+async function delEmp(id, name) {
+  if (id === currentUser.id) { showToast('自分自身は削除できません', 'error'); return; }
+  openConfirm(`「${name}」を削除しますか？
+この操作は取り消せません。`, async () => {
+    showLoading('削除中...');
+    try {
+      const emp = allEmployees.find(e => e.id === id);
+      const deleteId = emp ? String(emp.id) : String(id);
+      const res = await gasAuth('deleteEmployee', deleteId);
+      if (res.ok) {
+        gasAuth('addLog', `従業員削除: ${name}`, '成功').catch(() => {});
+        await loadEmployees(); showToast('削除しました', '');
+      } else {
+        showToast((res.message || '削除失敗') + ' (id=' + deleteId + ')', 'error');
+      }
+    } catch(e) { showToast('エラー: ' + e.message, 'error'); }
+    hideLoading();
+  });
+}
+
+function refreshResetSelect() {
+  const sel = document.getElementById('reset-emp-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">社員を選択...</option>' + allEmployees.filter(e => e.status === 'active').map(e => `<option value="${esc(e.id)}">${esc(e.name)}（${esc(e.loginId)}）</option>`).join('');
+}
+
+async function doPasswordReset() {
+  const empId = document.getElementById('reset-emp-select').value;
+  const newPw = document.getElementById('reset-new-pw').value;
+  const legacyEl = document.getElementById('reset-legacy');
+  const legacy = !!(legacyEl && legacyEl.checked);
+  if (!empId) { showToast('社員を選択してください', 'error'); return; }
+  if (passwordPolicyError_(newPw, legacy)) { showToast(passwordPolicyError_(newPw, legacy), 'error'); return; }
+  const emp = allEmployees.find(e => e.id === empId);
+  if (!emp) { showToast('社員が見つかりません', 'error'); return; }
+  openConfirm(`「${emp.name}」のパスワードをリセットしますか？` + (legacy ? '（既存のパスワードをそのまま登録・規則なし）' : ''), async () => {
+    showLoading('リセット中...');
+    try {
+      const credential = await newPasswordCredential_(newPw, legacy);
+      document.getElementById('reset-new-pw').value = '';
+      let res;
+      try { res = await gasAuth('saveEmployee', { id: emp.id, credential, credentialRevision: emp.credentialRevision }, false); }
+      finally { credential.proof = ''; }
+      if (res.ok) {
+        gasAuth('addLog', `PWリセット: ${emp.name}` + (legacy ? '（既存引継ぎ・規則なし）' : ''), '成功').catch(() => {});
+        document.getElementById('reset-new-pw').value = ''; document.getElementById('reset-emp-select').value = '';
+        if (legacyEl) legacyEl.checked = false;
+        await loadEmployees(); showToast(`${emp.name}のパスワードをリセットしました`, 'success');
+      } else showToast(res.message || 'リセット失敗', 'error');
+    } catch(e) { showToast('エラー: ' + e.message, 'error'); }
+    hideLoading();
+  });
+}
+
+/** 退職/在職ボタンの委譲ハンドラ。値は data-* から読む（インラインJSに生値を入れない）。 */
+function toggleStatusBtn(btn) {
+  toggleStatus(btn.getAttribute('data-id'), btn.getAttribute('data-name'), btn.getAttribute('data-status'));
+}
+
+function renderStatusTable() {
+  const tbody = document.getElementById('status-tbody');
+  if (!tbody) return;
+  const sL = {active:'在職', inactive:'退職'};
+  const sC = {active:'bg-g', inactive:'bg-gray'};
+  // ★インラインの onclick に氏名（生値）を入れると、引用符やタグ相当の文字で壊れる/注入される。
+  //   data-* 属性（esc経由）に持たせ、onclick は this から読む委譲方式にする。
+  tbody.innerHTML = allEmployees.map(e => `
+    <tr>
+      <td style="font-weight:600">${esc(e.name)}</td><td>${esc(e.dept)}</td>
+      <td style="font-family:monospace;font-size:11px">${esc(e.loginId)}</td>
+      <td><span class="badge ${sC[e.status]||'bg-gray'}">${esc(sL[e.status]||e.status)}</span></td>
+      <td>${e.status === 'active'
+        ? `<button class="btn xs danger" data-id="${esc(e.id)}" data-name="${esc(e.name)}" data-status="inactive" data-csp-click="h32" data-csp-source-click="toggleStatusBtn(this)">退職にする</button>`
+        : `<button class="btn xs pri" data-id="${esc(e.id)}" data-name="${esc(e.name)}" data-status="active" data-csp-click="h33" data-csp-source-click="toggleStatusBtn(this)">在職に戻す</button>`}</td>
+    </tr>`).join('');
+}
+
+async function toggleStatus(id, name, newStatus) {
+  const label = newStatus === 'inactive' ? '退職' : '在職';
+  openConfirm(`「${name}」を${label}状態にしますか？`, async () => {
+    showLoading('更新中...');
+    try {
+      const emp = allEmployees.find(e => e.id === id);
+      const res = await gasAuth('saveEmployee', { id: emp.id, status: newStatus }, false);
+      if (res.ok) {
+        gasAuth('addLog', `ステータス変更: ${name} → ${label}`, '成功').catch(() => {});
+        await loadEmployees(); showToast(`${name}を${label}にしました`, 'success');
+      } else showToast(res.message || '更新失敗', 'error');
+    } catch(e) { showToast('エラー: ' + e.message, 'error'); }
+    hideLoading();
+  });
+}
+
+async function loadCsvUrlSetting() {
+  try {
+    const res = await gasAuth('getCsvUrl');
+    if (res && res.url) { const el = document.getElementById('csv-url-input'); if (el) el.value = res.url; }
+  } catch(e) {}
+}
+
+async function saveCsvUrl() {
+  const url = document.getElementById('csv-url-input').value.trim();
+  const statusEl = document.getElementById('csv-url-status');
+  if (!url) { showToast('URLを入力してください', 'error'); return; }
+  statusEl.style.display = 'block'; statusEl.style.color = 'var(--tx2)'; statusEl.textContent = '保存中...';
+  try {
+    const res = await gasAuth('setCsvUrl', url);
+    if (res.ok) { statusEl.style.color = 'var(--g)'; statusEl.textContent = '✅ 保存しました'; showToast('CSV URLを保存しました', 'success'); }
+    else throw new Error(res.message);
+  } catch(e) { statusEl.style.color = 'var(--r)'; statusEl.textContent = '❌ ' + e.message; }
+}
+
+async function loadLogs() {
+  const tbody = document.getElementById('log-tbody');
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--tx3);padding:10px">読み込み中...</td></tr>';
+  try {
+    const res = await gasAuth('getLogs');
+    if (!res || !res.ok) throw new Error(res ? (res.message || '取得失敗') : 'レスポンスなし');
+    tbody.innerHTML = res.data && res.data.length
+      ? res.data.map(l => {
+          let ts = l.ts || '-';
+          try { const d = new Date(l.ts); if (!isNaN(d.getTime())) { ts = d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); } } catch(e) {}
+          // ★ユーザー名・action・result は addLog 経由で保存された値＝注入され得るのでエスケープ
+          return `<tr>
+            <td style="white-space:nowrap;font-size:11px">${esc(ts)}</td>
+            <td>${esc(l.user)||'-'}</td>
+            <td style="font-weight:600;color:var(--tx)">${esc(l.action)||'-'}</td>
+            <td style="color:${l.result==='成功'?'var(--g)':'var(--r)'}">${esc(l.result)||'-'}</td>
+          </tr>`;
+        }).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:var(--tx3);padding:10px">ログなし</td></tr>';
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--r);text-align:center;padding:8px">読み込みエラー: ' + esc(e.message) + '</td></tr>';
+  }
+}
+
+async function loadNotifySettings() {
+  const container = document.getElementById('notify-setting-list');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;color:var(--tx3);padding:16px">読み込み中...</div>';
+  try {
+    const res = await gasAuth('getNotifySettings');
+    if (!res || !res.ok) throw new Error(res ? res.message : 'レスポンスなし');
+    notifySettings = res.data || [];
+    notifyMatrix = {};
+    NOTIFY_APPS.forEach(app => notifyMatrix[app] = []);
+    notifySettings.forEach(s => { if (s.enabled && notifyMatrix[s.app] !== undefined) notifyMatrix[s.app].push(s.userId); });
+    renderNotifySettings();
+  } catch(e) {
+    container.innerHTML = '<div style="text-align:center;color:var(--r);padding:16px">読み込みエラー: ' + esc(e.message) + '</div>';
+  }
+}
+
+function renderNotifySettings() {
+  const container = document.getElementById('notify-setting-list');
+  if (!container) return;
+  const lwEmps = allEmployees.filter(e => e.status === 'active' && e.lwUserId);
+  if (!lwEmps.length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--tx3);padding:12px;background:var(--abg);border-radius:var(--rads)">⚠️ LINEWORKSユーザーIDが登録されている従業員がいません。</div>';
+    return;
+  }
+  container.innerHTML = `
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table class="emp-table" style="min-width:400px">
+        <thead><tr><th>従業員</th>${NOTIFY_APPS.map(app => `<th style="text-align:center">${APP_LABELS[app]}</th>`).join('')}</tr></thead>
+        <tbody>${lwEmps.map(emp => `<tr>
+          <td><div style="font-weight:600">${esc(emp.name)}</div><div style="font-size:11px;color:var(--tx3)">${esc(emp.lwUserId)}</div></td>
+          ${NOTIFY_APPS.map(app => `<td style="text-align:center"><input type="checkbox" id="notify-${esc(app)}-${esc(emp.id)}" ${notifyMatrix[app] && notifyMatrix[app].includes(emp.lwUserId) ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer"></td>`).join('')}
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+async function saveNotifySettings() {
+  const lwEmps = allEmployees.filter(e => e.status === 'active' && e.lwUserId);
+  if (!lwEmps.length) { showToast('LINEWORKSユーザーIDが登録されている従業員がいません', 'error'); return; }
+  showLoading('通知設定を保存中...');
+  try {
+    const res = await gasAuth('getNotifySettings');
+    const existing = (res && res.ok) ? (res.data || []) : [];
+
+    const sorted = [...existing].sort((a, b) => b.rowIndex - a.rowIndex);
+    for (const s of sorted) { 
+      await gasAuth('deleteNotifySetting', s.rowIndex); 
+    }
+
+    for (const app of NOTIFY_APPS) {
+      for (const emp of lwEmps) {
+        const cb = document.getElementById(`notify-${app}-${emp.id}`);
+        if (cb && cb.checked) { 
+          await gasAuth('saveNotifySetting', { app, userId: emp.lwUserId, enabled: true, memo: emp.name }); 
+        }
+      }
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    await loadNotifySettings();
+    showToast('通知設定を保存しました', 'success');
+  } catch(e) { showToast('エラー: ' + e.message, 'error'); }
+  hideLoading();
+}
+
+function openConfirm(msg, cb) {
+  confirmCb = cb;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-modal').classList.remove('hid');
+  document.getElementById('confirm-ok').onclick = () => {
+    // ★バグ修正：closeConfirm() が confirmCb を null にするため、
+    //   先にコールバックを控えてから閉じる。順序を逆にすると処理が実行されない。
+    const cb = confirmCb;
+    closeConfirm();
+    if (cb) cb();
+  };
+}
+function closeConfirm() { document.getElementById('confirm-modal').classList.add('hid'); confirmCb = null; }
+function showLoading(msg) { document.getElementById('loading-msg').textContent = msg || '処理中...'; document.getElementById('loading').classList.remove('hid'); }
+function hideLoading() { document.getElementById('loading').classList.add('hid'); }
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast' + (type ? ' ' + type : '');
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800);
+}
+document.getElementById('emp-modal').addEventListener('click', e => { if(e.target === document.getElementById('emp-modal')) closeEmpModal(); });
+document.getElementById('confirm-modal').addEventListener('click', e => { if(e.target === document.getElementById('confirm-modal')) closeConfirm(); });
+</script>
+</body>
+</html>
