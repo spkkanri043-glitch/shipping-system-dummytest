@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Da/fOqAv+xPH3tHiULLa7xtiePtE0gNl8nX7rgXGE2E=' 'sha256-9nUqiXxYfZKZwNjBRwUr/TKszMS2vuA5T2xNyu0JFjM='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://docs.google.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Da/fOqAv+xPH3tHiULLa7xtiePtE0gNl8nX7rgXGE2E=' 'sha256-ydUZEZO9wnXgNz2bQTRo5cgkj5OU6U5o4f4g3KbdnB8='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://docs.google.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { doLogin()
@@ -1123,7 +1123,23 @@ async function refreshOnlineUsers() {
 //  ・「このアプリを使ってよいか」はサーバー側が canUseApp_ で判定する。
 //    下のロール判定は、押せないように見せるための飾りにすぎない。
 // ============================================================
+// Only the reviewed dummytest page / GAS pair may open in TEST mode.
+const REVIEWED_JUNKAI_PAGE = "https://spkkanri043-glitch.github.io/shipping-system-dummytest/sagyou_junkai_checksheet.html";
+const REVIEWED_JUNKAI_GAS = "https://script.google.com/macros/s/AKfycbxUrrMU3RbqDWU0F30evJy6jE9urhv7WFgbi7yxbWRyl4Zlc8wgJhTys6_W3w7G_ZI/exec";
+function reviewedJunkaiPair_(app, page, gas) {
+  return app === 'junkaiCheck' && page === REVIEWED_JUNKAI_PAGE && gas === REVIEWED_JUNKAI_GAS;
+}
+function reviewedJunkaiFinal_(app, finalUrl, token) {
+  return typeof token === 'string' && token.length > 0 &&
+    reviewedJunkaiPair_(app, appUrls[app], appUrls.junkaiCheckGas) &&
+    finalUrl === REVIEWED_JUNKAI_PAGE + '?junkai_gas_url=' + encodeURIComponent(REVIEWED_JUNKAI_GAS) + '#sso=' + encodeURIComponent(token);
+}
+
 async function openApp(app) {
+  if (ENV === 'TEST' && !reviewedJunkaiPair_(app, appUrls[app], appUrls.junkaiCheckGas)) {
+    showToast('テスト用の作業巡回URL・GASが未設定または不一致です。他アプリは未開放です。', 'error');
+    return;
+  }
   // --- 見た目の制御（本当の判定はサーバー側） ---
   if (app === 'shippingAdjust') {
     const role = currentUser ? currentUser.role : 'staff';
@@ -1217,28 +1233,9 @@ async function openApp(app) {
   // ★トークンは必ず最後、フラグメントに置く
   const finalUrl = url + (q.length ? '?' + q.join('&') : '') + '#sso=' + encodeURIComponent(token);
 
-  // ★テスト/本番の分離（もぐプラス指示 2026-08-11）：
-  //   TEST 環境では、本番ドメイン・本番GAS へは遷移しない。
-  //   ここまでで「トークン発行・aud・exp・jti」はポータル側で確認できているので、
-  //   遷移はせず、検査用にトークンの主要クレームだけコンソールへ出す（非秘密のみ）。
-  // ★TEST環境では「全アプリ」で遷移せず、トークン発行＋検査トーストに統一する
-  //   （安田さん依頼 2026-08-27）。dummytest配下でも遷移しない。
-  //   ※実アプリを開いて機能検証したい場合は、この条件を
-  //     `ENV === 'TEST' && isProdTarget_(finalUrl)` に戻すと dummytest配下のみ遷移する。
-  //     （isProdTarget_ は下に残してある）
-  if (ENV === 'TEST') {
-    const claims = decodeTokenClaims_(token);
-    if (claims) {
-      // Server token timestamps are milliseconds.
-      const remainMin = Number.isFinite(claims.exp) ? Math.round((claims.exp - Date.now()) / 60000) : '?';
-      // 検査用：aud / role / jti / 残り有効(分)。氏名やトークン本体は出さない。
-      console.log('[TEST] openApp トークン検査:', { app: app, aud: claims.aud, role: claims.role, jti: claims.jti, 残り有効分: remainMin });
-      window.__lastAppTokenClaims = { aud: claims.aud, exp: claims.exp, role: claims.role };
-    } else {
-      console.log('[TEST] openApp トークンの復号に失敗');
-    }
-    gasAuth('addLog', 'アプリ起動(TEST/遷移抑止): ' + app, '成功').catch(() => {});
-    showToast('TEST環境のため本番URLへは遷移しません（トークンは発行済み）', 'error');
+  // Recheck after awaiting token issuance; reject changed settings or unexpected query data.
+  if (ENV === 'TEST' && !reviewedJunkaiFinal_(app, finalUrl, token)) {
+    showToast('テスト用の接続先が一致しないため移動を止めました', 'error');
     return;
   }
 
