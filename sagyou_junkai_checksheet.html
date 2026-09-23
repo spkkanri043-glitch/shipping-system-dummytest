@@ -1,7 +1,105 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-QopNxRJyvtK3/AC8PW4REf7Ia4n5kZAUG8VZ9Eg+OiE=' 'sha256-yyexn6W1mOSRUblKUBuM/AyfhpLsuyRY4SKLw4KBN84='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
+<script>/* MOGU_CSP_RUNTIME_V1 */
+const __moguCsp = (() => {
+  const handlers = {"h0": function(event, _p) { closeTab()
+},
+"h1": function(event, _p) { switchTab('input')
+},
+"h2": function(event, _p) { switchTab('history')
+},
+"h3": function(event, _p) { switchTab('coverage')
+},
+"h4": function(event, _p) { onProductInput(this.value)
+},
+"h5": function(event, _p) { fetchWorkerName()
+},
+"h6": function(event, _p) { clearWorker_()
+},
+"h7": function(event, _p) { translateField('f-eval-comment','trans-eval-comment')
+},
+"h8": function(event, _p) { translateField('f-worker-comment','trans-worker-comment')
+},
+"h9": function(event, _p) { translateField('f-worker-comment','trans-worker-comment','ja')
+},
+"h10": function(event, _p) { clearForm()
+},
+"h11": function(event, _p) { saveRecord()
+},
+"h12": function(event, _p) { loadHistoryFromServer()
+},
+"h13": function(event, _p) { exportCsv()
+},
+"h14": function(event, _p) { toggleExcludedSection()
+},
+"h15": function(event, _p) { loadCoverageStats()
+},
+"h16": function(event, _p) { toggleSection((String(_p[1])))
+},
+"h17": function(event, _p) { addItem((String(_p[5])))
+},
+"h18": function(event, _p) { removeRow(this,(String(_p[0])))
+},
+"h19": function(event, _p) { translateItemCard(this)
+},
+"h20": function(event, _p) { markEval(this)
+},
+"h21": function(event, _p) { translateField('detail-eval-comment','trans-eval-comment-detail')
+},
+"h22": function(event, _p) { translateField('detail-eval-comment','trans-eval-comment-detail','ja')
+},
+"h23": function(event, _p) { translateField('detail-worker-comment','trans-detail-worker-comment')
+},
+"h24": function(event, _p) { translateField('detail-worker-comment','trans-detail-worker-comment','ja')
+}};
+  const events = ["click","input","change"];
+  const bound = new WeakMap();
+  function bind(el) {
+    if (!el || el.nodeType !== 1) return;
+    let state = bound.get(el); if (!state) { state = new Map(); bound.set(el, state); }
+    for (const type of events) {
+      const id = el.getAttribute('data-csp-' + type);
+      if (!id || state.get(type) === id) continue;
+      if (!Object.prototype.hasOwnProperty.call(handlers, id)) continue;
+      const fn = function(event) {
+        const value = this.getAttribute('data-csp-args-' + type);
+        const params = value ? JSON.parse(decodeURIComponent(value)) : [];
+        return handlers[id].call(this, event, params);
+      };
+      // Native event-handler properties preserve this/currentTarget, cancellation,
+      // async return behavior and later application assignments to .onclick etc.
+      el['on' + type] = fn;
+      state.set(type, id);
+    }
+  }
+  function scan(root) {
+    bind(root);
+    if (root.querySelectorAll) for (const el of root.querySelectorAll('*')) bind(el);
+  }
+  for (const type of events) document.addEventListener(type, event => {
+    for (const el of event.composedPath()) bind(el);
+  }, true);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') bind(record.target);
+      else for (const node of record.addedNodes) scan(node);
+    }
+  }).observe(document, {subtree:true, childList:true, attributes:true,
+    attributeFilter: events.map(type => 'data-csp-' + type)});
+  document.addEventListener('DOMContentLoaded', () => scan(document));
+  const encode = values => encodeURIComponent(JSON.stringify(values)).replace(/'/g, '%27');
+  function assign(el,type,id,values) {
+    el.setAttribute('data-csp-' + type,id);
+    el.setAttribute('data-csp-args-' + type,encode(values));
+    bind(el);
+  }
+  return Object.freeze({ encode, scan, assign });
+})();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>作業巡回チェックシート | 関ケ原プラ工業(株)</title>
 <style>
@@ -119,7 +217,7 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
 .hist-table td { padding: 7px 9px; border-bottom: 1px solid var(--bd); }
 .hist-empty { text-align: center; color: var(--tx3); padding: 18px; font-size: 12px; }
 
-.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px); background: #1a2332; color: #fff; padding: 11px 22px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.3); z-index: 999; transition: transform .3s; white-space: nowrap; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px); background: #1a2332; color: #fff; padding: 11px 22px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.3); z-index: 999; transition: transform .3s; white-space: normal; width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; overflow-wrap: anywhere; }
 .toast.show { transform: translateX(-50%) translateY(0); }
 .toast.success { background: var(--g); }
 .toast.error { background: var(--r); }
@@ -176,16 +274,16 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
     </select>
     <span class="user-name" id="disp-name">未ログイン</span>
     <span class="badge-role" id="disp-role"></span>
-    <button class="btn xs hid" id="btn-close-tab" onclick="closeTab()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff">&#x2715; タブを閉じる</button>
+    <button class="btn xs hid" id="btn-close-tab" data-csp-click="h0" data-csp-source-click="closeTab()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff">&#x2715; タブを閉じる</button>
   </div>
 </div>
 
 <div class="content">
 
   <div class="tab-bar">
-    <div class="tab-item on" id="tab-btn-input" onclick="switchTab('input')">&#x1F4CB; 点検入力</div>
-    <div class="tab-item" id="tab-btn-history" onclick="switchTab('history')">&#x1F4DC; 巡回記録の確認</div>
-    <div class="tab-item" id="tab-btn-coverage" onclick="switchTab('coverage')">&#x2B50; 巡回バランス</div>
+    <div class="tab-item on" id="tab-btn-input" data-csp-click="h1" data-csp-source-click="switchTab('input')">&#x1F4CB; 点検入力</div>
+    <div class="tab-item" id="tab-btn-history" data-csp-click="h2" data-csp-source-click="switchTab('history')">&#x1F4DC; 巡回記録の確認</div>
+    <div class="tab-item" id="tab-btn-coverage" data-csp-click="h3" data-csp-source-click="switchTab('coverage')">&#x2B50; 巡回バランス</div>
   </div>
 
   <div id="tab-input" class="tab-page on">
@@ -208,11 +306,16 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
       </div>
       <div class="fg">
         <label class="fl">品番</label>
-        <input class="fi" type="text" id="f-product" list="dl-products" placeholder="品番を入力(候補から選択)" autocomplete="off" oninput="onProductInput(this.value)">
+        <input class="fi" type="text" id="f-product" list="dl-products" placeholder="品番を入力(候補から選択)" autocomplete="off" data-csp-input="h4" data-csp-source-input="onProductInput(this.value)">
         <datalist id="dl-products"></datalist>
       </div>
       <div class="fg"><label class="fl">巡回担当者</label>
         <input class="fi" type="text" id="f-inspector" placeholder="ログイン後に自動入力されます" readonly>
+      </div>
+      <div class="fg">
+        <label class="fl" for="f-worker-id">作業者社員ID</label>
+        <input class="fi" type="text" id="f-worker-id" list="dl-employee-ids" autocomplete="off">
+        <datalist id="dl-employee-ids"></datalist>
       </div>
       <div class="fg">
         <label class="fl">作業者名</label>
@@ -221,15 +324,15 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
           <datalist id="dl-employees"></datalist>
         </div>
         <div class="row-inline" style="margin-top:4px">
-          <span class="link-btn" onclick="fetchWorkerName()">作業者名を登録</span>
-          <span class="link-btn" onclick="document.getElementById('f-worker').value=''">クリア</span>
+          <span class="link-btn" data-csp-click="h5" data-csp-source-click="fetchWorkerName()">作業者名を登録</span>
+          <span class="link-btn" data-csp-click="h6" data-csp-source-click="clearWorker_()">クリア</span>
         </div>
       </div>
       <div class="fg full" style="grid-column:1/-1">
         <label class="fl">作業評価コメント(管理者)</label>
         <textarea class="fi" id="f-eval-comment" placeholder="管理者による評価コメント"></textarea>
         <div class="row-inline" style="margin-top:4px">
-          <span class="link-btn" onclick="translateField('f-eval-comment','trans-eval-comment')">&#x1F310; 翻訳を見る</span>
+          <span class="link-btn" data-csp-click="h7" data-csp-source-click="translateField('f-eval-comment','trans-eval-comment')">&#x1F310; 翻訳を見る</span>
         </div>
         <div class="translate-box hid" id="trans-eval-comment"></div>
       </div>
@@ -237,8 +340,8 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
         <label class="fl">作業者コメント</label>
         <textarea class="fi" id="f-worker-comment" placeholder="作業者からのコメント"></textarea>
         <div class="row-inline" style="margin-top:4px">
-          <span class="link-btn" onclick="translateField('f-worker-comment','trans-worker-comment')">&#x1F310; 翻訳を見る</span>
-          <span class="link-btn" onclick="translateField('f-worker-comment','trans-worker-comment','ja')">&#x1F1EF;&#x1F1F5; 日本語に翻訳</span>
+          <span class="link-btn" data-csp-click="h8" data-csp-source-click="translateField('f-worker-comment','trans-worker-comment')">&#x1F310; 翻訳を見る</span>
+          <span class="link-btn" data-csp-click="h9" data-csp-source-click="translateField('f-worker-comment','trans-worker-comment','ja')">&#x1F1EF;&#x1F1F5; 日本語に翻訳</span>
         </div>
         <div class="translate-box hid" id="trans-worker-comment"></div>
       </div>
@@ -248,8 +351,8 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
   <div id="sections-wrap"></div>
 
   <div class="action-bar">
-    <button class="btn" onclick="clearForm()">キャンセル</button>
-    <button class="btn pri" onclick="saveRecord()">&#x1F4BE; 保存</button>
+    <button class="btn" data-csp-click="h10" data-csp-source-click="clearForm()">キャンセル</button>
+    <button class="btn pri" data-csp-click="h11" data-csp-source-click="saveRecord()">&#x1F4BE; 保存</button>
   </div>
 
   </div>
@@ -264,8 +367,8 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
         </table>
       </div>
       <div style="margin-top:10px;display:flex;gap:8px">
-        <button class="btn sm" onclick="loadHistoryFromServer()">&#x1F504; 更新</button>
-        <button class="btn sm" onclick="exportCsv()">&#x1F4C4; CSV出力</button>
+        <button class="btn sm" data-csp-click="h12" data-csp-source-click="loadHistoryFromServer()">&#x1F504; 更新</button>
+        <button class="btn sm" data-csp-click="h13" data-csp-source-click="exportCsv()">&#x1F4C4; CSV出力</button>
       </div>
     </div>
     <div id="detail-panel"></div>
@@ -297,7 +400,7 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
     </div>
 
     <div class="card" id="excluded-card" style="display:none">
-      <div class="card-title" style="cursor:pointer" onclick="toggleExcludedSection()">&#x1F6AB; 対象外の従業員(<span id="excluded-count">0</span>人) <span id="excluded-caret">&#x25B6;</span></div>
+      <div class="card-title" style="cursor:pointer" data-csp-click="h14" data-csp-source-click="toggleExcludedSection()">&#x1F6AB; 対象外の従業員(<span id="excluded-count">0</span>人) <span id="excluded-caret">&#x25B6;</span></div>
       <div id="excluded-list" class="hid"></div>
     </div>
 
@@ -307,7 +410,7 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
       <div class="card-title">&#x1F4CB; 巡回担当者別サマリー(取引先・品番の内訳)</div>
       <div id="inspector-summary"><div class="hist-empty">読み込み中...</div></div>
       <div style="margin-top:10px">
-        <button class="btn sm" onclick="loadCoverageStats()">&#x1F504; 更新</button>
+        <button class="btn sm" data-csp-click="h15" data-csp-source-click="loadCoverageStats()">&#x1F504; 更新</button>
       </div>
     </div>
   </div>
@@ -317,6 +420,50 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
 <div class="toast" id="toast"></div>
 
 <script>
+document.addEventListener('click', event => {
+  const el = event.target.closest('[data-patrol-action]');
+  if (!el) return;
+  const d = el.dataset;
+  switch (d.patrolAction) {
+    case 'go-record': if (d.id) goToRecordDetail(d.id); break;
+    case 'record': if (d.id) showRecordDetail(d.id); break;
+    case 'worker': showWorkerHistory(d.name); break;
+    case 'exclude': toggleExcluded(d.id, d.name, d.excluded === 'true'); break;
+    case 'comment': saveWorkerComment(d.id); break;
+  }
+});
+
+
+// Business drafts are page-memory only. SSO tokens stay in sessionStorage;
+// static HTML/GAS cannot issue HttpOnly cookies.
+const pageMemoryStorage = (() => {
+  const entries = new Map();
+  return {
+    getItem: key => entries.has(key) ? entries.get(key) : null,
+    setItem: (key, value) => entries.set(key, String(value)),
+    removeItem: key => entries.delete(key),
+    clear: () => entries.clear()
+  };
+})();
+function clearBrowserBusinessData_() {
+  pageMemoryStorage.clear();
+  const known = new Set(['kpk_app_perms', 'kpk_shift_employees', 'kpk_shift_data',
+    'kpk_cal_special', 'kpk_data_ver', 'kpk_session', 'kpk_vac_req', 'kpk_ot_req',
+    'kpk_h_req', 'kpk_sync_log', 'sakugyo_wip_backup', 'inv_current_user',
+    'inv_sat_v2', 'inv_portal_url', 'inv_gas_url', 'inv_master_url',
+    'sakugyo_portal_url', 'daily_report_portal_url']);
+  for (const name of ['localStorage', 'sessionStorage']) {
+    try {
+      const storage = window[name];
+      for (let i = storage.length - 1; i >= 0; i--) {
+        const key = storage.key(i);
+        if (known.has(key) || (key && key.startsWith('inv_sat_v2_'))) storage.removeItem(key);
+      }
+    } catch (e) {}
+  }
+}
+clearBrowserBusinessData_();
+
 // ==============================================================
 // 点検セクション定義
 // 現行kintoneアプリからそのまま移植した項目(成形工程/検査・加工)
@@ -387,7 +534,7 @@ let AUTH_TOKEN = (function() {
     if (m) {
       const t = decodeURIComponent(m[1]);
       sessionStorage.setItem(AUTH_TOKEN_KEY, t);
-      history.replaceState(null, '', location.pathname + location.search);
+      window.history.replaceState(null, '', location.pathname + location.search);
       return t;
     }
     return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
@@ -475,8 +622,9 @@ function showWorkerHistory(name) {
   panel.innerHTML = '<div class="card">読み込み中...</div>';
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   gasGet('getJunkaiRecords').then(res => {
-    if (!res || !res.ok) { panel.innerHTML = `<div class="card" style="color:var(--r)">取得エラー: ${(res && res.message) || '不明'}</div>`; return; }
-    const list = (res.data || []).filter(r => r.worker === name);
+    if (!res || !res.ok) { panel.innerHTML = `<div class="card" style="color:var(--r)">取得エラー: ${escapeHtml((res && res.message) || '不明')}</div>`; return; }
+    const list = currentUser && currentUser.role === 'staff'
+      ? (res.data || []) : (res.data || []).filter(r => r.worker === name);
     if (!list.length) {
       panel.innerHTML = `<div class="card"><div class="card-title">&#x1F4CB; ${escapeHtml(name)}さんの巡回記録</div><div class="hist-empty">記録がありません</div></div>`;
       return;
@@ -488,18 +636,18 @@ function showWorkerHistory(name) {
           <table class="hist-table">
             <thead><tr><th>日時</th><th>取引先</th><th>品番</th><th>巡回担当者</th><th>×件数</th><th></th></tr></thead>
             <tbody>${list.map(r => `
-              <tr class="hist-row" onclick="goToRecordDetail('${r.id}')">
-                <td>${r.date || ''}${r.time ? ' ' + r.time : ''}</td>
-                <td>${r.client || '-'}</td>
-                <td>${r.product || '-'}</td>
-                <td>${r.inspector || '-'}</td>
-                <td style="color:${r.ngTotal > 0 ? 'var(--r)' : 'var(--g)'};font-weight:700">${r.ngTotal}</td>
+              <tr class="hist-row" data-patrol-action="go-record" data-id="${escapeAttr(r.id)}">
+                <td>${escapeHtml(r.date || '')}${escapeHtml(r.time ? ' ' + r.time : '')}</td>
+                <td>${escapeHtml(r.client || '-')}</td>
+                <td>${escapeHtml(r.product || '-')}</td>
+                <td>${escapeHtml(r.inspector || '-')}</td>
+                <td style="color:${r.ngTotal > 0 ? 'var(--r)' : 'var(--g)'};font-weight:700">${escapeHtml(r.ngTotal)}</td>
                 <td><span class="link-btn">詳細を見る</span></td>
               </tr>`).join('')}</tbody>
           </table>
         </div>
       </div>`;
-  }).catch(err => { panel.innerHTML = `<div class="card" style="color:var(--r)">取得エラー: ${err.message}</div>`; });
+  }).catch(err => { panel.innerHTML = `<div class="card" style="color:var(--r)">取得エラー: ${escapeHtml(err.message)}</div>`; });
 }
 
 function goToRecordDetail(id) {
@@ -518,7 +666,7 @@ function loadCoverageStats() {
 
   Promise.all([gasGet('getWorkerCoverageStats'), gasGet('getExcludedWorkers')]).then(([res, exRes]) => {
     if (!res || !res.ok) {
-      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--r);text-align:center;padding:14px">取得エラー: ${(res && res.message) || '不明'}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--r);text-align:center;padding:14px">取得エラー: ${escapeHtml((res && res.message) || '不明')}</td></tr>`;
       return;
     }
     const { workerStats, inspectorStats, totalRecords, dateRange } = res.data;
@@ -550,7 +698,7 @@ function loadCoverageStats() {
       return `
         <div class="cov-bar-row">
           <div class="cov-bar-name">${escapeHtml(r.name)}</div>
-          <div class="cov-bar-track"><div class="cov-bar-fill" style="width:${pct}%;background:${color}">${r.count}</div></div>
+          <div class="cov-bar-track"><div class="cov-bar-fill" style="width:${pct}%;background:${color}">${escapeHtml(r.count)}</div></div>
         </div>`;
     }).join('');
 
@@ -559,11 +707,11 @@ function loadCoverageStats() {
     else {
       tbody.innerHTML = rows.map(r => `
         <tr>
-          <td><span class="link-btn" onclick="showWorkerHistory('${escapeAttr(r.name)}')">${escapeHtml(r.name)}</span></td>
+          <td><span class="link-btn" data-patrol-action="worker" data-name="${escapeAttr(r.name)}">${escapeHtml(r.name)}</span></td>
           <td>${escapeHtml(r.dept)}</td>
-          <td style="font-weight:700;color:${r.count === 0 ? 'var(--r)' : r.count <= 2 ? 'var(--a)' : 'var(--g)'}">${r.count}回</td>
-          <td>${r.lastDate || '(未巡回)'}</td>
-          <td><span class="link-btn" onclick="toggleExcluded('${escapeAttr(r.id)}','${escapeAttr(r.name)}',true)">対象外にする</span></td>
+          <td style="font-weight:700;color:${r.count === 0 ? 'var(--r)' : r.count <= 2 ? 'var(--a)' : 'var(--g)'}">${escapeHtml(r.count)}回</td>
+          <td>${escapeHtml(r.lastDate || '(未巡回)')}</td>
+          <td><span class="link-btn" data-patrol-action="exclude" data-id="${escapeAttr(r.id)}" data-name="${escapeAttr(r.name)}" data-excluded="true">対象外にする</span></td>
         </tr>`).join('');
     }
 
@@ -579,7 +727,7 @@ function loadCoverageStats() {
             <tr>
               <td>${escapeHtml(r.name)}</td>
               <td>${escapeHtml(r.dept)}</td>
-              <td><span class="link-btn" onclick="toggleExcluded('${escapeAttr(r.id)}','${escapeAttr(r.name)}',false)">対象に戻す</span></td>
+              <td><span class="link-btn" data-patrol-action="exclude" data-id="${escapeAttr(r.id)}" data-name="${escapeAttr(r.name)}" data-excluded="false">対象に戻す</span></td>
             </tr>`).join('')}</tbody>
         </table>`;
     } else {
@@ -595,20 +743,20 @@ function loadCoverageStats() {
       inspEl.innerHTML = inspNames.map(name => {
         const s = inspectorStats[name];
         const topClients = Object.entries(s.clients).sort((a, b) => b[1] - a[1])
-          .map(([k, v]) => `${escapeHtml(k)}(${v})`).join('、');
+          .map(([k, v]) => `${escapeHtml(k)}(${escapeHtml(v)})`).join('、');
         const topProducts = Object.entries(s.products).sort((a, b) => b[1] - a[1])
-          .map(([k, v]) => `${escapeHtml(k)}(${v})`).join('、');
+          .map(([k, v]) => `${escapeHtml(k)}(${escapeHtml(v)})`).join('、');
         return `
           <div class="insp-card">
-            <div class="insp-card-title">${escapeHtml(name)} — 合計 ${s.total}件</div>
+            <div class="insp-card-title">${escapeHtml(name)} — 合計 ${escapeHtml(s.total)}件</div>
             <div class="insp-breakdown"><b>取引先内訳:</b> ${topClients}</div>
             <div class="insp-breakdown"><b>品番内訳:</b> ${topProducts}</div>
           </div>`;
       }).join('');
     }
   }).catch(err => {
-    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--r);text-align:center;padding:14px">取得エラー: ${err.message}</td></tr>`;
-    document.getElementById('inspector-summary').innerHTML = `<div style="color:var(--r)">取得エラー: ${err.message}</div>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--r);text-align:center;padding:14px">取得エラー: ${escapeHtml(err.message)}</td></tr>`;
+    document.getElementById('inspector-summary').innerHTML = `<div style="color:var(--r)">取得エラー: ${escapeHtml(err.message)}</div>`;
   });
 }
 
@@ -636,6 +784,7 @@ function toggleExcludedSection() {
 // ==============================================================
 // トークン失効・未ログイン検知の共通処理
 function handleUnauthorized_() {
+  clearBrowserBusinessData_();
   try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) {}
   AUTH_TOKEN = '';
   currentUser = null;
@@ -650,8 +799,10 @@ async function gasCall_(action, payload) {
     headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // application/jsonはCORSプリフライトが必要でGASが応答不可
     body: JSON.stringify({ action, token: AUTH_TOKEN, ...(payload || {}) })
   });
+  if (!res.ok) throw new Error('通信エラー');
   const json = await res.json();
   if (json && json.error === 'unauthorized') { handleUnauthorized_(); return null; }
+  if (!json || typeof json !== 'object' || json.ok === false || json.error) throw new Error('処理に失敗しました');
   return json;
 }
 
@@ -667,6 +818,8 @@ function loadEmployeeMaster() {
     if (res && res.ok) {
       employees = res.data;
       dl.innerHTML = employees.map(e => `<option value="${escapeAttr(e.name)}">`).join('');
+      document.getElementById('dl-employee-ids').innerHTML = employees.map(e =>
+        `<option value="${escapeAttr(e.id)}">${escapeHtml(e.name)}</option>`).join('');
     }
   }).catch(err => console.error('従業員マスター取得エラー:', err));
 }
@@ -714,19 +867,33 @@ function onProductInput(code) {
 
 function fetchWorkerName() {
   document.getElementById('f-worker').value = currentUser ? currentUser.name : '';
+  document.getElementById('f-worker-id').value = currentUser ? currentUser.id : '';
 }
+
+function clearWorker_() {
+  document.getElementById('f-worker').value = '';
+  document.getElementById('f-worker-id').value = '';
+}
+
+document.getElementById('f-worker-id').addEventListener('input', function() {
+  const matches = employees.filter(e => e.id === this.value);
+  document.getElementById('f-worker').value = matches.length === 1 ? matches[0].name : '';
+});
+document.getElementById('f-worker').addEventListener('input', function() {
+  document.getElementById('f-worker-id').value = '';
+});
 
 function renderSections() {
   const wrap = document.getElementById('sections-wrap');
   wrap.innerHTML = SECTIONS.map((sec, si) => `
     <div class="section" id="sec-${sec.id}">
-      <div class="section-head" onclick="toggleSection('${sec.id}')">
+      <div class="section-head" data-csp-click="h16" data-csp-source-click="toggleSection('')" data-csp-args-click="${__moguCsp.encode([null,(sec.id),null,null,null,null,null])}">
         <div class="section-head-l"><span class="section-caret">&#x25B6;</span> ${sec.title}</div>
         <span class="section-badge" id="badge-${sec.id}">0件</span>
       </div>
       <div class="section-body">
         <div id="cards-${sec.id}"></div>
-        <div class="add-item-row"><button class="btn xs" onclick="addItem('${sec.id}')">&#xFF0B; 項目追加</button></div>
+        <div class="add-item-row"><button class="btn xs" data-csp-click="h17" data-csp-source-click="addItem('')" data-csp-args-click="${__moguCsp.encode([null,null,null,null,null,(sec.id),null])}">&#xFF0B; 項目追加</button></div>
         <label class="fl" style="margin-top:12px">改善してほしい点(改善内容)</label>
         <textarea class="improve-note" id="note-${sec.id}" placeholder="改善内容を入力"></textarea>
       </div>
@@ -746,17 +913,17 @@ function appendItemRow(sectionId, label = '', detail = '', editable = false) {
     <div class="chk-card-top">
       <div class="chk-no-badge">${container.children.length + 1}</div>
       <input class="chk-label-input" value="${escapeAttr(label)}" placeholder="点検項目" ${editable ? '' : 'readonly style="background:#f2f6fb;color:var(--tx)"'}>
-      ${editable ? `<div class="chk-del-btn" onclick="removeRow(this,'${sectionId}')">&#x2715;</div>` : '<div style="width:30px"></div>'}
+      ${editable ? `<div class="chk-del-btn" data-csp-click="h18" data-csp-source-click="removeRow(this,'')" data-csp-args-click="${__moguCsp.encode([(sectionId)])}">&#x2715;</div>` : '<div style="width:30px"></div>'}
     </div>
     ${detail ? `<div class="chk-detail-text">${escapeHtml(detail)}</div>` : ''}
     <div class="row-inline" style="margin:2px 0 6px">
-      <span class="link-btn" onclick="translateItemCard(this)">&#x1F310; 項目を翻訳</span>
+      <span class="link-btn" data-csp-click="h19" data-csp-source-click="translateItemCard(this)">&#x1F310; 項目を翻訳</span>
     </div>
     <div class="translate-box hid"></div>
     <div class="chk-bottom-row">
       <div class="chk-eval-wrap">
         <span class="chk-field-tag">評価(○/×)</span>
-        <select onchange="markEval(this)">
+        <select data-csp-change="h20" data-csp-source-change="markEval(this)">
           <option value="">-----</option>
           <option value="○">○</option>
           <option value="×">×</option>
@@ -830,6 +997,34 @@ function collectSectionData(sectionId) {
   }));
 }
 
+
+function notificationSummary_(notification) {
+  const unknown = { text: '通知結果は未確認です。未送信とは断定できません。管理者に確認してください。', type: 'warn' };
+  if (!notification || typeof notification !== 'object' || Array.isArray(notification)) return unknown;
+  if (notification.deliveryUnknown === true) return {
+    text: '通知の配信結果は不明です（deliveryUnknown）。送信0件とは断定できません。重複防止のため再送前に管理者へ確認してください。',
+    type: 'warn'
+  };
+  const count = value => Number.isSafeInteger(value) && value >= 0;
+  const sent = notification.sent, failed = notification.failed, skipped = notification.skipped === undefined ? 0 : notification.skipped;
+  if (notification.ok === false || (count(failed) && failed > 0)) return {
+    text: '通知に失敗しました。' + (count(sent) && count(failed) && count(skipped)
+      ? 'LINE WORKS API受理' + sent + '件・失敗' + failed + '件・スキップ' + skipped + '件。'
+      : '配信件数は未確認です。') + '業務データの再保存は不要です。',
+    type: 'warn'
+  };
+  if (notification.ok !== true || !count(sent) || !count(failed) || !count(skipped) ||
+      (notification.dryRun !== undefined && typeof notification.dryRun !== 'boolean') ||
+      (notification.deliveryUnknown !== undefined && typeof notification.deliveryUnknown !== 'boolean')) return unknown;
+  if (notification.dryRun === true) return {
+    text: sent === 0 ? '通知はdry-runです。実送信なし・スキップ' + skipped + '件。'
+      : '通知はdry-runを含みます。LINE WORKS API受理' + sent + '件・スキップ' + skipped + '件（既読未確認）。',
+    type: 'warn'
+  };
+  if (sent === 0) return { text: skipped > 0 ? '通知はスキップ' + skipped + '件・API受理0件です。' : '通知対象0件のため送信していません。', type: 'warn' };
+  return { text: 'LINE WORKS API受理' + sent + '件・スキップ' + skipped + '件（既読未確認）。', type: skipped > 0 ? 'warn' : 'success' };
+}
+
 function saveRecord() {
   if (!document.getElementById('f-date').value) {
     showToast('巡回日時を入力してください', 'error'); return;
@@ -841,6 +1036,7 @@ function saveRecord() {
     product: document.getElementById('f-product').value,
     inspector: document.getElementById('f-inspector').value,
     worker: document.getElementById('f-worker').value,
+    workerId: document.getElementById('f-worker-id').value,
     evalComment: document.getElementById('f-eval-comment').value,
     workerComment: document.getElementById('f-worker-comment').value,
     sections: {}
@@ -856,8 +1052,9 @@ function saveRecord() {
   if (AUTH_TOKEN) {
     gasPost('saveJunkaiRecord', { record })
       .then(res => {
-        if (res && res.ok) {
-          showToast('保存しました', 'success');
+        if (res && res.ok === true) {
+          const status = notificationSummary_(res.notification);
+          showToast('巡回記録は保存済みです。' + status.text, status.type);
           loadHistoryFromServer();
           // ★通知は巡回GAS(saveJunkaiRecord)がサーバー側で署名送信する。ブラウザからは送らない。
         } else {
@@ -877,13 +1074,13 @@ function renderHistory() {
   const tbody = document.getElementById('hist-tbody');
   if (!history.length) { tbody.innerHTML = '<tr><td colspan="7" class="hist-empty">まだ保存された記録はありません</td></tr>'; return; }
   tbody.innerHTML = history.map((r, i) => `
-    <tr class="hist-row" onclick="${r.id ? `showRecordDetail('${r.id}')` : ''}">
-      <td>${r.date || ''}${r.time ? ' ' + r.time : ''}</td>
-      <td>${r.client || '-'}</td>
-      <td>${r.product || '-'}</td>
-      <td>${r.inspector || '-'}</td>
-      <td>${r.worker || '-'}</td>
-      <td style="color:${r.ngTotal > 0 ? 'var(--r)' : 'var(--g)'};font-weight:700">${r.ngTotal}</td>
+    <tr class="hist-row" data-patrol-action="record" data-id="${escapeAttr(r.id || '')}">
+      <td>${escapeHtml(r.date || '')}${escapeHtml(r.time ? ' ' + r.time : '')}</td>
+      <td>${escapeHtml(r.client || '-')}</td>
+      <td>${escapeHtml(r.product || '-')}</td>
+      <td>${escapeHtml(r.inspector || '-')}</td>
+      <td>${escapeHtml(r.worker || '-')}</td>
+      <td style="color:${r.ngTotal > 0 ? 'var(--r)' : 'var(--g)'};font-weight:700">${escapeHtml(r.ngTotal)}</td>
       <td>${r.id ? '<span class="link-btn">詳細を見る</span>' : ''}</td>
     </tr>`).join('');
 }
@@ -895,7 +1092,7 @@ function showRecordDetail(id) {
   const panel = document.getElementById('detail-panel');
   panel.innerHTML = '<div class="card detail-card">読み込み中...</div>';
   gasGet('getJunkaiRecordDetail', { id }).then(res => {
-    if (!res || !res.ok) { panel.innerHTML = `<div class="card detail-card" style="color:var(--r)">取得エラー: ${(res && res.message) || '不明'}</div>`; return; }
+    if (!res || !res.ok) { panel.innerHTML = `<div class="card detail-card" style="color:var(--r)">取得エラー: ${escapeHtml((res && res.message) || '不明')}</div>`; return; }
     const d = res.data;
     currentDetailRecord = d;
     const sectionsHtml = Object.keys(SECTION_TITLES).map(key => {
@@ -906,7 +1103,7 @@ function showRecordDetail(id) {
         items.map(it => `
           <div class="detail-item">
             <div class="di-label">${escapeHtml(it.label || '')}</div>
-            <div class="di-eval ${it.eval === '×' ? 'ng' : it.eval === '○' ? 'ok' : ''}">${it.eval || '-'}</div>
+            <div class="di-eval ${it.eval === '×' ? 'ng' : it.eval === '○' ? 'ok' : ''}">${escapeHtml(it.eval || '-')}</div>
             <div class="di-result">${escapeHtml(it.result || '')}</div>
           </div>`).join('') +
         (d[key] && d[key].note ? `<div style="font-size:12px;color:var(--tx2);margin-top:6px">改善点: ${escapeHtml(d[key].note)}</div>` : '');
@@ -915,15 +1112,15 @@ function showRecordDetail(id) {
       <div class="card detail-card">
         <div class="card-title">&#x1F4C4; 巡回記録の詳細</div>
         <div style="font-size:12.5px;color:var(--tx2);margin-bottom:4px;line-height:1.8">
-          巡回日時: ${d.date || ''} ${d.time || ''}<br>
-          取引先: ${d.client || '-'} / 品番: ${d.product || '-'}<br>
-          巡回担当者: ${d.inspector || '-'} / 作業者名: ${d.worker || '-'}
+          巡回日時: ${escapeHtml(d.date || '')} ${escapeHtml(d.time || '')}<br>
+          取引先: ${escapeHtml(d.client || '-')} / 品番: ${escapeHtml(d.product || '-')}<br>
+          巡回担当者: ${escapeHtml(d.inspector || '-')} / 作業者名: ${escapeHtml(d.worker || '-')}
         </div>
         ${d.evalComment ? `
         <div style="font-size:12.5px;color:var(--tx2);margin-bottom:10px">
           評価コメント: <span id="detail-eval-comment">${escapeHtml(d.evalComment)}</span>
-          <span class="link-btn" onclick="translateField('detail-eval-comment','trans-eval-comment-detail')" style="margin-left:8px">&#x1F310; 翻訳を見る</span>
-          <span class="link-btn" onclick="translateField('detail-eval-comment','trans-eval-comment-detail','ja')" style="margin-left:8px">&#x1F1EF;&#x1F1F5; 日本語に翻訳</span>
+          <span class="link-btn" data-csp-click="h21" data-csp-source-click="translateField('detail-eval-comment','trans-eval-comment-detail')" style="margin-left:8px">&#x1F310; 翻訳を見る</span>
+          <span class="link-btn" data-csp-click="h22" data-csp-source-click="translateField('detail-eval-comment','trans-eval-comment-detail','ja')" style="margin-left:8px">&#x1F1EF;&#x1F1F5; 日本語に翻訳</span>
           <div class="translate-box hid" id="trans-eval-comment-detail"></div>
         </div>` : ''}
         ${sectionsHtml}
@@ -931,13 +1128,13 @@ function showRecordDetail(id) {
         <textarea class="fi" id="detail-worker-comment" placeholder="作業者コメントを入力"
           ${d.workerComment ? 'readonly style="background:var(--sf3);color:var(--tx2)"' : ''}>${escapeHtml(d.workerComment || '')}</textarea>
         <div style="margin-top:8px">
-          <button class="btn pri sm${d.workerComment ? ' hid' : ''}" id="btn-save-worker-comment" onclick="saveWorkerComment('${id}')">&#x1F4BE; コメントを保存</button>
-          <span class="link-btn" onclick="translateField('detail-worker-comment','trans-detail-worker-comment')" style="margin-left:8px">&#x1F310; 翻訳を見る</span>
-          <span class="link-btn" onclick="translateField('detail-worker-comment','trans-detail-worker-comment','ja')" style="margin-left:8px">&#x1F1EF;&#x1F1F5; 日本語に翻訳</span>
+          <button class="btn pri sm${d.workerComment ? ' hid' : ''}" id="btn-save-worker-comment" data-patrol-action="comment" data-id="${escapeAttr(id)}">&#x1F4BE; コメントを保存</button>
+          <span class="link-btn" data-csp-click="h23" data-csp-source-click="translateField('detail-worker-comment','trans-detail-worker-comment')" style="margin-left:8px">&#x1F310; 翻訳を見る</span>
+          <span class="link-btn" data-csp-click="h24" data-csp-source-click="translateField('detail-worker-comment','trans-detail-worker-comment','ja')" style="margin-left:8px">&#x1F1EF;&#x1F1F5; 日本語に翻訳</span>
         </div>
         <div class="translate-box hid" id="trans-detail-worker-comment"></div>
       </div>`;
-  }).catch(err => { panel.innerHTML = `<div class="card detail-card" style="color:var(--r)">取得エラー: ${err.message}</div>`; });
+  }).catch(err => { panel.innerHTML = `<div class="card detail-card" style="color:var(--r)">取得エラー: ${escapeHtml(err.message)}</div>`; });
 }
 
 function saveWorkerComment(id) {
@@ -945,8 +1142,9 @@ function saveWorkerComment(id) {
   const comment = textarea.value;
   gasPost('updateWorkerComment', { id, comment })
     .then(res => {
-      if (res && res.ok) {
-        showToast('作業者コメントを保存しました', 'success');
+      if (res && res.ok === true) {
+        const status = notificationSummary_(res.notification);
+        showToast('作業者コメントは保存済みです。' + status.text, status.type);
         textarea.readOnly = true;
         textarea.style.background = 'var(--sf3)';
         textarea.style.color = 'var(--tx2)';
@@ -984,11 +1182,11 @@ function exportCsv() {
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast' + (type ? ' ' + type : '');
-  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2600);
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), type === 'warn' ? 12000 : 2600);
 }
 
 function escapeHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-function escapeAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
 function loadHistoryFromServer() {
   if (!AUTH_TOKEN) return; // 未認証時はサーバー履歴を読まない（プレビューはメモリのみ）
