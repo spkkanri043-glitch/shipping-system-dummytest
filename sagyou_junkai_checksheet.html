@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-QopNxRJyvtK3/AC8PW4REf7Ia4n5kZAUG8VZ9Eg+OiE=' 'sha256-yyexn6W1mOSRUblKUBuM/AyfhpLsuyRY4SKLw4KBN84='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-QopNxRJyvtK3/AC8PW4REf7Ia4n5kZAUG8VZ9Eg+OiE=' 'sha256-naRK0LBIBu1FMTaUcAWgXGD0VWR3d1u5ojAuETqcWFY='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { closeTab()
@@ -524,7 +524,7 @@ const SECTIONS = [
 //   取得後は即URLから除去してsessionStorageへ。旧 reverse+atob 方式は廃止。
 // ============================================================
 let currentUser = null, employees = [];
-const JUNKAI_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_JUNKAI/exec';
+const JUNKAI_GAS_URL = "https://script.google.com/macros/s/AKfycbxUrrMU3RbqDWU0F30evJy6jE9urhv7WFgbi7yxbWRyl4Zlc8wgJhTys6_W3w7G_ZI/exec";
 
 const AUTH_TOKEN_KEY = 'kpk_junkai_token';
 let AUTH_TOKEN = (function() {
@@ -828,7 +828,7 @@ function loadEmployeeMaster() {
 // 製品マスタ(製品マスタ管理アプリ)から品番の候補を取得
 // 作業報告書アプリと同じ方式: ブラウザから直接、製品マスタのGASにfetchする
 // (自分のGAS経由にすると UrlFetchApp の権限承認が必要になるため)
-const PRODUCT_MASTER_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec';
+const PRODUCT_MASTER_GAS_URL = "";
 
 // ==============================================================
 // 通知：★ブラウザからの直呼びは廃止（通知マスタ第2部）。
@@ -841,6 +841,11 @@ function findEmployeeByName(name) {
 }
 let productMaster = [];
 function loadProductMaster() {
+  if (!PRODUCT_MASTER_GAS_URL) {
+    productMaster = [];
+    showToast('製品マスタは未接続です。製品候補の連携試験は未実施として扱ってください。', '');
+    return;
+  }
   fetch(PRODUCT_MASTER_GAS_URL + '?action=getProducts')
     .then(res => res.json())
     .then(res => {
