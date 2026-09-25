@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Da/fOqAv+xPH3tHiULLa7xtiePtE0gNl8nX7rgXGE2E=' 'sha256-ydUZEZO9wnXgNz2bQTRo5cgkj5OU6U5o4f4g3KbdnB8='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://docs.google.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Da/fOqAv+xPH3tHiULLa7xtiePtE0gNl8nX7rgXGE2E=' 'sha256-BttTOe0qvZavflCrCGT0bK9T6H8TKBXtuUI94Fvb6NU='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://docs.google.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { doLogin()
@@ -564,21 +564,7 @@ let editingEmpId = null, confirmCb = null;
 // ============================================================
 const ENV = 'TEST';
 
-// 本番と判定するホスト・識別子（TEST では遷移禁止の対象）。
-// ・本番GitHub Pages のホスト
-// ・本番GAS のデプロイID接頭辞（'AKfycb'）
-const PROD_HOST_MARKERS = ['spkkanri043-glitch.github.io'];
-const PROD_GAS_MARKER   = 'AKfycb';   // 本番GASデプロイURLの識別子（クローンは TEST_DEPLOY_ID_* なので該当しない）
-
-/** 遷移先URLが本番向けかどうか（ホスト or 本番GAS識別子で判定）。 */
-/** 遷移先URLが本番向けか（＝TESTで遷移禁止か）。同一ホストなので「ページのパス」で判定する。 */
-function isProdTarget_(u) {
-  // dummytest 配下のページだけ許可。? と # より前（ページのベース）だけで判定するので、
-  // クエリの portal_url 等に本番GAS識別子やホスト名が混じっても誤判定しない。
-  const TEST_APP_BASE = 'https://spkkanri043-glitch.github.io/shipping-system-dummytest';
-  const base = String(u || '').split('#')[0].split('?')[0];
-  return base.indexOf(TEST_APP_BASE + '/') !== 0;  // dummytest配下でなければ本番扱い→遷移禁止
-}
+// TEST 専用の本番判定関数一式（未使用）は build_apps.py が除去した（テスト環境の全画面を開く B 方式は採らない）
 
 /** トークンの本文（署名前の部分）を復号して主要クレームだけ取り出す（検査用・非秘密）。 */
 function decodeTokenClaims_(t) {
@@ -833,7 +819,7 @@ async function saveAppPermissions() {
 // gasAuth … トークンを先頭の引数として必ず付ける。login 以外は全部こちら。
 // ============================================================
 const TOKEN_KEY = 'kpk_portal_token';
-const PORTAL_GAS_URL = 'https://script.google.com/macros/s/AKfycbyFCgghA3bTbdj8NdWT1dwTilJEVYMpC8airu6VUt0pK16Ml_NCwd4xlGExy8vMoACH/exec';
+const PORTAL_GAS_URL = 'https://script.google.com/macros/s/AKfycbFCgghA3bTbdj8NdWT1dwTilJEVYMpC8airu6VUt0pK16Ml_NCwd4xlGExy8vMoACH/exec';
 const PORTAL_HTTP_ARGUMENTS = {
   getLoginChallenge:['loginId'], login:['loginId','credential'],
   whoami:[],logout:[],boot:[],getMyProfile:[],getEmployeesLite:[],getEmployees:[],
@@ -1123,22 +1109,79 @@ async function refreshOnlineUsers() {
 //  ・「このアプリを使ってよいか」はサーバー側が canUseApp_ で判定する。
 //    下のロール判定は、押せないように見せるための飾りにすぎない。
 // ============================================================
-// Only the reviewed dummytest page / GAS pair may open in TEST mode.
-const REVIEWED_JUNKAI_PAGE = "https://spkkanri043-glitch.github.io/shipping-system-dummytest/sagyou_junkai_checksheet.html";
-const REVIEWED_JUNKAI_GAS = "https://script.google.com/macros/s/AKfycbxUrrMU3RbqDWU0F30evJy6jE9urhv7WFgbi7yxbWRyl4Zlc8wgJhTys6_W3w7G_ZI/exec";
-function reviewedJunkaiPair_(app, page, gas) {
-  return app === 'junkaiCheck' && page === REVIEWED_JUNKAI_PAGE && gas === REVIEWED_JUNKAI_GAS;
+/* BUILD_APPS_TEST_GUARD_BEGIN */
+// build_apps.py が表（mode=test）から生成した TEST 用の開放表と照合関数。手で書き換えない
+// 表にあるアプリだけ、画面 URL・クエリ（名前と値が完全一致。順番は問わない）・portal_url・#sso= を照合してから開く
+// shipping・products はクエリ無し（#sso= だけ）が正しい形で、同じ照合で開く。表に無いアプリは開かない
+const REVIEWED_TEST_APPS = reviewedDeepFreeze_({"dailyReport":{"appUrls":{"reportGas":"https://script.google.com/macros/s/AKfycbyykHdr2GCV9IIDQ5bdCD5tPKV2S5VRF_ZYtcQWAUdyFz4QGgVRFCFl1OHsS_17Nc9M/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/daily_report_viewer.html","params":[["report_url","https://script.google.com/macros/s/AKfycbyykHdr2GCV9IIDQ5bdCD5tPKV2S5VRF_ZYtcQWAUdyFz4QGgVRFCFl1OHsS_17Nc9M/exec"],["portal_url","https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html"]],"portalGasUrl":null},"defectDashboard":{"appUrls":{"fuguaiTenkaiGas":"https://script.google.com/macros/s/AKfycbyTbAs19IzWjpKvYxmAjNkuHr-kbEZLL13Aoy6qZp7Td0GU8QGAU3oCVTL20RNSIqJ0/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/dashboard.html","params":[["fuguai_gas_url","https://script.google.com/macros/s/AKfycbyTbAs19IzWjpKvYxmAjNkuHr-kbEZLL13Aoy6qZp7Td0GU8QGAU3oCVTL20RNSIqJ0/exec"],["portal_url","https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html"]],"portalGasUrl":null},"fuguaiTenkai":{"appUrls":{"fuguaiTenkaiGas":"https://script.google.com/macros/s/AKfycbyTbAs19IzWjpKvYxmAjNkuHr-kbEZLL13Aoy6qZp7Td0GU8QGAU3oCVTL20RNSIqJ0/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/Fuguai_tenkai_shiito.html","params":[["fuguai_gas_url","https://script.google.com/macros/s/AKfycbyTbAs19IzWjpKvYxmAjNkuHr-kbEZLL13Aoy6qZp7Td0GU8QGAU3oCVTL20RNSIqJ0/exec"]],"portalGasUrl":null},"inventory":{"appUrls":{"inventoryGas":"https://script.google.com/macros/s/AKfycbxoQs9qrIQiLgBh-Fl8G4pDmX_9BzydKjEMWJ1jn6t06168ZrSD0eP3Kk55QlhDOWJi/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/inventory_v21.html","params":[["inventory_gas_url","https://script.google.com/macros/s/AKfycbxoQs9qrIQiLgBh-Fl8G4pDmX_9BzydKjEMWJ1jn6t06168ZrSD0eP3Kk55QlhDOWJi/exec"],["portal_url","https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html"]],"portalGasUrl":null},"junkaiCheck":{"appUrls":{"junkaiCheckGas":"https://script.google.com/macros/s/AKfycbxUrrMU3RbqDWU0F30evJy6jE9urhv7WFgbi7yxbWRyl4Zlc8wgJhTys6_W3w7G_ZI/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/sagyou_junkai_checksheet.html","params":[["junkai_gas_url","https://script.google.com/macros/s/AKfycbxUrrMU3RbqDWU0F30evJy6jE9urhv7WFgbi7yxbWRyl4Zlc8wgJhTys6_W3w7G_ZI/exec"]],"portalGasUrl":null},"kumi":{"appUrls":{"kumiGas":"https://script.google.com/macros/s/AKfycbxImZes4CtU7j98hY6No7xXhKPfco8-x8hrmMqls8NjYvCwpOKnfvPzTB0kY7_Z-6icnA/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/kumikasei_shipping_check.html","params":[["kumi_gas_url","https://script.google.com/macros/s/AKfycbxImZes4CtU7j98hY6No7xXhKPfco8-x8hrmMqls8NjYvCwpOKnfvPzTB0kY7_Z-6icnA/exec"],["portal_url","https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html"]],"portalGasUrl":null},"products":{"appUrls":{},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/seihin_master.html","params":[],"portalGasUrl":null},"report":{"appUrls":{"productGas":"https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec","reportGas":"https://script.google.com/macros/s/AKfycbyykHdr2GCV9IIDQ5bdCD5tPKV2S5VRF_ZYtcQWAUdyFz4QGgVRFCFl1OHsS_17Nc9M/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/sakugyouhokokusho.html","params":[["gas_url","https://script.google.com/macros/s/AKfycbFCgghA3bTbdj8NdWT1dwTilJEVYMpC8airu6VUt0pK16Ml_NCwd4xlGExy8vMoACH/exec"],["report_url","https://script.google.com/macros/s/AKfycbyykHdr2GCV9IIDQ5bdCD5tPKV2S5VRF_ZYtcQWAUdyFz4QGgVRFCFl1OHsS_17Nc9M/exec"],["product_url","https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec"],["portal_url","https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html"]],"portalGasUrl":"https://script.google.com/macros/s/AKfycbFCgghA3bTbdj8NdWT1dwTilJEVYMpC8airu6VUt0pK16Ml_NCwd4xlGExy8vMoACH/exec"},"seikeiKiroku":{"appUrls":{"productGas":"https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec","seikeiKirokuGas":"https://script.google.com/macros/s/AKfycbwq2iPvBY26qD7zdCFI5nKu87ZKde55cXZg4phNRLKBgGfrBWrG5xbNY4aahAXVNTB4/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/seikei_kiroku.html","params":[["seikei_gas_url","https://script.google.com/macros/s/AKfycbwq2iPvBY26qD7zdCFI5nKu87ZKde55cXZg4phNRLKBgGfrBWrG5xbNY4aahAXVNTB4/exec"],["product_url","https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec"],["portal_url","https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html"]],"portalGasUrl":null},"shift":{"appUrls":{"shiftGas":"https://script.google.com/macros/s/AKfycbz8UNiW3JjKLBgIexrtYtglYRepaadxhq66mA3N4nCZFoCRdIrOuYgIWbAK2ugLnps7/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/sekigahara_shift_app.html","params":[["shift_gas_url","https://script.google.com/macros/s/AKfycbz8UNiW3JjKLBgIexrtYtglYRepaadxhq66mA3N4nCZFoCRdIrOuYgIWbAK2ugLnps7/exec"]],"portalGasUrl":null},"shipping":{"appUrls":{},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/index.html","params":[],"portalGasUrl":null},"shippingAdjust":{"appUrls":{"shippingAdjustGas":"https://script.google.com/macros/s/AKfycbxZoEhqcpYbLyj-1EXvKtisWL3Wreb8_OwWVeyy4vUhB5t6PKC9HtCJWm1ESS8pabSSZg/exec"},"page":"https://spkkanri043-glitch.github.io/shipping-system-dummytest/shipping_adjust.html","params":[["adjust_gas_url","https://script.google.com/macros/s/AKfycbxZoEhqcpYbLyj-1EXvKtisWL3Wreb8_OwWVeyy4vUhB5t6PKC9HtCJWm1ESS8pabSSZg/exec"],["portal_url","https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html"]],"portalGasUrl":null}});
+function reviewedDeepFreeze_(o) {
+  if (o && typeof o === 'object' && !Object.isFrozen(o)) {
+    Object.keys(o).forEach(function (k) { reviewedDeepFreeze_(o[k]); });
+    Object.freeze(o);
+  }
+  return o;
 }
-function reviewedJunkaiFinal_(app, finalUrl, token) {
-  return typeof token === 'string' && token.length > 0 &&
-    reviewedJunkaiPair_(app, appUrls[app], appUrls.junkaiCheckGas) &&
-    finalUrl === REVIEWED_JUNKAI_PAGE + '?junkai_gas_url=' + encodeURIComponent(REVIEWED_JUNKAI_GAS) + '#sso=' + encodeURIComponent(token);
+function reviewedEntry_(app) {
+  if (typeof app !== 'string' || !Object.prototype.hasOwnProperty.call(REVIEWED_TEST_APPS, app)) return null;
+  return REVIEWED_TEST_APPS[app];
 }
+function reviewedConfigOk_(app, urls, portalGasUrl) {
+  const e = reviewedEntry_(app);
+  if (!e || !urls || typeof urls !== 'object') return false;
+  if (urls[app] !== e.page) return false;
+  const keys = Object.keys(e.appUrls);
+  for (let i = 0; i < keys.length; i++) {
+    if (urls[keys[i]] !== e.appUrls[keys[i]]) return false;
+  }
+  if (e.portalGasUrl !== null && portalGasUrl !== e.portalGasUrl) return false;
+  return true;
+}
+function reviewedFinalOk_(app, finalUrl, token) {
+  const e = reviewedEntry_(app);
+  if (!e || typeof finalUrl !== 'string' || typeof token !== 'string' || token.length === 0) return false;
+  const fragment = '#sso=' + encodeURIComponent(token);
+  const hashAt = finalUrl.indexOf('#');
+  if (hashAt < 0 || finalUrl.slice(hashAt) !== fragment) return false;
+  const head = finalUrl.slice(0, hashAt);
+  const qAt = head.indexOf('?');
+  if ((qAt < 0 ? head : head.slice(0, qAt)) !== e.page) return false;
+  let u;
+  try { u = new URL(finalUrl); } catch (err) { return false; }
+  if (u.origin + u.pathname !== e.page || u.username !== '' || u.password !== '' || u.hash !== fragment) return false;
+  const found = new URLSearchParams(u.search);
+  const names = [];
+  found.forEach(function (v, k) { names.push(k); });
+  if (e.params.length === 0) return qAt < 0 && names.length === 0;
+  if (qAt < 0) return false;
+  const parts = head.slice(qAt + 1).split('&');
+  if (parts.length !== e.params.length || names.length !== e.params.length) return false;
+  for (let i = 0; i < e.params.length; i++) {
+    const name = e.params[i][0], value = e.params[i][1];
+    const got = found.getAll(name);
+    if (got.length !== 1 || got[0] !== value) return false;
+    const raw = name + '=' + encodeURIComponent(value);
+    if (parts.filter(function (p) { return p === raw; }).length !== 1) return false;
+  }
+  return true;
+}
+/* BUILD_APPS_TEST_GUARD_END */
 
 async function openApp(app) {
-  if (ENV === 'TEST' && !reviewedJunkaiPair_(app, appUrls[app], appUrls.junkaiCheckGas)) {
-    showToast('テスト用の作業巡回URL・GASが未設定または不一致です。他アプリは未開放です。', 'error');
-    return;
+  // build_apps（TEST）: 表に無いアプリ・表と違う設定は、トークンを発行する前に止める
+  if (ENV === 'TEST') {
+    if (!reviewedEntry_(app)) {
+      showToast('この画面はテストでまだ開放していません（生成表に無いアプリ）', 'error');
+      return;
+    }
+    if (!reviewedConfigOk_(app, appUrls, window._gasUrl)) {
+      showToast('テスト用の画面URL・GASが生成表と一致しないため開きません', 'error');
+      return;
+    }
+    const reviewedPortal_ = reviewedEntry_(app).params.filter(function (p) { return p[0] === 'portal_url'; });
+    if (reviewedPortal_.length === 1 && window.location.href.split('?')[0].split('#')[0] !== reviewedPortal_[0][1]) {
+      showToast('ポータルは ' + reviewedPortal_[0][1] + ' で開き直してください', 'error');
+      return;
+    }
   }
   // --- 見た目の制御（本当の判定はサーバー側） ---
   if (app === 'shippingAdjust') {
@@ -1233,9 +1276,9 @@ async function openApp(app) {
   // ★トークンは必ず最後、フラグメントに置く
   const finalUrl = url + (q.length ? '?' + q.join('&') : '') + '#sso=' + encodeURIComponent(token);
 
-  // Recheck after awaiting token issuance; reject changed settings or unexpected query data.
-  if (ENV === 'TEST' && !reviewedJunkaiFinal_(app, finalUrl, token)) {
-    showToast('テスト用の接続先が一致しないため移動を止めました', 'error');
+  // build_apps（TEST）: トークン発行を待つ間に設定が変わっても通さないよう、設定と開く URL 全体を表と照合し直す
+  if (ENV === 'TEST' && !(reviewedConfigOk_(app, appUrls, window._gasUrl) && reviewedFinalOk_(app, finalUrl, token))) {
+    showToast('テスト用の接続先が生成表と一致しないため移動を止めました', 'error');
     return;
   }
 
