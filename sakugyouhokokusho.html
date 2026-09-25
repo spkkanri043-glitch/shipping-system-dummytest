@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-hyMK2+2IUIrYtToNsOIC5qhHmjqkpyWtMLLwfnjhwX0=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-C885zCYG32x+HFiwJEiP0yxEpqWaSHIK8iQabr3nHpU=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -815,8 +815,8 @@ clearBrowserBusinessData_();
 // ▼▼▼ デプロイ後に各GASのURLをここに入力してください（固定。URLパラメータ差し替えは廃止）▼▼▼
 //   セキュリティ改修：?gas_url= 等での接続先差し替え・localStorage保持を撤去。
 //   任意サーバへトークンを送られる経路を塞ぐため、接続先は必ずこの定数のみを使う。
-const REPORT_GAS_URL  = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_REPORT/exec';   // 作業報告書GAS（saveReport・getReports）
-const PRODUCT_GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec';  // 製品マスタGAS（getProducts・searchProduct／現状は匿名読取）
+const REPORT_GAS_URL  = 'https://script.google.com/macros/s/AKfycbyykHdr2GCV9IIDQ5bdCD5tPKV2S5VRF_ZYtcQWAUdyFz4QGgVRFCFl1OHsS_17Nc9M/exec';   // 作業報告書GAS（saveReport・getReports）
+const PRODUCT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec';  // 製品マスタGAS（getProducts・searchProduct／現状は匿名読取）
 
 // ============================================================
 // SSOトークン（ポータルが #sso= で受け渡す署名トークン）
