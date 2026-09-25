@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-5xrIA6qKpO0JuS2ehVizAleCN4QwNwyo9lJwqg9vdTg='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-4UFlppgWB0BWXp04rs0lOmhn1C6SfJ/EjeztQWS4GJY='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -393,7 +393,7 @@ select.fi{cursor:pointer}
 // 設定
 // ============================================================
 // セキュリティ改修：接続先は固定（?adjust_gas_url= / ?gas_url= 差し替えを撤去）。
-const GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_SHIPPING/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxZoEhqcpYbLyj-1EXvKtisWL3Wreb8_OwWVeyy4vUhB5t6PKC9HtCJWm1ESS8pabSSZg/exec';
 const SESSION_KEY = 'shipping_session_v1';
 
 // ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
@@ -484,7 +484,7 @@ function enterApp() {
 function goPortal() {
   const raw=new URLSearchParams(window.location.search).get('portal_url');
   if(raw==='https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html'){window.location.href=raw;return;}
-  const fallback='https://script.google.com/macros/s/TEST_DEPLOY_ID_PORTAL/exec';
+  const fallback='https://script.google.com/macros/s/AKfycbFCgghA3bTbdj8NdWT1dwTilJEVYMpC8airu6VUt0pK16Ml_NCwd4xlGExy8vMoACH/exec';
   try {
     const url=new URL(raw||fallback);
     window.location.href=url.protocol==='https:'&&url.hostname==='script.google.com'&&!url.port&&!url.username&&!url.password?url.href:fallback;
