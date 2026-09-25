@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-0r73l91UWdkWBFhitGs6QE6zY+RfK1qlewryDBNKGgk=' 'sha256-9lYaU0gSlUzb2OyklO4gvIQ5tVMW9rbN9luNdwjDhSc='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-0r73l91UWdkWBFhitGs6QE6zY+RfK1qlewryDBNKGgk=' 'sha256-Fwo2VbzKM8lcrpw2kAul4ObVDKDzUvDHvanFvD5F8Nc='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { closeTab()
@@ -377,7 +377,7 @@ function clearBrowserBusinessData_() {
 clearBrowserBusinessData_();
 
 // セキュリティ改修：接続先は固定（?fuguai_gas_url= 差し替え・localStorage保持を撤去）。
-const GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_FUGUAI/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyTbAs19IzWjpKvYxmAjNkuHr-kbEZLL13Aoy6qZp7Td0GU8QGAU3oCVTL20RNSIqJ0/exec';
 let currentUser = null;
 let allRecords  = [];
 let confirmLogs = {};
