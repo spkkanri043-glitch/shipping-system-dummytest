@@ -1,7 +1,89 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LwAB1KGZm4MBbvtd0iaabxhFAhWu2JDn7rYkURuYirE=' 'sha256-8uW+EpL2FqF80VMmVGzSdFVy82e88hU1RK9RpcRNL2Q='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<script>/* MOGU_CSP_RUNTIME_V1 */
+const __moguCsp = (() => {
+  const handlers = {"h0": function(event, _p) { closeTab()
+},
+"h1": function(event, _p) { showCsvModal()
+},
+"h2": function(event, _p) { exportCSV()
+},
+"h3": function(event, _p) { clearAll()
+},
+"h4": function(event, _p) { toggleMoreMenu()
+},
+"h5": function(event, _p) { manualRefresh();closeMoreMenu()
+},
+"h6": function(event, _p) { doLogout();closeMoreMenu()
+},
+"h7": function(event, _p) { toggleDebug()
+},
+"h8": function(event, _p) { switchTab('list',this)
+},
+"h9": function(event, _p) { switchTab('log',this)
+},
+"h10": function(event, _p) { setFilter('all',this)
+},
+"h11": function(event, _p) { setFilter('pending',this)
+},
+"h12": function(event, _p) { setFilter('done',this)
+},
+"h13": function(event, _p) { renderList()
+},
+"h14": function(event, _p) { closeCsvModal()
+},
+"h15": function(event, _p) { loadDriveFileList()
+},
+"h16": function(event, _p) { loadCSVFromFile(this)
+}};
+  const events = ["click","input","change"];
+  const bound = new WeakMap();
+  function bind(el) {
+    if (!el || el.nodeType !== 1) return;
+    let state = bound.get(el); if (!state) { state = new Map(); bound.set(el, state); }
+    for (const type of events) {
+      const id = el.getAttribute('data-csp-' + type);
+      if (!id || state.get(type) === id) continue;
+      if (!Object.prototype.hasOwnProperty.call(handlers, id)) continue;
+      const fn = function(event) {
+        const value = this.getAttribute('data-csp-args-' + type);
+        const params = value ? JSON.parse(decodeURIComponent(value)) : [];
+        return handlers[id].call(this, event, params);
+      };
+      // Native event-handler properties preserve this/currentTarget, cancellation,
+      // async return behavior and later application assignments to .onclick etc.
+      el['on' + type] = fn;
+      state.set(type, id);
+    }
+  }
+  function scan(root) {
+    bind(root);
+    if (root.querySelectorAll) for (const el of root.querySelectorAll('*')) bind(el);
+  }
+  for (const type of events) document.addEventListener(type, event => {
+    for (const el of event.composedPath()) bind(el);
+  }, true);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') bind(record.target);
+      else for (const node of record.addedNodes) scan(node);
+    }
+  }).observe(document, {subtree:true, childList:true, attributes:true,
+    attributeFilter: events.map(type => 'data-csp-' + type)});
+  document.addEventListener('DOMContentLoaded', () => scan(document));
+  const encode = values => encodeURIComponent(JSON.stringify(values)).replace(/'/g, '%27');
+  function assign(el,type,id,values) {
+    el.setAttribute('data-csp-' + type,id);
+    el.setAttribute('data-csp-args-' + type,encode(values));
+    bind(el);
+  }
+  return Object.freeze({ encode, scan, assign });
+})();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>出荷照合システム(クミ化成向け)[同時読み込み版]</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -109,6 +191,8 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
 </head>
 <body>
 
+  const before = Number(row['出荷数']);
+  if (!Number.isSafeInteger(internalQR.capacity) || internalQR.capacity <= 0 || internalQR.capacity > before) return {ok:false,reason:'収容数が不正、または残数を超えています'};
 <!-- ログイン画面 -->
 <div id="login-screen">
   <div class="login-logo">
@@ -140,15 +224,15 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
     <div style="font-size:10px;color:rgba(255,255,255,0.4);white-space:nowrap" id="save-indicator"></div>
   </div>
   <div class="top-btns">
-    <button class="top-btn exit" onclick="closeTab()">✕ タブを閉じる</button>
-    <button class="top-btn" onclick="showCsvModal()">📂 当日の出荷指示表を開く</button>
-    <button class="top-btn" onclick="exportCSV()">📤 CSV書き出し</button>
-    <button class="top-btn danger" onclick="clearAll()">リセット</button>
+    <button class="top-btn exit" data-csp-click="h0" data-csp-source-click="closeTab()">✕ タブを閉じる</button>
+    <button class="top-btn" data-csp-click="h1" data-csp-source-click="showCsvModal()">📂 当日の出荷指示表を開く</button>
+    <button class="top-btn" data-csp-click="h2" data-csp-source-click="exportCSV()">📤 CSV書き出し</button>
+    <button class="top-btn danger" data-csp-click="h3" data-csp-source-click="clearAll()">リセット</button>
     <div class="more-wrap">
-      <button class="top-btn" id="more-btn" onclick="toggleMoreMenu()">⋯ その他 ▾</button>
+      <button class="top-btn" id="more-btn" data-csp-click="h4" data-csp-source-click="toggleMoreMenu()">⋯ その他 ▾</button>
       <div class="more-menu" id="more-menu">
-        <button class="more-item" id="refresh-btn" onclick="manualRefresh();closeMoreMenu()">🔄 更新</button>
-        <button class="more-item danger" onclick="doLogout();closeMoreMenu()">ログアウト</button>
+        <button class="more-item" id="refresh-btn" data-csp-click="h5" data-csp-source-click="manualRefresh();closeMoreMenu()">🔄 更新</button>
+        <button class="more-item danger" data-csp-click="h6" data-csp-source-click="doLogout();closeMoreMenu()">ログアウト</button>
       </div>
     </div>
   </div>
@@ -169,7 +253,7 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
   <div class="card">
     <div class="card-title">
       <span>QRスキャン照合</span>
-      <span class="debug-toggle" onclick="toggleDebug()" id="debug-toggle-label">🔍 生データ表示 OFF</span>
+      <span class="debug-toggle" data-csp-click="h7" data-csp-source-click="toggleDebug()" id="debug-toggle-label">🔍 生データ表示 OFF</span>
     </div>
     <div class="scan-grid">
       <div>
@@ -187,15 +271,15 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('list',this)">出荷リスト</button>
-    <button class="tab" onclick="switchTab('log',this)">消込履歴</button>
+    <button class="tab active" data-csp-click="h8" data-csp-source-click="switchTab('list',this)">出荷リスト</button>
+    <button class="tab" data-csp-click="h9" data-csp-source-click="switchTab('log',this)">消込履歴</button>
   </div>
   <div id="tab-list">
     <div class="filter-row">
-      <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
-      <button class="filter-btn" onclick="setFilter('pending',this)">未消込</button>
-      <button class="filter-btn" onclick="setFilter('done',this)">消込済</button>
-      <input type="text" class="search-box" id="search-box" placeholder="品番・整番検索" oninput="renderList()">
+      <button class="filter-btn active" data-csp-click="h10" data-csp-source-click="setFilter('all',this)">すべて</button>
+      <button class="filter-btn" data-csp-click="h11" data-csp-source-click="setFilter('pending',this)">未消込</button>
+      <button class="filter-btn" data-csp-click="h12" data-csp-source-click="setFilter('done',this)">消込済</button>
+      <input type="text" class="search-box" id="search-box" placeholder="品番・整番検索" data-csp-input="h13" data-csp-source-input="renderList()">
     </div>
     <div id="list-body"><div class="empty">出荷指示表を読み込んでください</div></div>
   </div>
@@ -210,13 +294,13 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
   <div class="modal" style="display:flex;flex-direction:column;max-height:90vh;padding:0;overflow:hidden">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #e5e5e0;flex-shrink:0">
       <div class="modal-title" style="margin:0">📂 当日の出荷指示表を開く</div>
-      <button onclick="closeCsvModal()" style="padding:6px 14px;background:#e5e5e0;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✕ 閉じる</button>
+      <button data-csp-click="h14" data-csp-source-click="closeCsvModal()" style="padding:6px 14px;background:#e5e5e0;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✕ 閉じる</button>
     </div>
     <div style="overflow-y:auto;flex:1;padding:14px">
       <div class="modal-field" style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px">
         <div class="modal-label" style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:8px">☁️ ドライブから選ぶ</div>
         <div style="font-size:11px;color:#888;margin-bottom:10px">読込元／未完了フォルダからCSVを選択</div>
-        <button style="width:100%;padding:10px;background:#3a7bdc;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px" onclick="loadDriveFileList()">📋 ファイル一覧を取得</button>
+        <button style="width:100%;padding:10px;background:#3a7bdc;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px" data-csp-click="h15" data-csp-source-click="loadDriveFileList()">📋 ファイル一覧を取得</button>
         <div id="drive-file-list" style="display:none;border:1px solid #e5e5e0;border-radius:8px;max-height:240px;overflow-y:auto"></div>
       </div>
       <div class="modal-field" style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px">
@@ -224,7 +308,7 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
         <div style="font-size:11px;color:#888;margin-bottom:10px">【クミ化成出荷指示表】YYYYMMDD.csv を選択</div>
         <label style="display:block;width:100%;padding:12px;background:#1a1a18;color:#fff;border-radius:8px;text-align:center;font-size:14px;font-weight:700;cursor:pointer">
           ファイルを選択
-          <input type="file" accept=".csv,.CSV" style="display:none" onchange="loadCSVFromFile(this)">
+          <input type="file" accept=".csv,.CSV" style="display:none" data-csp-change="h16" data-csp-source-change="loadCSVFromFile(this)">
         </label>
       </div>
       <div id="csv-feedback" style="margin-top:4px;font-size:12px;display:none;white-space:pre-wrap;line-height:1.6;padding:8px 10px;border-radius:6px"></div>
@@ -409,12 +493,12 @@ function matchAndDecrement(internalQR, lotNo) {
   const prefixMatch = lotNo.match(LOT_PREFIX_PATTERN);
   const prefix = prefixMatch ? prefixMatch[1] : null;
   if (prefix && row._lotPrefix && row._lotPrefix !== prefix) {
-    return { ok: false, reason: `ロットNoの先頭部分が1箱目と異なります（1箱目: ${row._lotPrefix}... / 今回: ${prefix}...）\n別の品番のQR(小)を読み取っている可能性があります` };
+    return { ok: false, reason: `ロットNoの先頭部分が1箱目と異なります（1箱目: ${row._lotPrefix}... / 今回: ${prefix}...）
+別の品番のQR(小)を読み取っている可能性があります` };
   }
   if (prefix && !row._lotPrefix) row._lotPrefix = prefix;
 
   scannedLots.add(lotNo);
-  const before = Number(row['出荷数']);
   row['出荷数'] = Math.max(0, before - internalQR.capacity);
   let overScan = before < internalQR.capacity;
   if (row['出荷数'] <= 0) {
@@ -436,7 +520,8 @@ function checkBigQRMatch(internalQR, bigRaw) {
   return {
     ok: hinbanFound && colorFound,
     hinbanFound, colorFound, colorIsStandard,
-    reason: `品番または色調が大QRに見つかりません\n社内: ${internalQR.hinban} / ${internalQR.color}`
+    reason: `品番または色調が大QRに見つかりません
+社内: ${internalQR.hinban} / ${internalQR.color}`
   };
 }
 
@@ -454,8 +539,10 @@ function processScan(internalQR, customerRaw) {
   const bigMatch = checkBigQRMatch(internalQR, split.bigQRRaw);
 
   if (debugMode) showDebug(
-    `①社内QR: 品番=${internalQR.hinban} / 収容数=${internalQR.capacity} / 色調=${internalQR.color}\n` +
-    `②分割結果: 大QR="${split.bigQRRaw}" / 小QR(ロットNo)="${lotNo}"\n` +
+    `①社内QR: 品番=${internalQR.hinban} / 収容数=${internalQR.capacity} / 色調=${internalQR.color}
+` +
+    `②分割結果: 大QR="${split.bigQRRaw}" / 小QR(ロットNo)="${lotNo}"
+` +
     `②大QR照合: 品番一致=${bigMatch.hinbanFound} / 色調一致=${bigMatch.colorIsStandard ? bigMatch.colorFound : '対象外(非標準形式)'}`
   );
 
@@ -507,7 +594,8 @@ function handleCustomerScan() {
   if (!result.ok) {
     playSound('err'); showFB('err', result.reason);
     // 失敗時は原因調査用に生データと文字コード内訳を常に表示する（生データ表示トグルの状態によらない）
-    showDebug(`raw: ${JSON.stringify(raw)}\n文字コード内訳: ${charCodeDump(raw)}`);
+    showDebug(`raw: ${JSON.stringify(raw)}
+文字コード内訳: ${charCodeDump(raw)}`);
   } else {
     playSound('ok');
     const msg = result.overScan
@@ -608,17 +696,12 @@ function splitCSVLine(line) {
 function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 function parseCSVText(text) {
-  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-  const lines = text.trim().split(/\r?\n/);
-  const headers = splitCSVLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
-  return lines.slice(1).filter(l => l.trim()).map(line => {
-    const cols = splitCSVLine(line);
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = (cols[i] || '').trim().replace(/^"|"$/g,''); });
-    if (!obj['消込チェック']) obj['消込チェック'] = '未';
-    if (!obj['消込日時'])   obj['消込日時']   = '';
-    return obj;
-  }).filter(r => r['品番']);
+  return parseBusinessCsv_(text).map(r => {
+    if (!r['品番']) throw new Error('CSV形式が不正です');
+    r['消込チェック'] = r['消込チェック'] || '未';
+    r['消込日時'] = r['消込日時'] || '';
+    return r;
+  });
 }
 
 function applyLoadedRecords(newRecords, fileName) {
@@ -630,17 +713,10 @@ function applyLoadedRecords(newRecords, fileName) {
   updateStats(); renderList(); updateChips(); autoSave();
 }
 
-function loadCSVFromFile(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    applyLoadedRecords(parseCSVText(e.target.result), file.name);
-    showCsvFb(`✅ ${file.name}：${records.length}件を読み込みました`, 'ok');
-    setTimeout(closeCsvModal, 1200);
-  };
-  reader.readAsText(file, 'utf-8');
-  input.value = '';
+async function loadCSVFromFile(input) {
+  const file=input.files[0];if(!file)return;
+  try {await prepareLocalCsv_(file);}catch(e){showFB('err',e.message);}
+  input.value='';
 }
 
 function updateChips() {
@@ -653,30 +729,14 @@ function updateChips() {
 // 自動保存・復元
 // ============================================================
 function autoSave() {
-  clearTimeout(autoSaveTimer);
-  autoSaveTimer = setTimeout(() => {
-    try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(records));
-      localStorage.setItem(SAVE_KEY_FILE, loadedFileName);
-      localStorage.setItem(SAVE_KEY_LOG, JSON.stringify(logEntries));
-      localStorage.setItem(SAVE_KEY_LOTS, JSON.stringify(Array.from(scannedLots)));
-      const el = document.getElementById('save-indicator');
-      if (el) { el.textContent = '💾 保存済 ' + nowStr().slice(11,16); el.style.opacity='1'; setTimeout(()=>el.style.opacity='.4',2000); }
-    } catch(e) { console.warn('自動保存失敗:', e); }
-  }, 500);
+  const el = document.getElementById('save-indicator');
+  if (el) { el.textContent = '未保存（この画面のみ）'; el.style.opacity = '1'; }
+  
 }
 
 function restoreData() {
-  try {
-    const saved = localStorage.getItem(SAVE_KEY);
-    if (saved) {
-      records = JSON.parse(saved);
-      loadedFileName = localStorage.getItem(SAVE_KEY_FILE) || '';
-      logEntries = JSON.parse(localStorage.getItem(SAVE_KEY_LOG) || '[]');
-      scannedLots = new Set(JSON.parse(localStorage.getItem(SAVE_KEY_LOTS) || '[]'));
-      updateStats(); renderList(); updateChips();
-    }
-  } catch(e) { console.warn('復元失敗:', e); }
+  // Business data stays in page memory; never hydrate a previous user's storage.
+  updateStats(); renderList(); updateChips();
 }
 
 async function manualRefresh() {
@@ -688,11 +748,7 @@ async function manualRefresh() {
 }
 
 function clearAll() {
-  if (!confirm('リセットしますか？\n（読み込んだ出荷指示表・消込状況はすべて消去されます）')) return;
-  try {
-    localStorage.removeItem(SAVE_KEY); localStorage.removeItem(SAVE_KEY_FILE);
-    localStorage.removeItem(SAVE_KEY_LOG); localStorage.removeItem(SAVE_KEY_LOTS);
-  } catch(e) {}
+  if (!confirm('未保存データを破棄して画面をリセットしますか？')) return;
   location.reload();
 }
 
@@ -786,14 +842,7 @@ function renderLog() {
 // CSV書き出し
 // ============================================================
 function makeCSV(data) {
-  let csv = '﻿' + CSV_HEADERS.join(',') + '\n';
-  data.forEach(r => {
-    csv += CSV_HEADERS.map(h => {
-      let v = r[h] != null ? String(r[h]) : '';
-      return v.includes(',') ? '"' + v + '"' : v;
-    }).join(',') + '\n';
-  });
-  return csv;
+  return '\uFEFF' + CSV_HEADERS.join(',') + '\r\n' + data.map(r => CSV_HEADERS.map(k => csvOutputCell_(r[k], false)).join(',')).join('\r\n') + '\r\n';
 }
 
 async function exportCSV() {
@@ -803,7 +852,7 @@ async function exportCSV() {
   if (AUTH_TOKEN) {
     showFB('ok', '📤 ドライブに書き出し中...');
     try {
-      const data = await gasCall_('saveCSVByStatus', { records, logEntries, today: todayStr(), baseName });
+      const data = await gasCall_('saveCSVByStatus', { records, logEntries, today: todayStr(), baseName, batchId: loadedFileName.replace(/\.csv$/i, '') });
       if (!data) { showFB('err', '認証が無効です。ポータルから入り直してください'); return; }
       if (!data.ok) throw new Error(data.message);
       const msgs = (data.results || []).map(r => {
@@ -834,11 +883,13 @@ async function exportCSV() {
 // ============================================================
 function todayStr() { const d = new Date(); return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()); }
 
+const driveBatchProgress_ = new Map();
 async function loadDriveFileList() {
   if (!AUTH_TOKEN) { showCsvFb('業務管理ポータルからご利用ください', 'err'); return; }
   showCsvFb('ファイル一覧を取得中...', 'ok');
   try {
     const data = await gasCall_('getFileList', {});
+    renderPendingPreparations_(data && data.pendingRequests || []);
     if (!data) { showCsvFb('認証が無効です。ポータルから入り直してください', 'err'); return; }
     if (!data.ok) throw new Error(data.message || '取得失敗');
     const listEl = document.getElementById('drive-file-list');
@@ -848,6 +899,8 @@ async function loadDriveFileList() {
       return;
     }
     listEl.style.display = 'block';
+    driveBatchProgress_.clear();
+    data.files.forEach(f => driveBatchProgress_.set(f.id, {state:f.batchState,logEntries:f.logEntries || []}));
     // ★F03：Drive由来の name/label/updated はテキスト化。onclick へ name/id を埋め込まず data-*＋委譲。
     listEl.innerHTML = data.files.map(f => {
       const labelColor = f.folder === 'pending' ? '#b56e00' : '#3a7bdc';
@@ -866,18 +919,8 @@ async function loadDriveFileList() {
   }
 }
 
-async function loadSelectedDriveFile(fileId, fileName) {
-  showCsvFb(fileName + ' を読込中...', 'ok');
-  try {
-    const text = await gasCall_('getCSV', { fileId }, { rawText: true });
-    if (text === null) { showCsvFb('認証が無効です。ポータルから入り直してください', 'err'); return; }
-    applyLoadedRecords(parseCSVText(text), fileName);
-    loadedFileId = fileId;
-    showCsvFb(`✅ ${fileName}：${records.length}件を読み込みました`, 'ok');
-    setTimeout(closeCsvModal, 1200);
-  } catch (err) {
-    showCsvFb('読込失敗: ' + err.message, 'err');
-  }
+async function loadSelectedDriveFile(fileId,fileName) {
+  return loadCanonicalKumi_(fileName.replace(/\.csv$/i,''));
 }
 
 // ============================================================
@@ -939,13 +982,15 @@ function doLogout() {
 }
 
 const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PORTAL/exec';
-// ★F10：戻り先は https かつ許可ホスト(script.google.com)のURLのみ。javascript:/別ホスト/不正は既定URLへ。
+// ★F10：既存GASホストと、指定された静的ポータルの完全一致URLだけを許可。
 function safePortalUrl_(raw) {
-  if (!raw) return DEFAULT_PORTAL_URL;
-  var s; try { s = decodeURIComponent(String(raw)); } catch (e) { return DEFAULT_PORTAL_URL; }
-  var u; try { u = new URL(s); } catch (e) { return DEFAULT_PORTAL_URL; }
-  if (u.protocol !== 'https:' || u.hostname !== 'script.google.com') return DEFAULT_PORTAL_URL;
-  return u.href;
+  if (raw === 'https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html') return raw;
+  try {
+    const u = new URL(String(raw || DEFAULT_PORTAL_URL));
+    if (u.protocol !== 'https:' || u.hostname !== 'script.google.com' ||
+        u.port || u.username || u.password) return DEFAULT_PORTAL_URL;
+    return u.href;
+  } catch(e) { return DEFAULT_PORTAL_URL; }
 }
 function closeTab() {
   try { window.close(); } catch(e) {}
@@ -974,6 +1019,130 @@ function closeTab() {
   // 旧セッションの復元も廃止（トークンが正当なときのみ入場）。
   document.getElementById('login-screen').style.display = 'flex';
 })();
+
+function parseShippingCsvRows_(text) {
+  text = String(text).replace(/^\uFEFF/, '');
+  const rows = []; let row = [], cell = '', quoted = false, closed = false;
+  const endCell = () => { row.push(cell); cell = ''; closed = false; };
+  const endRow = () => { endCell(); rows.push(row); row = []; };
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { cell += '"'; i++; }
+        else { quoted = false; closed = true; }
+      } else cell += c;
+    } else if (c === ',' || c === '\r' || c === '\n') {
+      if (c === ',') endCell();
+      else { endRow(); if (c === '\r' && text[i+1] === '\n') i++; }
+    } else if (closed) {
+      throw new Error('CSVの引用符が不正です');
+    } else if (c === '"' && cell === '') {
+      quoted = true;
+    } else if (c === '=') {
+      // Legacy supplier barcode syntax; only exact numeric formulas are accepted.
+      const match = cell === '' && text.slice(i).match(/^="([0-9]+)"(?=,|\r|\n|$)/);
+      if (match) { cell = '="' + match[1] + '"'; i += match[0].length - 1; closed = true; }
+      else cell += c;
+    } else if (c === '"') {
+      throw new Error('CSVの引用符が不正です');
+    } else cell += c;
+  }
+  if (quoted) throw new Error('CSVの引用符が閉じていません');
+  if (cell || closed || row.length) endRow();
+  while (rows.length && rows[rows.length - 1].every(v => v === '')) rows.pop();
+  return rows;
+}
+function csvOutputCell_(value, barcode) {
+  let v = String(value == null ? '' : value);
+  if (barcode) {
+    v = v.replace(/^="([0-9]+)"$/, '$1');
+    if (!/^[0-9]{18}$/.test(v)) throw new Error('バーコードが不正です');
+    v = '="' + v + '"';
+  } else if (/^\s*[=+@-]/.test(v)) throw new Error('CSVの数式値は保存できません');
+  return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+function parseBusinessCsv_(text) {
+  const rows = parseShippingCsvRows_(text), headers = rows.shift() || [];
+  if (!headers.length || new Set(headers).size !== headers.length) throw new Error('CSV見出しが不正です');
+  return rows.map(row => {
+    if (row.length !== headers.length) throw new Error('CSV列数が不正です');
+    const obj = Object.create(null);
+    headers.forEach((h, i) => { obj[h] = row[i]; });
+    if (Object.prototype.hasOwnProperty.call(obj, 'バーコード番号')) obj['バーコード番号'] = obj['バーコード番号'].replace(/^="([0-9]+)"$/, '$1');
+    return obj;
+  });
+}
+
+function restoreKumiScanState_(rows, logs) {
+  const key = r => JSON.stringify(['整番','品番','色調','注文番号'].map(k => String(r[k] || '')));
+  const map = new Map(rows.map(r => [key(r), r]));
+  if (map.size !== rows.length) throw new Error('行識別子が重複しています');
+  logs.forEach(l => {
+    const r = map.get(key(l)), cap = Number(l['収容数']);
+    if (!r || !Number.isSafeInteger(cap) || cap <= 0 || cap > Number(r['出荷数'])) throw new Error('保存済みスキャン状態が不正です');
+    r['出荷数'] = Number(r['出荷数']) - cap;
+    if (r['出荷数'] !== Number(l['残数'])) throw new Error('保存済み残数が一致しません');
+    if (r['出荷数'] === 0) { r['消込チェック'] = '済'; r['消込日時'] = l.ts; }
+  });
+}
+
+let pendingPrepare_ = null;
+async function prepareLocalCsv_(file) {
+  if(pendingPrepare_) {showFB('err','未完了の取込要求を先に再試行してください');return;}
+  const csvText=await file.text();
+  pendingPrepare_={requestId:crypto.randomUUID(),csvText};
+  await retryPreparation_();
+}
+async function retryPreparation_() {
+  if(!pendingPrepare_)return;
+  try {
+    const result=await gasCall_('prepareBatch',pendingPrepare_);
+    if(!result || !result.ok){
+      const receipt=await gasCall_('getBatch',{requestId:pendingPrepare_.requestId});
+      if(receipt && !receipt.ok && receipt.message==='REQUEST_NOT_OWNED')pendingPrepare_=null;
+      throw new Error(result && result.message || '取込未完了');
+    }
+    const batch=await gasCall_('getBatch',{batchId:result.batchId});
+    if(!batch || !batch.ok)throw new Error(batch && batch.message || '作成したバッチを確認できません');
+    pendingPrepare_=null;
+    applyLoadedRecords(batch.records,batch.batchId+'.csv');loadedFileId=batch.sourceFileId;logEntries=batch.logEntries || [];scannedLots=new Set(logEntries.map(l=>l['ロットNo']));
+    showFB('ok','正本CSV・manifest作成済み: '+batch.batchId);
+  }catch(e){
+    showFB('err',e.message+(pendingPrepare_?' / 要求ID: '+pendingPrepare_.requestId:''));
+  }
+  renderPendingPreparations_(pendingPrepare_?[{requestId:pendingPrepare_.requestId,kind:'prepare'}]:[]);
+}
+function renderPendingPreparations_(items) {
+  const list=document.getElementById('drive-file-list');
+  if(!list)return;
+  let box=document.getElementById('pending-preparations');
+  if(!box){box=document.createElement('div');box.id='pending-preparations';list.parentNode.insertBefore(box,list);}
+  box.replaceChildren();
+  items.filter(x=>x.kind==='prepare').forEach(item=>{
+    const button=document.createElement('button');button.type='button';button.textContent='取込を再開: '+item.requestId;
+    button.style.cssText='max-width:100%;overflow-wrap:anywhere;margin:6px;padding:8px';
+    button.onclick=async()=>{
+      try{
+        const receipt=await gasCall_('getBatch',{requestId:item.requestId});
+        if(!receipt || !receipt.ok)throw new Error(receipt && receipt.message || '要求を確認できません');
+        pendingPrepare_=receipt.operation.payload;
+        await retryPreparation_();
+      }catch(e){showFB('err',e.message);}
+    };
+    box.appendChild(button);
+  });
+}
+
+async function loadCanonicalKumi_(batchId) {
+  try {
+    const batch=await gasCall_('getBatch',{batchId});
+    if(!batch||!batch.ok)throw new Error(batch&&batch.message||'読込失敗');
+    applyLoadedRecords(batch.records,batch.batchId+'.csv');
+    loadedFileId=batch.sourceFileId;logEntries=batch.logEntries||[];scannedLots=new Set(logEntries.map(l=>l['ロットNo']));
+    showCsvFb('読込完了: '+records.length+'件','ok');
+  }catch(e){showCsvFb(e.message,'err');}
+}
 </script>
 </body>
 </html>
