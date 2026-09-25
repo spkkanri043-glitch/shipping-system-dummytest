@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LwAB1KGZm4MBbvtd0iaabxhFAhWu2JDn7rYkURuYirE=' 'sha256-8uW+EpL2FqF80VMmVGzSdFVy82e88hU1RK9RpcRNL2Q='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LwAB1KGZm4MBbvtd0iaabxhFAhWu2JDn7rYkURuYirE=' 'sha256-f46ucFsNyBLxPFgXe4FiyDB2BAWIaY3pJQ2RCgwwB+I='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { closeTab()
@@ -321,7 +321,7 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
 // 設定
 // ============================================================
 // セキュリティ改修：接続先は固定（?kumi_gas_url= 差し替えを撤去）。
-const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_KUMI/exec';
+const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbxImZes4CtU7j98hY6No7xXhKPfco8-x8hrmMqls8NjYvCwpOKnfvPzTB0kY7_Z-6icnA/exec';
 
 // ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
 const AUTH_TOKEN_KEY = 'kpk_kumi_token';
@@ -981,7 +981,7 @@ function doLogout() {
   document.getElementById('login-screen').style.display='flex';
 }
 
-const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PORTAL/exec';
+const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/AKfycbFCgghA3bTbdj8NdWT1dwTilJEVYMpC8airu6VUt0pK16Ml_NCwd4xlGExy8vMoACH/exec';
 // ★F10：既存GASホストと、指定された静的ポータルの完全一致URLだけを許可。
 function safePortalUrl_(raw) {
   if (raw === 'https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html') return raw;
