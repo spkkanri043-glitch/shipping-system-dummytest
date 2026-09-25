@@ -1,7 +1,89 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-83ABCB/ThJTevAyerIOSxkCMdNlGpVjC6fmSRHqitJs=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<script>/* MOGU_CSP_RUNTIME_V1 */
+const __moguCsp = (() => {
+  const handlers = {"h0": function(event, _p) { togglePartsFilter()
+},
+"h1": function(event, _p) { toggleExcelMenu()
+},
+"h2": function(event, _p) { exportExcel(); closeExcelMenu()
+},
+"h3": function(event, _p) { document.getElementById('excel-import-input').click(); closeExcelMenu()
+},
+"h4": function(event, _p) { onExcelImportSelected(event)
+},
+"h5": function(event, _p) { togglePartsFilter()
+},
+"h6": function(event, _p) { openWarnModal()
+},
+"h7": function(event, _p) { event.stopPropagation();openWarnModal()
+},
+"h8": function(event, _p) { selectDiscardOpt('consume')
+},
+"h9": function(event, _p) { selectDiscardOpt('none')
+},
+"h10": function(event, _p) { cancelDiscard()
+},
+"h11": function(event, _p) { confirmDiscard()
+},
+"h12": function(event, _p) { openAddGroupModal()
+},
+"h13": function(event, _p) { openClientsModal()
+},
+"h14": function(event, _p) { this.className=parseFloat(this.value)<0?'minus-val':''
+},
+"h15": function(event, _p) { this.className=parseFloat(this.value)<0?'minus-val':''
+},
+"h16": function(event, _p) { this.className=parseFloat(this.value)<0?'minus-val':''
+}};
+  const events = ["click","change","input"];
+  const bound = new WeakMap();
+  function bind(el) {
+    if (!el || el.nodeType !== 1) return;
+    let state = bound.get(el); if (!state) { state = new Map(); bound.set(el, state); }
+    for (const type of events) {
+      const id = el.getAttribute('data-csp-' + type);
+      if (!id || state.get(type) === id) continue;
+      if (!Object.prototype.hasOwnProperty.call(handlers, id)) continue;
+      const fn = function(event) {
+        const value = this.getAttribute('data-csp-args-' + type);
+        const params = value ? JSON.parse(decodeURIComponent(value)) : [];
+        return handlers[id].call(this, event, params);
+      };
+      // Native event-handler properties preserve this/currentTarget, cancellation,
+      // async return behavior and later application assignments to .onclick etc.
+      el['on' + type] = fn;
+      state.set(type, id);
+    }
+  }
+  function scan(root) {
+    bind(root);
+    if (root.querySelectorAll) for (const el of root.querySelectorAll('*')) bind(el);
+  }
+  for (const type of events) document.addEventListener(type, event => {
+    for (const el of event.composedPath()) bind(el);
+  }, true);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') bind(record.target);
+      else for (const node of record.addedNodes) scan(node);
+    }
+  }).observe(document, {subtree:true, childList:true, attributes:true,
+    attributeFilter: events.map(type => 'data-csp-' + type)});
+  document.addEventListener('DOMContentLoaded', () => scan(document));
+  const encode = values => encodeURIComponent(JSON.stringify(values)).replace(/'/g, '%27');
+  function assign(el,type,id,values) {
+    el.setAttribute('data-csp-' + type,id);
+    el.setAttribute('data-csp-args-' + type,encode(values));
+    bind(el);
+  }
+  return Object.freeze({ encode, scan, assign });
+})();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>在庫管理</title>
 <style>
@@ -426,16 +508,16 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
     <button class="btn btn-icon" id="next-m">▶</button>
   </div>
   <div class="tsp"></div>
-  <button class="btn btn-purple" id="btn-parts-filter" onclick="togglePartsFilter()">🔩 部品在庫</button>
+  <button class="btn btn-purple" id="btn-parts-filter" data-csp-click="h0" data-csp-source-click="togglePartsFilter()">🔩 部品在庫</button>
   <button class="btn btn-green" id="add-prod-btn">＋ 製品追加</button>
   <div class="excel-menu-wrap" id="excel-menu-wrap">
-    <button class="btn" id="btn-excel-menu" onclick="toggleExcelMenu()">📊 Excel ▾</button>
+    <button class="btn" id="btn-excel-menu" data-csp-click="h1" data-csp-source-click="toggleExcelMenu()">📊 Excel ▾</button>
     <div class="excel-menu" id="excel-menu" style="display:none">
-      <button class="excel-menu-item" onclick="exportExcel(); closeExcelMenu()">📥 Excel出力</button>
-      <button class="excel-menu-item" onclick="document.getElementById('excel-import-input').click(); closeExcelMenu()">📤 Excel取込</button>
+      <button class="excel-menu-item" data-csp-click="h2" data-csp-source-click="exportExcel(); closeExcelMenu()">📥 Excel出力</button>
+      <button class="excel-menu-item" data-csp-click="h3" data-csp-source-click="document.getElementById('excel-import-input').click(); closeExcelMenu()">📤 Excel取込</button>
     </div>
   </div>
-  <input type="file" id="excel-import-input" accept=".xlsx" style="display:none" onchange="onExcelImportSelected(event)">
+  <input type="file" id="excel-import-input" accept=".xlsx" style="display:none" data-csp-change="h4" data-csp-source-change="onExcelImportSelected(event)">
 </div>
 
 <!-- グループタブバー -->
@@ -444,14 +526,14 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
 <!-- 部品フィルタ中バナー -->
 <div class="filter-banner" id="filter-banner" style="display:none">
   🔩 部品在庫のみ表示中
-  <button onclick="togglePartsFilter()">✕ 全表示に戻す</button>
+  <button data-csp-click="h5" data-csp-source-click="togglePartsFilter()">✕ 全表示に戻す</button>
 </div>
 
 <!-- 在庫マイナス警告バナー -->
-<div class="warn-banner" id="warn-banner" style="display:none" onclick="openWarnModal()">
+<div class="warn-banner" id="warn-banner" style="display:none" data-csp-click="h6" data-csp-source-click="openWarnModal()">
   <span class="warn-banner-icon">⚠️</span>
   <span class="warn-banner-msg" id="warn-banner-msg">在庫がマイナスになる製品があります</span>
-  <button class="warn-banner-btn" onclick="event.stopPropagation();openWarnModal()">詳細を見る</button>
+  <button class="warn-banner-btn" data-csp-click="h7" data-csp-source-click="event.stopPropagation();openWarnModal()">詳細を見る</button>
 </div>
 
 <!-- ページローディングオーバーレイ -->
@@ -587,13 +669,8 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
     <div class="del-warning">
       ⚠️ <strong id="del-target-name"></strong> を削除します。<br>
       この操作は取り消せません。<br>
-      削除するにはパスワードを入力してください。
+      削除を実行しますか？ 操作権限はサーバーで確認されます。
     </div>
-    <label style="font-size:12px;color:#666;display:block;margin-bottom:4px">パスワード</label>
-    <div class="del-pw-wrap">
-      <input type="password" id="del-pw-input" placeholder="パスワードを入力">
-    </div>
-    <div class="del-pw-err" id="del-pw-err">パスワードが違います</div>
     <div class="mbtns" style="margin-top:12px">
       <button class="btn" id="del-cancel-btn">キャンセル</button>
       <button class="btn" id="del-ok-btn" style="background:#e24b4a;color:#fff;border-color:#e24b4a">削除する</button>
@@ -661,14 +738,14 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
     <h4>⚠️ 成形数がマイナスです</h4>
     <p id="discard-msg">廃棄により製品を減らす場合、紐づく部品をどう扱いますか？</p>
     <div class="discard-opts">
-      <div class="discard-opt selected" id="discard-opt-consume" onclick="selectDiscardOpt('consume')">
+      <div class="discard-opt selected" id="discard-opt-consume" data-csp-click="h8" data-csp-source-click="selectDiscardOpt('consume')">
         <span class="discard-opt-icon">🔩</span>
         <div class="discard-opt-text">
           <strong>部品も消費する（そのまま）</strong>
           <span>マイナス成形数 × 構成数 だけ部品在庫が戻ります（通常の計算）</span>
         </div>
       </div>
-      <div class="discard-opt" id="discard-opt-none" onclick="selectDiscardOpt('none')">
+      <div class="discard-opt" id="discard-opt-none" data-csp-click="h9" data-csp-source-click="selectDiscardOpt('none')">
         <span class="discard-opt-icon">📦</span>
         <div class="discard-opt-text">
           <strong>部品は影響なし（廃棄扱い）</strong>
@@ -677,13 +754,49 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
       </div>
     </div>
     <div class="discard-btns">
-      <button class="discard-btn-cancel" onclick="cancelDiscard()">キャンセル</button>
-      <button class="discard-btn-ok" onclick="confirmDiscard()">決定</button>
+      <button class="discard-btn-cancel" data-csp-click="h10" data-csp-source-click="cancelDiscard()">キャンセル</button>
+      <button class="discard-btn-ok" data-csp-click="h11" data-csp-source-click="confirmDiscard()">決定</button>
     </div>
   </div>
 </div>
 
 <script>
+document.addEventListener('click', event => {
+  const el = event.target.closest('[data-inventory-detail]');
+  if (el) togglePartsDetail(el.dataset.inventoryDetail);
+});
+
+
+// Business drafts are page-memory only. SSO tokens stay in sessionStorage;
+// static HTML/GAS cannot issue HttpOnly cookies.
+const pageMemoryStorage = (() => {
+  const entries = new Map();
+  return {
+    getItem: key => entries.has(key) ? entries.get(key) : null,
+    setItem: (key, value) => entries.set(key, String(value)),
+    removeItem: key => entries.delete(key),
+    clear: () => entries.clear()
+  };
+})();
+function clearBrowserBusinessData_() {
+  pageMemoryStorage.clear();
+  const known = new Set(['kpk_app_perms', 'kpk_shift_employees', 'kpk_shift_data',
+    'kpk_cal_special', 'kpk_data_ver', 'kpk_session', 'kpk_vac_req', 'kpk_ot_req',
+    'kpk_h_req', 'kpk_sync_log', 'sakugyo_wip_backup', 'inv_current_user',
+    'inv_sat_v2', 'inv_portal_url', 'inv_gas_url', 'inv_master_url',
+    'sakugyo_portal_url', 'daily_report_portal_url']);
+  for (const name of ['localStorage', 'sessionStorage']) {
+    try {
+      const storage = window[name];
+      for (let i = storage.length - 1; i >= 0; i--) {
+        const key = storage.key(i);
+        if (known.has(key) || (key && key.startsWith('inv_sat_v2_'))) storage.removeItem(key);
+      }
+    } catch (e) {}
+  }
+}
+clearBrowserBusinessData_();
+
 // ★ポータルから渡されたトークンを #sso= フラグメントで回収し、すぐURLから消す。
 //   （このHTMLはGitHub Pages配信。トークンはサーバーに送信されないフラグメントで受ける）
 (function () {
@@ -707,9 +820,9 @@ const SK_SAT    = 'inv_sat_v2';   // 月次表示のローカルキャッシュ�
 const TOKEN_KEY = 'inv_token';   // ↑ 先頭スクリプトと同じキー名
 
 // ★過去に差し替えで localStorage に残った接続先を消す（端末の汚染除去）
-try { localStorage.removeItem('inv_gas_url'); localStorage.removeItem('inv_master_url'); } catch(e) {}
+try { pageMemoryStorage.removeItem('inv_gas_url'); pageMemoryStorage.removeItem('inv_master_url'); } catch(e) {}
 
-let PORTAL_URL = localStorage.getItem(SK_PORTAL) || '';
+let PORTAL_URL = pageMemoryStorage.getItem(SK_PORTAL) || '';
 
 // ============================================================
 //  ユーザー認証（ポータル発行トークンのみ。単体ログインは無し）
@@ -719,32 +832,38 @@ let currentUser = null; // 表示用。identity の正本はサーバー（ト�
 
 function getToken() { try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch(e){ return ''; } }
 function clearSession() {
+  clearBrowserBusinessData_();
+  currentUser = null;
+  clients = []; products = []; groups = []; mdata = {}; initStock = {}; satUnlocked = {};
+  if (_onlineHeartbeatTimer) clearInterval(_onlineHeartbeatTimer);
+  if (_cellPollTimer) clearInterval(_cellPollTimer);
   try { sessionStorage.removeItem(TOKEN_KEY); } catch(e){}
-  try { sessionStorage.removeItem(SK_USER); } catch(e){}
+  try { pageMemoryStorage.removeItem(SK_USER); } catch(e){}
 }
 
-// ★F10：戻り先は https かつ許可ホスト(script.google.com)のURLのみ。無効なら '' を返す。
+// ★F10：既存GASと指定された静的ポータルの完全URLだけを許可する。
 function safePortalUrl_(raw) {
   if (!raw) return '';
   var s; try { s = decodeURIComponent(String(raw)); } catch (e) { return ''; }
+  if (s === 'https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html') return s;
   var u; try { u = new URL(s); } catch (e) { return ''; }
-  if (u.protocol !== 'https:' || u.hostname !== 'script.google.com') return '';
+  if (u.protocol !== 'https:' || u.hostname !== 'script.google.com' || u.username || u.password || u.port) return '';
   return u.href;
 }
 function initAuth() {
   const params = new URLSearchParams(location.search);
   const portalUrlParam = params.get('portal_url');
-  if (portalUrlParam) { PORTAL_URL = portalUrlParam; localStorage.setItem(SK_PORTAL, PORTAL_URL); }
+  if (portalUrlParam) { PORTAL_URL = portalUrlParam; pageMemoryStorage.setItem(SK_PORTAL, PORTAL_URL); }
 
   // 先頭スクリプトが #sso= を回収済み。トークンが無ければ未認証。
   if (!getToken()) return false;
 
-  try { const saved = sessionStorage.getItem(SK_USER); if (saved) currentUser = JSON.parse(saved); } catch(e) {}
+  try { const saved = pageMemoryStorage.getItem(SK_USER); if (saved) currentUser = JSON.parse(saved); } catch(e) {}
   // 表示名・役割はサーバーに問い合わせて受け取る（届くまでは画面を出したまま）。
   api({ action: 'whoami' }).then(function (res) {
     if (res && res.ok) {
       currentUser = { id: res.id, name: res.name || '', role: res.role || 'staff' };
-      try { sessionStorage.setItem(SK_USER, JSON.stringify(currentUser)); } catch(e) {}
+      try { pageMemoryStorage.setItem(SK_USER, JSON.stringify(currentUser)); } catch(e) {}
       if (typeof updateUserBadge === 'function') updateUserBadge();
     }
   }).catch(function () {});
@@ -1046,11 +1165,11 @@ function satStoreKey() {
   return `${SK_SAT}_${selCid}_${viewYear}_${String(viewMonth).padStart(2,'0')}`;
 }
 function loadSat() {
-  const r = localStorage.getItem(satStoreKey());
+  const r = pageMemoryStorage.getItem(satStoreKey());
   satUnlocked = r ? JSON.parse(r) : {};
 }
 function saveSat() {
-  localStorage.setItem(satStoreKey(), JSON.stringify(satUnlocked));
+  pageMemoryStorage.setItem(satStoreKey(), JSON.stringify(satUnlocked));
 }
 function satCellKey(pid, day) { return `${pid}_${day}`; }
 
@@ -1068,27 +1187,44 @@ const MOCK_PRODUCTS = {
 const DEMO_STORE = { initStock:{}, cells:{} };
 
 async function api(params) {
-  // ★すべてPOST・Content-Type: text/plain・トークンは本文（GETや接続先差し替えは廃止）。
-  //   identity（userId/userName）はサーバーがトークンから決めるので、ここでは付けない。
   const token = getToken();
-  if (!token) { clearSession(); showLoginScreen(); return { error: 'unauthorized' }; }
-  const body = Object.assign({}, params, { token: token });
   try {
+    if (!token) { clearSession(); showLoginScreen(); throw new Error('unauthorized'); }
     const r = await fetch(GAS_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },   // application/json はCORSプリフライトでGASが応答できない
-      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ ...params, token }),
       redirect: 'follow'
     });
+    if (!r.ok) throw new Error('通信エラー');
     const j = await r.json();
-    if (j && j.ok === false && j.error === 'unauthorized') {
-      clearSession(); showLoginScreen(); return { error: 'unauthorized' };
+    if (getToken() !== token) throw new Error('セッションが変更されました');
+    if (j && j.error === 'unauthorized') { clearSession(); showLoginScreen(); }
+    if (!j || typeof j !== 'object' || j.ok === false || j.error) throw new Error((j && j.error) || '不正な応答');
+    const arrayReads = { getClients:'clients', getProducts:'products', getMonthData:'data',
+      getGroups:'groups', searchProducts:'products', getPartsData:'parts', getPartsStock:'stocks',
+      getOnlineUsers:'data', getCellFocusList:'data', getCellHistoryList:'data' };
+    if (Object.prototype.hasOwnProperty.call(arrayReads, params.action)) {
+      if (!Array.isArray(j[arrayReads[params.action]])) throw new Error('不正な応答');
+    } else if (params.action === 'getPrevMonthLastStock') {
+      if (!j.stocks || typeof j.stocks !== 'object' || Array.isArray(j.stocks)) throw new Error('不正な応答');
+    } else if (j.ok !== true) {
+      throw new Error('成功を確認できませんでした');
     }
-    if (j && j.error) console.error('[API Error]', params.action, j.error);
+    if (['getPartsData','getPartsStock','getOnlineUsers','getCellFocusList','getCellHistoryList'].includes(params.action) && j.ok !== true) throw new Error('成功を確認できませんでした');
+    if (['addProduct','addClient','addGroup'].includes(params.action) && (typeof j.id !== 'string' || !j.id)) throw new Error('IDがありません');
     return j;
-  } catch(e) {
-    console.error('[API Fetch Error]', params.action, e.message);
-    return { error: e.message };
+  } catch (error) {
+    showLoad(false);
+    let notice = document.getElementById('inventory-api-error');
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.id = 'inventory-api-error';
+      notice.setAttribute('role', 'alert');
+      document.body.prepend(notice);
+    }
+    notice.textContent = '処理に失敗しました。保存完了は確認できていません。再読み込みして状態を確認してください。 ' + error.message;
+    throw error;
   }
 }
 
@@ -1273,7 +1409,7 @@ async function loadGroups() {
   try {
     const r = await api({ action:'getGroups', clientId: selCid });
     groups = r.groups || [];
-  } catch(e) { groups = []; }
+  } catch(e) { throw e; }
   renderGroupTabBar();
   updateGroupSelects();
 }
@@ -1296,7 +1432,7 @@ function renderGroupTabBar() {
         : ''}
     </div>`
   ).join('') +
-  `<div class="gtab-add" onclick="openAddGroupModal()">＋ グループ追加</div>`;
+  `<div class="gtab-add" data-csp-click="h12" data-csp-source-click="openAddGroupModal()">＋ グループ追加</div>`;
 
   // 編集ボタン（保存名をインラインJSに入れず data-* ＋委譲）
   bar.querySelectorAll('[data-act="edit-group"]').forEach(el => {
@@ -1411,7 +1547,7 @@ async function loadMonth() {
       const stocks = pr2.stocks || {};
       missing.forEach(p => { initStock[p.id] = stocks[p.id] !== undefined ? parseFloat(stocks[p.id]) : 0; });
     } catch(e) {
-      missing.forEach(p => { initStock[p.id] = 0; });
+      throw e;
     }
   }
 
@@ -1430,7 +1566,7 @@ async function loadPartsAutoConsume() {
   const partItems = products.filter(p => p.itemType === 'part');
   if (!partItems.length) return;
   try {
-    const r = await api({ action:'getPartsStock', year:viewYear, month:viewMonth });
+    const r = await api({ action:'getPartsStock', clientId:selCid, year:viewYear, month:viewMonth });
     if (!r.ok || !r.stocks) return;
     r.stocks.forEach(s => {
       // マッチング優先順:
@@ -1447,7 +1583,7 @@ async function loadPartsAutoConsume() {
           autoConsumeCache[`${prod.id}_${i+1}`] = v;
       });
     });
-  } catch(e) { /* 失敗しても続行 */ }
+  } catch(e) { throw e; }
 }
 
 // partsRelMap 取得（製品セルの🔩ヒント表示用）
@@ -1484,7 +1620,7 @@ async function loadPartsRel() {
       });
     });
     partsRelLoaded = true;
-  } catch(e) { /* 失敗しても続行 */ }
+  } catch(e) { throw e; }
 }
 
 // ============================================================
@@ -1855,9 +1991,9 @@ async function applyImportChanges(ov) {
   let done = 0;
   try {
     for (const c of _pendingImportChanges) {
-      mdata[`${c.pid}_${c.rtype}_${c.d}`] = c.newVal;
       await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
                   productId:c.pid, rowType:c.rtype, day:parseInt(c.d), value:c.newVal });
+      mdata[`${c.pid}_${c.rtype}_${c.d}`] = c.newVal;
       done++;
       okBtn.textContent = `取込中… (${done}/${total})`;
     }
@@ -1896,7 +2032,7 @@ function renderAll() {
 function renderTabs() {
   const bar = document.getElementById('tab-bar');
   const manageBtn = `<div style="margin-left:auto;padding:4px 8px;flex-shrink:0">
-    <button class="btn" id="btn-manage-clients" style="font-size:11px;padding:4px 10px" onclick="openClientsModal()">⚙ 取引先管理</button>
+    <button class="btn" id="btn-manage-clients" style="font-size:11px;padding:4px 10px" data-csp-click="h13" data-csp-source-click="openClientsModal()">⚙ 取引先管理</button>
   </div>`;
   // ★O02：id を持たない不正な取引先はタブに出さない（undefined等のclientIdでの誤操作を防ぐ）
   const validClients = clients.filter(c => c && c.id && String(c.id).trim() && String(c.id) !== 'undefined');
@@ -1905,7 +2041,7 @@ function renderTabs() {
     return;
   }
   bar.innerHTML = validClients.map(c =>
-    `<div class="ctab${c.id===selCid?' active':''}" data-cid="${escH(String(c.id))}">${escH(c.name)}</div>`
+    `<div class="ctab${c.id===selCid?' active':''}" data-cid="${escAttr(c.id)}">${escH(c.name)}</div>`
   ).join('') + manageBtn;
   bar.querySelectorAll('.ctab').forEach(t => {
     t.addEventListener('click', async () => {
@@ -1936,7 +2072,7 @@ function renderToolbar() {
 function renderInitPanel() {
   const wrap = document.getElementById('init-items');
   products.forEach(p => {
-    const existing = wrap.querySelector(`input[data-pid="${p.id}"]`);
+    const existing = wrap.querySelector(`input[data-pid="${escAttr(p.id)}"]`);
     if (existing) {
       if (document.activeElement !== existing)
         existing.value = initStock[p.id] !== undefined ? initStock[p.id] : 0;
@@ -1953,20 +2089,20 @@ function renderInitPanel() {
     item.innerHTML = `
       <label>${escH(p.code)} ${escH(p.name)}</label>
       <div class="init-val">
-        <input type="number" value="${v}" data-pid="${p.id}" data-item-type="${p.itemType||'product'}">
+        <input type="number" value="${escAttr(v)}" data-pid="${escAttr(p.id)}" data-item-type="${escAttr(p.itemType||'product')}">
         ${badge}
       </div>`;
     item.querySelector('input').addEventListener('change', async e => {
       const val      = parseFloat(e.target.value) || 0;
       const targetPid = e.target.dataset.pid;
       const itype    = e.target.dataset.itemType;
-      initStock[targetPid] = val;
-      renderTableOnly();
       showLoad(true);
       try {
         const rowType = itype === 'part' ? 'part_zaiko_init' : 'zaiko_init';
         await api({ action:'saveInitStock', clientId:selCid, year:viewYear, month:viewMonth,
                     productId:targetPid, value:val, rowType });
+        initStock[targetPid] = val;
+        renderTableOnly();
         showToast('月初在庫を保存しました');
       } catch(err) {
         showToast('保存失敗: ' + err.message);
@@ -2058,11 +2194,11 @@ function renderTable() {
               <div class="p-row"><span class="p-val p-name">${escH(prod.name)}</span></div>
               <div class="p-row"><span class="p-val p-unit">${escH(prod.unit)}</span></div>
               <div class="p-btns">
-                <button class="btn-edit" data-edit="${prod.id}">編集</button>
-                <button class="btn-delp" data-del="${prod.id}">削除</button>
-                <button class="btn-order btn-up" data-up="${prod.id}" title="上へ移動"
+                <button class="btn-edit" data-edit="${escAttr(prod.id)}">編集</button>
+                <button class="btn-delp" data-del="${escAttr(prod.id)}">削除</button>
+                <button class="btn-order btn-up" data-up="${escAttr(prod.id)}" title="上へ移動"
                   ${displayProducts.indexOf(prod)===0?'disabled':''}>▲</button>
-                <button class="btn-order btn-dn" data-dn="${prod.id}" title="下へ移動"
+                <button class="btn-order btn-dn" data-dn="${escAttr(prod.id)}" title="下へ移動"
                   ${displayProducts.indexOf(prod)===displayProducts.length-1?'disabled':''}>▼</button>
               </div>
             </td>`;
@@ -2107,8 +2243,8 @@ function renderTable() {
               const isAuto     = !isManual && autoVal > 0;
               const cellCls    = isManual ? ' manual-shohi-override' : (isAuto ? ' auto-shohi' : '');
               rHtml += `<td class="nc${cellCls}${tdyCls}" title="${isAuto?'自動計算: '+autoVal:''}">
-                <input type="number" data-pid="${prod.id}" data-rt="part_shohi" data-d="${d}"
-                  data-auto="${autoVal}" value="${displayVal}" placeholder="${autoVal||''}">
+                <input type="number" data-pid="${escAttr(prod.id)}" data-rt="part_shohi" data-d="${d}"
+                  data-auto="${escAttr(autoVal)}" value="${escAttr(displayVal)}" placeholder="${escAttr(autoVal||'')}">
               </td>`;
               continue;
             }
@@ -2120,13 +2256,13 @@ function renderTable() {
               const v = mdata[`${prod.id}_part_nyuuka_plan_${d}`];
               if (isLocked) {
                 rHtml += `<td class="nc keikaku-excluded${tdyCls}" title="入荷数が入力済み">
-                  <input type="number" data-pid="${prod.id}" data-rt="part_nyuuka_plan" data-d="${d}"
-                    value="${v!==undefined?v:''}" placeholder="" class="excluded-input">
+                  <input type="number" data-pid="${escAttr(prod.id)}" data-rt="part_nyuuka_plan" data-d="${d}"
+                    value="${escAttr(v!==undefined?v:'')}" placeholder="" class="excluded-input">
                 </td>`;
               } else {
                 rHtml += `<td class="nc${tdyCls}" style="background:#e0f7fa !important;">
-                  <input type="number" data-pid="${prod.id}" data-rt="part_nyuuka_plan" data-d="${d}"
-                    value="${v!==undefined?v:''}" placeholder="" style="color:#00897b">
+                  <input type="number" data-pid="${escAttr(prod.id)}" data-rt="part_nyuuka_plan" data-d="${d}"
+                    value="${escAttr(v!==undefined?v:'')}" placeholder="" style="color:#00897b">
                 </td>`;
               }
               continue;
@@ -2136,10 +2272,10 @@ function renderTable() {
             const v = mdata[`${prod.id}_${rtype}_${d}`];
             const _minusCls = (v !== undefined && parseFloat(v) < 0) ? ' minus-val' : '';
           rHtml += `<td class="nc${tdyCls}"><input type="number"
-              data-pid="${prod.id}" data-rt="${rtype}" data-d="${d}"
-              value="${v!==undefined?v:''}" placeholder=""
+              data-pid="${escAttr(prod.id)}" data-rt="${rtype}" data-d="${d}"
+              value="${escAttr(v!==undefined?v:'')}" placeholder=""
               class="${_minusCls}"
-              oninput="this.className=parseFloat(this.value)<0?'minus-val':''"></td>`;
+              data-csp-input="h14" data-csp-source-input="this.className=parseFloat(this.value)&lt;0?'minus-val':''"></td>`;
           }
           // ── 部品合計列 ──
           let ptotalVal = '';
@@ -2197,14 +2333,13 @@ function renderTable() {
             const isDetailOpen = partsDetailProdId === prod.id;
             const partsHint = hasLinked
               ? `<div class="p-parts-hint${isDetailOpen?' active-hint':''}"
-                  onclick="togglePartsDetail('${prod.id}')"
+                  data-inventory-detail="${escAttr(prod.id)}"
                   style="${isDetailOpen?'background:#d1a0f0;color:#fff;':''}">
                   🔩
                   ${isDetailOpen
                     ? `<span style="font-size:10px;color:#fff">${linkedParts.map(p=>escH(p)).join('、')}</span>
                        <span style="font-size:9px;margin-left:4px;opacity:.8">▲ 閉じる</span>`
-                    : `<span style="font-size:10px;color:#6a1b9a">部品構成を見る ▼</span>`
-                  }
+                    : `<span style="font-size:10px;color:#6a1b9a">部品構成を見る ▼</span>`}
                  </div>`
               : '';
             lHtml += `<td class="c-prod pcell" rowspan="${allRows.length}">
@@ -2214,11 +2349,11 @@ function renderTable() {
               <div class="p-row"><span class="p-val p-unit">${escH(prod.unit)}</span></div>
               ${partsHint}
               <div class="p-btns">
-                <button class="btn-edit" data-edit="${prod.id}">編集</button>
-                <button class="btn-delp" data-del="${prod.id}">削除</button>
-                <button class="btn-order btn-up" data-up="${prod.id}" title="上へ移動"
+                <button class="btn-edit" data-edit="${escAttr(prod.id)}">編集</button>
+                <button class="btn-delp" data-del="${escAttr(prod.id)}">削除</button>
+                <button class="btn-order btn-up" data-up="${escAttr(prod.id)}" title="上へ移動"
                   ${displayProducts.indexOf(prod)===0?'disabled':''}>▲</button>
-                <button class="btn-order btn-dn" data-dn="${prod.id}" title="下へ移動"
+                <button class="btn-order btn-dn" data-dn="${escAttr(prod.id)}" title="下へ移動"
                   ${displayProducts.indexOf(prod)===displayProducts.length-1?'disabled':''}>▼</button>
               </div>
             </td>`;
@@ -2248,13 +2383,13 @@ function renderTable() {
                 const v = mdata[`${prod.id}_shukko_${d}`];
                 const _sMC = (v !== undefined && parseFloat(v) < 0) ? 'minus-val' : '';
                 rHtml += `<td class="nc sat-unlocked">
-                  <input type="number" data-pid="${prod.id}" data-rt="shukko" data-d="${d}"
-                    value="${v!==undefined?v:''}" placeholder=""
-                    class="${_sMC}" oninput="this.className=parseFloat(this.value)<0?'minus-val':''">
-                  <button class="relock-btn" data-relock="${ck}">ロック</button>
+                  <input type="number" data-pid="${escAttr(prod.id)}" data-rt="shukko" data-d="${d}"
+                    value="${escAttr(v!==undefined?v:'')}" placeholder=""
+                    class="${_sMC}" data-csp-input="h15" data-csp-source-input="this.className=parseFloat(this.value)&lt;0?'minus-val':''">
+                  <button class="relock-btn" data-relock="${escAttr(ck)}">ロック</button>
                 </td>`;
               } else {
-                rHtml += `<td class="sat-locked"><button class="unlock-btn" data-unlock="${ck}">出荷入力</button></td>`;
+                rHtml += `<td class="sat-locked"><button class="unlock-btn" data-unlock="${escAttr(ck)}">出荷入力</button></td>`;
               }
               continue;
             }
@@ -2266,18 +2401,18 @@ function renderTable() {
               const isExcluded = seikeiVal !== undefined && seikeiVal !== '';
               if (isExcluded) {
                 rHtml += `<td class="nc keikaku-excluded${tdyCls}">
-                  <input type="number" data-pid="${prod.id}" data-rt="${rtype}" data-d="${d}"
-                    value="${v!==undefined?v:''}" placeholder="" class="excluded-input">
+                  <input type="number" data-pid="${escAttr(prod.id)}" data-rt="${rtype}" data-d="${d}"
+                    value="${escAttr(v!==undefined?v:'')}" placeholder="" class="excluded-input">
                 </td>`;
                 continue;
               }
             }
             const _minusCls = (v !== undefined && parseFloat(v) < 0) ? ' minus-val' : '';
           rHtml += `<td class="nc${tdyCls}"><input type="number"
-              data-pid="${prod.id}" data-rt="${rtype}" data-d="${d}"
-              value="${v!==undefined?v:''}" placeholder=""
+              data-pid="${escAttr(prod.id)}" data-rt="${rtype}" data-d="${d}"
+              value="${escAttr(v!==undefined?v:'')}" placeholder=""
               class="${_minusCls}"
-              oninput="this.className=parseFloat(this.value)<0?'minus-val':''"></td>`;
+              data-csp-input="h16" data-csp-source-input="this.className=parseFloat(this.value)&lt;0?'minus-val':''"></td>`;
           }
           // ── 合計列（右端固定） ──
           let totalVal = '';
@@ -2327,7 +2462,7 @@ function renderTable() {
             lHtml += `<tr style="background:#f3e5ff">
               <td colspan="2" style="padding:5px 10px;font-size:12px;font-weight:600;color:#6a1b9a;position:relative">
                 🔩 部品使用数
-                <button class="parts-detail-close" onclick="togglePartsDetail('${prod.id}')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">✕ 閉じる</button>
+                <button class="parts-detail-close" data-inventory-detail="${escAttr(prod.id)}" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">✕ 閉じる</button>
               </td>
             </tr>`;
             rHtml += `<tr style="background:#f3e5ff"><td colspan="${days+1}" style="padding:5px 8px;font-size:11px;color:#888">
@@ -2345,7 +2480,7 @@ function renderTable() {
               // 左：部品整番・構成数
               lHtml += `<tr style="background:#faf5ff;border-bottom:1px solid #ede7f6">
                 <td style="padding:5px 8px;font-size:12px;font-weight:600;color:#4a1270;white-space:nowrap">${escH(partCode)}</td>
-                <td style="padding:5px 8px;text-align:right;font-size:12px;color:#888">×${count}</td>
+                <td style="padding:5px 8px;text-align:right;font-size:12px;color:#888">×${escH(count)}</td>
               </tr>`;
 
               // 右：日別消費数（メインテーブルと同じ列幅）
@@ -2457,9 +2592,9 @@ function initStickyColumns() {
 // syncRowHeights: 1テーブル方式のため不要
 
 // ============================================================
-//  削除確認パスワード
+//  削除確認（認可はGASのみ）
 // ============================================================
-const DELETE_PW = 'spk435511';
+
 let deletePendingId = null;
 
 function openDeleteConfirm(pid) {
@@ -2468,10 +2603,7 @@ function openDeleteConfirm(pid) {
   deletePendingId = pid;
   document.getElementById('del-target-name').textContent =
     `${prod.code}${prod.name ? '（' + prod.name + '）' : ''}`;
-  document.getElementById('del-pw-input').value = '';
-  document.getElementById('del-pw-err').classList.remove('show');
   document.getElementById('modal-delete-confirm').style.display = 'flex';
-  document.getElementById('del-pw-input').focus();
 }
 
 document.getElementById('del-cancel-btn').addEventListener('click', () => {
@@ -2480,22 +2612,11 @@ document.getElementById('del-cancel-btn').addEventListener('click', () => {
 });
 
 document.getElementById('del-ok-btn').addEventListener('click', async () => {
-  const pw = document.getElementById('del-pw-input').value;
-  if (pw !== DELETE_PW) {
-    document.getElementById('del-pw-err').classList.add('show');
-    document.getElementById('del-pw-input').value = '';
-    document.getElementById('del-pw-input').focus();
-    return;
-  }
   document.getElementById('modal-delete-confirm').style.display = 'none';
   if (deletePendingId) {
     await onDelProd(deletePendingId);
     deletePendingId = null;
   }
-});
-
-document.getElementById('del-pw-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('del-ok-btn').click();
 });
 
 // ============================================================
@@ -2509,12 +2630,6 @@ async function moveProduct(pid, dir) {
     : selGroupId === 'unset' ? products.filter(p => !p.group || p.group === '')
     : products.filter(p => p.group === selGroupId || p.itemType === 'part');
 
-  // orderが未設定（全て9999等）の場合、現在の表示インデックスをorderとして初期化
-  const allSame = displayProducts.every(p => (p.order || 9999) === (displayProducts[0].order || 9999));
-  if (allSame) {
-    displayProducts.forEach((p, i) => { p.order = (i + 1) * 10; });
-  }
-
   const idx = displayProducts.findIndex(p => p.id === pid);
   if (idx < 0) return;
 
@@ -2524,28 +2639,19 @@ async function moveProduct(pid, dir) {
   const prod1 = displayProducts[idx];
   const prod2 = displayProducts[targetIdx];
 
-  // orderを入れ替え（同じ値なら強制的に差をつける）
-  if (prod1.order === prod2.order) {
-    prod1.order = idx * 10;
-    prod2.order = targetIdx * 10;
-  }
-  const tmpOrder = prod1.order;
-  prod1.order = prod2.order;
-  prod2.order = tmpOrder;
-
-  // products配列をorder順に再ソート
-  products.sort((a, b) => (a.order || 9999) - (b.order || 9999));
-  renderAll();
-
-  // GASに保存
   showLoad(true);
   try {
-    const res = await api({ action:'swapProductOrder', productId1:prod1.id, productId2:prod2.id });
-    if (!res.ok) showToast('⚠️ 保存失敗: ' + (res.error || ''));
+    const result = await api({ action:'swapProductOrder', clientId:selCid, productId1:prod1.id, productId2:prod2.id });
+    if (!Number.isFinite(result.order1) || !Number.isFinite(result.order2)) throw new Error('順序を確認できませんでした');
+    prod1.order = result.order1;
+    prod2.order = result.order2;
+    products.sort((a, b) => (a.order || 9999) - (b.order || 9999));
+    renderAll();
   } catch(e) {
     showToast('順番の保存に失敗しました: ' + e.message);
+  } finally {
+    showLoad(false);
   }
-  showLoad(false);
 }
 
 // ============================================================
@@ -2573,7 +2679,6 @@ async function confirmDiscard() {
   discardPending = null;
 
   const key = `${pid}_${rt}_${d}`;
-  if (v === '') delete mdata[key]; else mdata[key] = parseFloat(v);
 
   // 廃棄扱い選択時: 紐づく部品の消費数を0で手動上書き保存
   if (discardChoice === 'none') {
@@ -2585,9 +2690,9 @@ async function confirmDiscard() {
         const partProd = products.find(p => p.code === partSeiban && p.itemType === 'part');
         if (!partProd) continue;
         const partKey = `${partProd.id}_part_shohi_${d}`;
-        mdata[partKey] = 0;
         await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
                     productId:partProd.id, rowType:'part_shohi', day:parseInt(d), value:0 });
+        mdata[partKey] = 0;
       }
       showLoad(false);
       showToast('部品消費数を 0 で保存しました');
@@ -2600,6 +2705,8 @@ async function confirmDiscard() {
   console.log('[confirmDiscard送信]', { productId:pid, rowType:rt, day:parseInt(d), value:saveVal, selCid, year:viewYear, month:viewMonth });
   const saveRes = await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
               productId:pid, rowType:rt, day:parseInt(d), value:saveVal });
+  if (v === '') delete mdata[key]; else mdata[key] = parseFloat(v);
+  renderTableOnly();
   console.log('[confirmDiscard結果]', JSON.stringify(saveRes));
   showLoad(false);
   if (saveRes && saveRes.ok === false) {
@@ -2619,11 +2726,11 @@ async function onCell(e) {
 
   // 消費数セルの空入力 → 自動計算に戻す
   if (rt === 'part_shohi' && v === '') {
-    delete mdata[key];
-    renderTableOnly();
     showLoad(true);
     await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
                 productId:pid, rowType:rt, day:parseInt(d), value:'' });
+    delete mdata[key];
+    renderTableOnly();
     showLoad(false);
     showToast('自動計算に戻しました');
     return;
@@ -2641,20 +2748,22 @@ async function onCell(e) {
       const day = parseInt(d);
       const dt  = new Date(viewYear, viewMonth-1, day);
       document.getElementById('discard-msg').textContent =
-        `${dt.getMonth()+1}/${day} の成形数: ${v}（${prod?.name || prod?.code}）　紐づく部品: ${linkedParts.join('、')}`;
+        `${dt.getMonth()+1}/${day} の成形数: ${escH(v)}（${prod?.name || prod?.code}）　紐づく部品: ${linkedParts.join('、')}`;
       document.getElementById('discard-overlay').style.display = 'flex';
       return;
     }
     // 部品紐づきなし → そのまま保存（マイナスでもダイアログなし）
   }
 
-  if (v==='') delete mdata[key]; else mdata[key]=parseFloat(v);
-  renderTableOnly();
   showLoad(true);
   const saveVal = (v === '' || v === undefined) ? '' : parseFloat(v);
   console.log('[saveCell送信]', { productId:pid, rowType:rt, day:parseInt(d), value:saveVal });
+  if (v === '') delete mdata[key]; else mdata[key] = parseFloat(v);
+  renderTableOnly();
   const saveRes = await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
               productId:pid, rowType:rt, day:parseInt(d), value:saveVal });
+  if (v === '') delete mdata[key]; else mdata[key] = parseFloat(v);
+  renderTableOnly();
   console.log('[saveCell結果]', saveRes);
   showLoad(false);
   if (saveRes && saveRes.ok === false) {
@@ -2698,17 +2807,17 @@ document.getElementById('me-ok').addEventListener('click', async () => {
   const group    = document.getElementById('me-group').value;
   document.getElementById('modal-edit').style.display = 'none';
   const p = products.find(x => x.id === pid);
-  if (p) { p.code=code; p.name=name; p.unit=unit; p.itemType=itemType; p.group=group; }
-  renderAll();
   if (GAS_URL && selCid) {
     showLoad(true);
     try {
       await api({ action:'updateProduct', clientId:selCid, productId:pid, name, unit, code, itemType, group });
+      if (p) { p.code=code; p.name=name; p.unit=unit; p.itemType=itemType; p.group=group; }
+      renderAll();
       showToast('情報を更新しました');
     } catch(err) { showToast('保存失敗: '+err.message); }
     showLoad(false);
   } else {
-    showToast('更新しました（デモ）');
+    showToast('未保存: ポータルから接続してください');
   }
 });
 ['me-code','me-name','me-unit'].forEach(id => {
@@ -2890,8 +2999,8 @@ function showPageLoad(msg) {
 function hidePageLoad() {
   document.getElementById('page-loading').classList.add('hidden');
 }
-function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-// ★属性値/インラインJS文脈用：escHは & < > のみで引用符を残すため、属性やonclick引数には不十分。
+function escH(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// 属性値専用。HTMLの実体参照はJavaScript文字列の保護には使わない。
 //   二重引用符属性値に入れる動的値は必ずこちら（" ' も実体参照化）を使う。
 function escAttr(s) { return escH(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 let toastT;
@@ -2994,7 +3103,7 @@ async function boot() {
     startOnlineHeartbeat();
   } catch(e) {
     document.getElementById('tab-bar').innerHTML=
-      `<div style="padding:10px 16px;font-size:12px;color:#e24b4a">接続エラー: ${e.message}</div>`;
+      `<div style="padding:10px 16px;font-size:12px;color:#e24b4a">接続エラー: ${escH(e.message)}</div>`;
   } finally {
     hidePageLoad();
   }
