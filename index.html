@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-zDndAUQq/VI/HJrdkhMnKx9zrk1ylss6d4Gep8AyxcU='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-xjdH+GqhfhArIB8LRtRDv7ZKKAyEYbYP568kC4r6I9E='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -381,7 +381,7 @@ select,input[type=date]{width:100%;padding:10px;border:1px solid #ccc;border-rad
 // ============================================================
 // GAS設定
 // ============================================================
-const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_SHIPPING/exec';
+const GAS_DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbxZoEhqcpYbLyj-1EXvKtisWL3Wreb8_OwWVeyy4vUhB5t6PKC9HtCJWm1ESS8pabSSZg/exec';
 const GAS_URL = GAS_DEPLOY_URL;
 
 // ============================================================
@@ -995,7 +995,7 @@ function clearSession() {
 }
 
 // ポータルへ戻る既定URL（ポータルからの起動時はportal_urlパラメータが優先される）
-const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PORTAL/exec';
+const DEFAULT_PORTAL_URL = 'https://script.google.com/macros/s/AKfycbFCgghA3bTbdj8NdWT1dwTilJEVYMpC8airu6VUt0pK16Ml_NCwd4xlGExy8vMoACH/exec';
 
 // ★F10：既存GASホストと、指定された静的ポータルの完全一致URLだけを許可。
 //   javascript:/別ホスト/不正・二重デコードは既定URLへ。ホスト部分一致(includes)は使わない。
