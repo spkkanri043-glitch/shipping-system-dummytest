@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-83ABCB/ThJTevAyerIOSxkCMdNlGpVjC6fmSRHqitJs=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-9mt3B+Lw6/dR+PupDN5j/cIa+a4n42IAcLGb1xRqS88=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -813,8 +813,8 @@ clearBrowserBusinessData_();
 // ============================================================
 //  設定（接続先は固定。URLパラメータ・入力欄・localStorageでの差し替えは受け付けない）
 // ============================================================
-const GAS_URL    = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_INVENTORY/exec';
-const MASTER_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_PRODUCT/exec';
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbxoQs9qrIQiLgBh-Fl8G4pDmX_9BzydKjEMWJ1jn6t06168ZrSD0eP3Kk55QlhDOWJi/exec';
+const MASTER_URL = 'https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec';
 const SK_PORTAL = 'inv_portal_url';
 const SK_SAT    = 'inv_sat_v2';   // 月次表示のローカルキャッシュ用キー（接続先とは無関係）
 const TOKEN_KEY = 'inv_token';   // ↑ 先頭スクリプトと同じキー名
