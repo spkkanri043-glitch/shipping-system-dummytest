@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-eBj8qr5tS33+WxXsa+tMXeAK/CBjvejwhj4bkU8IeYs=' 'sha256-rKJ6n3emCQQ0RW/cqEuklOGxHLiynf1szeHPJzTAv8M='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-eBj8qr5tS33+WxXsa+tMXeAK/CBjvejwhj4bkU8IeYs=' 'sha256-GBXZDpqCAwjDZMVjRNTKyNDajpWOmKxQOHKy6xqfpIk='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -404,7 +404,7 @@ clearBrowserBusinessData_();
 // 作業報告書 GAS URL（固定）
 // ============================================================
 // セキュリティ改修：接続先は固定。?report_url= 等での差し替え・localStorage保持は廃止。
-const gasUrl = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_REPORT/exec';
+const gasUrl = 'https://script.google.com/macros/s/AKfycbyykHdr2GCV9IIDQ5bdCD5tPKV2S5VRF_ZYtcQWAUdyFz4QGgVRFCFl1OHsS_17Nc9M/exec';
 
 // SSO署名トークン（ポータルが #sso= で受け渡す）。取得後URLから除去しsessionStorageへ。
 const AUTH_TOKEN_KEY = 'kpk_dailyreport_token';
