@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-0yUtvw7pvjMr0TeQG7sl5c/+XhTptNknIF4QXgyilc8=' 'sha256-gRU+w4gy8UbqwSvZRgDcYWpVRLhDtX6Qb2SFEMLH9mI='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<script>/* MOGU_CSP_RUNTIME_V1 */
+const __moguCsp = (() => {
+  const handlers = {"h0": function(event, _p) { showTab('list')
+},
+"h1": function(event, _p) { showTab('parts');if(!partsAllData.length)partsLoadList()
+},
+"h2": function(event, _p) { setCsvType('products')
+},
+"h3": function(event, _p) { setCsvType('parts')
+},
+"h4": function(event, _p) { onDragOver(event)
+},
+"h5": function(event, _p) { onDragLeave(event)
+},
+"h6": function(event, _p) { onDrop(event)
+},
+"h7": function(event, _p) { onFileSelect(this.files[0])
+},
+"h8": function(event, _p) { clearFile()
+},
+"h9": function(event, _p) { setEncoding('sjis')
+},
+"h10": function(event, _p) { setEncoding('utf8')
+},
+"h11": function(event, _p) { selectAllCols(true)
+},
+"h12": function(event, _p) { selectAllCols(false)
+},
+"h13": function(event, _p) { selectRecommended()
+},
+"h14": function(event, _p) { clearFile()
+},
+"h15": function(event, _p) { goStep3()
+},
+"h16": function(event, _p) { setUpdateMode('merge')
+},
+"h17": function(event, _p) { setUpdateMode('overwrite')
+},
+"h18": function(event, _p) { goStep2()
+},
+"h19": function(event, _p) { startUpload()
+},
+"h20": function(event, _p) { clearFile()
+},
+"h21": function(event, _p) { partsGoStep3()
+},
+"h22": function(event, _p) { partsSetUpdateMode('merge')
+},
+"h23": function(event, _p) { partsSetUpdateMode('overwrite')
+},
+"h24": function(event, _p) { partsBackToStep2()
+},
+"h25": function(event, _p) { partsStartUpload()
+},
+"h26": function(event, _p) { loadList()
+},
+"h27": function(event, _p) { showTab('import')
+},
+"h28": function(event, _p) { partsLoadList()
+},
+"h29": function(event, _p) { closeConfirm()
+},
+"h30": function(event, _p) { execConfirm()
+},
+"h31": function(event, _p) { partsLoadList()
+},
+"h32": function(event, _p) { partsClearFile();partsSetStep(1)
+}};
+  const events = ["click","dragover","dragleave","drop","change"];
+  const bound = new WeakMap();
+  function bind(el) {
+    if (!el || el.nodeType !== 1) return;
+    let state = bound.get(el); if (!state) { state = new Map(); bound.set(el, state); }
+    for (const type of events) {
+      const id = el.getAttribute('data-csp-' + type);
+      if (!id || state.get(type) === id) continue;
+      if (!Object.prototype.hasOwnProperty.call(handlers, id)) continue;
+      const fn = function(event) {
+        const value = this.getAttribute('data-csp-args-' + type);
+        const params = value ? JSON.parse(decodeURIComponent(value)) : [];
+        return handlers[id].call(this, event, params);
+      };
+      // Native event-handler properties preserve this/currentTarget, cancellation,
+      // async return behavior and later application assignments to .onclick etc.
+      el['on' + type] = fn;
+      state.set(type, id);
+    }
+  }
+  function scan(root) {
+    bind(root);
+    if (root.querySelectorAll) for (const el of root.querySelectorAll('*')) bind(el);
+  }
+  for (const type of events) document.addEventListener(type, event => {
+    for (const el of event.composedPath()) bind(el);
+  }, true);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') bind(record.target);
+      else for (const node of record.addedNodes) scan(node);
+    }
+  }).observe(document, {subtree:true, childList:true, attributes:true,
+    attributeFilter: events.map(type => 'data-csp-' + type)});
+  document.addEventListener('DOMContentLoaded', () => scan(document));
+  const encode = values => encodeURIComponent(JSON.stringify(values)).replace(/'/g, '%27');
+  function assign(el,type,id,values) {
+    el.setAttribute('data-csp-' + type,id);
+    el.setAttribute('data-csp-args-' + type,encode(values));
+    bind(el);
+  }
+  return Object.freeze({ encode, scan, assign });
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>製品マスタ管理 | 関ケ原プラ工業(株)</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--pr:#1a3a5c;--prl:#2a5a8c;--prd:#0f2238;--ac:#e8a020;--acl:#fbbf24;--bg:#edf1f6;--sf:#fff;--sf2:#f2f6fb;--sf3:#e8edf4;--tx:#1a2332;--tx2:#5a6a7a;--tx3:#9aabb8;--bd:#cfd9e6;--bd2:#adbace;--g:#0b7a3d;--gbg:#e3f6ed;--gl:#d1fae5;--a:#b07000;--abg:#fff7db;--r:#b53030;--rbg:#fce8e8;--b:#1655b0;--bbg:#e5effe;--rad:10px;--rads:7px}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;min-height:100%;-webkit-font-smoothing:antialiased}
+.topbar{background:var(--pr);height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.3);position:sticky;top:0;z-index:200}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-icon{width:34px;height:34px;border-radius:8px;background:rgba(232,160,32,.2);border:1px solid rgba(232,160,32,.35);display:flex;align-items:center;justify-content:center;font-size:18px}
+.tb-title{font-size:15px;font-weight:700;color:#fff}
+.tb-sub{font-size:10px;color:rgba(255,255,255,.5);margin-top:1px}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8)}
+.tb-badge.admin{background:rgba(232,160,32,.25);color:var(--ac);border-color:rgba(232,160,32,.4)}
+.main{max-width:1280px;margin:0 auto;padding:20px 20px 40px}
+.steps{display:flex;align-items:center;gap:0;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rad);padding:16px 20px;margin-bottom:20px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.step{display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative}
+.step-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--bd2);background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--tx3);flex-shrink:0;transition:all .2s}
+.step.done .step-num{background:var(--gbg);border-color:var(--g);color:var(--g)}
+.step.active .step-num{background:var(--pr);border-color:var(--pr);color:#fff}
+.step-label{font-size:12px;font-weight:600;color:var(--tx3);white-space:nowrap}
+.step.done .step-label{color:var(--g)}
+.step.active .step-label{color:var(--pr)}
+.step-arrow{color:var(--bd2);font-size:16px;margin:0 10px;flex-shrink:0}
+.panel{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rad);overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.05);margin-bottom:16px}
+.panel-header{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--sf2)}
+.panel-title{font-size:13px;font-weight:700;color:var(--pr);display:flex;align-items:center;gap:7px}
+.panel-body{padding:18px}
+.dropzone{border:2px dashed var(--bd2);border-radius:var(--rad);padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--sf2);position:relative}
+.dropzone:hover,.dropzone.drag{border-color:var(--pr);background:#f0f5fc}
+.dropzone.drag{border-style:solid}
+.dz-icon{font-size:44px;margin-bottom:12px}
+.dz-title{font-size:15px;font-weight:700;color:var(--pr);margin-bottom:6px}
+.dz-sub{font-size:12px;color:var(--tx2);line-height:1.7}
+.dz-note{font-size:11px;color:var(--tx3);margin-top:8px}
+.file-selected{display:flex;align-items:center;gap:10px;background:var(--gbg);border:1px solid rgba(11,122,61,.25);border-radius:var(--rads);padding:10px 14px;margin-top:12px}
+.file-selected.hid{display:none}
+.fs-icon{font-size:22px}
+.fs-name{font-size:13px;font-weight:600;color:var(--g);flex:1;word-break:break-all}
+.fs-clear{width:24px;height:24px;border:none;background:none;color:var(--tx3);cursor:pointer;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.encode-row{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+.encode-row label{font-size:12px;font-weight:600;color:var(--tx2)}
+.encode-btns{display:flex;gap:6px}
+.encode-btn{padding:5px 14px;font-size:12px;font-weight:600;border:1px solid var(--bd2);border-radius:20px;background:var(--sf2);color:var(--tx2);cursor:pointer}
+.encode-btn.on{background:var(--pr);color:#fff;border-color:transparent}
+.preview-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--bd);border-radius:var(--rads);max-height:360px;overflow-y:auto}
+.preview-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.preview-table th{padding:8px 10px;background:var(--pr);color:#fff;font-weight:600;white-space:nowrap;position:sticky;top:0;text-align:left;border-right:1px solid rgba(255,255,255,.15)}
+.preview-table th.key{background:#0d2d4a}
+.preview-table td{padding:7px 10px;border-bottom:1px solid var(--bd);white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;border-right:1px solid var(--sf3)}
+.preview-table tr:last-child td{border-bottom:none}
+.preview-table tr:nth-child(even) td{background:var(--sf2)}
+.preview-table td.key{font-weight:600;color:var(--pr);background:#f0f5fc !important}
+.col-mapping{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:4px}
+.col-map-item{background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rads);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.col-map-item.key{background:#f0f5fc;border-color:var(--bd2)}
+.col-check{width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--pr)}
+.col-label{font-size:12px;font-weight:600;color:var(--tx);flex:1}
+.col-label.key{color:var(--pr)}
+.col-badge-key{font-size:10px;font-weight:700;padding:2px 6px;background:var(--bbg);color:var(--b);border-radius:10px;flex-shrink:0}
+.stats-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat-chip{display:flex;align-items:center;gap:6px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rads);padding:8px 14px;font-size:12px}
+.stat-val{font-size:18px;font-weight:700;color:var(--pr)}
+.stat-lbl{color:var(--tx2)}
+.stat-chip.green{border-color:rgba(11,122,61,.3);background:var(--gbg)}
+.stat-chip.green .stat-val{color:var(--g)}
+.stat-chip.orange{border-color:rgba(176,112,0,.3);background:var(--abg)}
+.stat-chip.orange .stat-val{color:var(--a)}
+.btn{padding:9px 18px;font-size:13px;font-weight:600;border-radius:var(--rads);cursor:pointer;font-family:inherit;border:1px solid var(--bd2);background:var(--sf2);color:var(--tx);transition:all .15s;-webkit-appearance:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--sf3)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.pri{background:var(--pr);color:#fff;border-color:transparent}
+.btn.pri:hover{background:var(--prl)}
+.btn.success{background:var(--g);color:#fff;border-color:transparent}
+.btn.success:hover{background:#0a6533}
+.btn.danger{background:var(--r);color:#fff;border-color:transparent}
+.btn.lg{padding:12px 24px;font-size:14px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.update-tabs{display:flex;gap:0;border:1px solid var(--bd2);border-radius:var(--rads);overflow:hidden;width:fit-content;margin-bottom:16px}
+.update-tab{padding:9px 18px;font-size:12px;font-weight:600;background:var(--sf2);color:var(--tx2);cursor:pointer;border:none;font-family:inherit;transition:all .15s;border-right:1px solid var(--bd2)}
+.update-tab:last-child{border-right:none}
+.update-tab.on{background:var(--pr);color:#fff}
+.mode-desc{background:var(--abg);border:1px solid rgba(176,112,0,.25);border-radius:var(--rads);padding:10px 14px;font-size:12px;color:var(--a);line-height:1.7;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+.mode-desc.full{background:var(--rbg);border-color:rgba(181,48,48,.2);color:var(--r)}
+.progress-wrap{margin:16px 0}
+.progress-bar{width:100%;height:10px;background:var(--sf3);border-radius:10px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--pr),var(--prl));border-radius:10px;transition:width .3s;width:0%}
+.progress-label{font-size:12px;color:var(--tx2);margin-top:6px;text-align:center}
+.result-box{border-radius:var(--rad);padding:20px;text-align:center}
+.result-box.success{background:var(--gbg);border:1px solid rgba(11,122,61,.25)}
+.result-box.error{background:var(--rbg);border:1px solid rgba(181,48,48,.2)}
+.result-icon{font-size:48px;margin-bottom:12px}
+.result-title{font-size:18px;font-weight:700;margin-bottom:8px}
+.result-box.success .result-title{color:var(--g)}
+.result-box.error   .result-title{color:var(--r)}
+.result-detail{font-size:13px;color:var(--tx2);line-height:1.8}
+.result-stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.rs-item{background:rgba(255,255,255,.7);border:1px solid var(--bd);border-radius:var(--rads);padding:10px 18px;text-align:center;min-width:90px}
+.rs-val{font-size:22px;font-weight:700;color:var(--pr)}
+.rs-lbl{font-size:11px;color:var(--tx2);margin-top:2px}
+.search-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.search-input{flex:1;min-width:200px;padding:9px 12px;font-size:14px;border:1px solid var(--bd2);border-radius:var(--rads);background:var(--sf2);color:var(--tx);outline:none;font-family:inherit}
+.search-input:focus{border-color:var(--pr);background:#fff}
+.record-count{font-size:12px;color:var(--tx2);white-space:nowrap}
+.list-wrap{overflow-x:auto;border:1px solid var(--bd);border-radius:var(--rads)}
+.list-table{width:100%;border-collapse:collapse;font-size:12px;min-width:800px}
+.list-table th{padding:9px 10px;background:var(--sf2);border-bottom:2px solid var(--bd);font-weight:600;color:var(--tx2);white-space:nowrap;text-align:left;position:sticky;top:0}
+.list-table td{padding:8px 10px;border-bottom:1px solid var(--bd);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-table tr:last-child td{border-bottom:none}
+.list-table tr:hover td{background:var(--sf2)}
+.list-table td.hinban{font-weight:600;color:var(--pr);font-family:monospace;font-size:13px}
+.updated-badge{display:inline-flex;align-items:center;gap:5px;background:var(--gbg);border:1px solid rgba(11,122,61,.2);color:var(--g);border-radius:20px;padding:3px 10px;font-size:11px}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:800;gap:12px}
+.loading-overlay.hid{display:none}
+.spinner{width:40px;height:40px;border:3px solid var(--bd);border-top-color:var(--pr);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lmsg{font-size:13px;color:var(--tx2)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:#1a2332;color:#fff;padding:11px 22px;border-radius:30px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:999;transition:transform .3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--g)}
+.toast.error{background:var(--r)}
+.toast.warn{background:var(--a)}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:600;padding:20px}
+.confirm-overlay.hid{display:none}
+.confirm-box{background:#fff;border-radius:14px;padding:1.6rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.cf-title{font-size:15px;font-weight:700;color:var(--tx);margin-bottom:10px}
+.cf-msg{font-size:13px;color:var(--tx2);line-height:1.8;margin-bottom:1.4rem;white-space:pre-wrap}
+.cf-btns{display:flex;gap:10px;justify-content:flex-end}
+.btn-cf-cancel{padding:9px 16px;font-size:13px;font-weight:600;background:var(--sf2);border:1px solid var(--bd2);color:var(--tx2);border-radius:var(--rads);cursor:pointer;font-family:inherit}
+.btn-cf-ok{padding:9px 22px;font-size:13px;font-weight:600;background:var(--pr);color:#fff;border:none;border-radius:var(--rads);cursor:pointer;font-family:inherit}
+.btn-cf-ok.danger{background:var(--r)}
+@media(max-width:767px){.main{padding:12px 12px 30px}.col-mapping{grid-template-columns:1fr 1fr}.topbar{padding:0 14px;height:48px}.tb-title{font-size:13px}}
+@media(max-width:480px){.topbar{height:auto;min-height:88px;padding:8px 12px;flex-direction:column;align-items:stretch;gap:8px}.tb-icon{flex-shrink:0}.tb-right{justify-content:flex-end}.tb-right>*{white-space:nowrap;flex-shrink:0}}
+.hid{display:none !important}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-left">
+    <div class="tb-icon">📦</div>
+    <div><div class="tb-title">製品マスタ管理</div><div class="tb-sub">関ケ原プラ工業(株)</div></div>
+  </div>
+  <div class="tb-right">
+    <span class="tb-badge admin">管理者</span>
+    <button class="btn" style="font-size:12px;padding:5px 12px" id="btn-show-list" data-csp-click="h0" data-csp-source-click="showTab('list')">📋 製品一覧</button>
+    <button class="btn" style="font-size:12px;padding:5px 12px" id="btn-show-parts" data-csp-click="h1" data-csp-source-click="showTab('parts');if(!partsAllData.length)partsLoadList()">🔩 部品一覧</button>
+  </div>
+</div>
+
+<div id="gas-url-banner" style="display:none;background:#fce8e8;border-bottom:2px solid #b53030;padding:10px 20px;font-size:13px;color:#b53030;align-items:center;gap:10px;">
+  ⚠️ <strong>GAS URLが未設定のため保存できません。</strong>
+</div>
+
+<div class="main">
+
+  <!-- ===== 製品マスタインポート ===== -->
+  <div class="steps" id="steps-bar">
+    <div class="step active" id="step1"><div class="step-num">1</div><div class="step-label">CSVを選択</div></div>
+    <div class="step-arrow">›</div>
+    <div class="step" id="step2"><div class="step-num">2</div><div class="step-label">内容を確認</div></div>
+    <div class="step-arrow">›</div>
+    <div class="step" id="step3"><div class="step-num">3</div><div class="step-label">更新方法を選択</div></div>
+    <div class="step-arrow">›</div>
+    <div class="step" id="step4"><div class="step-num">4</div><div class="step-label">スプレッドシートに保存</div></div>
+  </div>
+
+  <div id="tab-import">
+    <div class="panel" id="panel-step1">
+      <div class="panel-header"><div class="panel-title">📂 Step 1 — CSVファイルを選択</div></div>
+      <div class="panel-body">
+        <!-- CSVタイプ選択タブ -->
+        <div style="display:flex;gap:0;border:1px solid var(--bd2);border-radius:var(--rads);overflow:hidden;width:fit-content;margin-bottom:16px">
+          <button class="update-tab on" id="csv-tab-products" data-csp-click="h2" data-csp-source-click="setCsvType('products')">📦 製品マスタCSV</button>
+          <button class="update-tab"    id="csv-tab-parts"    data-csp-click="h3" data-csp-source-click="setCsvType('parts')">🔩 部品構成CSV</button>
+        </div>
+        <!-- 部品構成CSV選択時の説明 -->
+        <div id="parts-csv-note" style="display:none;background:#f0f6e8;border:1px solid rgba(45,74,26,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#2d4a1a;line-height:1.7">
+          <strong>📋 部品構成CSVの対応列:</strong><br>
+          製品コード / 整番 / 子製品コード / 子整番 / 構成数 / 成形時在庫減少 / 出荷時在庫減少 / 区分
+        </div>
+        <div class="dropzone" id="dropzone" data-csp-dragover="h4" data-csp-source-dragover="onDragOver(event)" data-csp-dragleave="h5" data-csp-source-dragleave="onDragLeave(event)" data-csp-drop="h6" data-csp-source-drop="onDrop(event)">
+          <div class="dz-icon">📄</div>
+          <div class="dz-title">CSVファイルをここにドラッグ＆ドロップ</div>
+          <div class="dz-sub">または <strong style="color:var(--pr)">クリックしてファイルを選択</strong></div>
+          <div class="dz-note">対応形式: .csv（Shift-JIS / UTF-8）</div>
+        </div>
+        <input type="file" id="file-input" accept=".csv" data-csp-change="h7" data-csp-source-change="onFileSelect(this.files[0])">
+        <div class="file-selected hid" id="file-selected">
+          <span class="fs-icon">📄</span>
+          <span class="fs-name" id="fs-name">---</span>
+          <button class="fs-clear" id="btn-file-clear" data-csp-click="h8" data-csp-source-click="clearFile()">×</button>
+        </div>
+        <div class="encode-row">
+          <label>文字コード:</label>
+          <div class="encode-btns">
+            <button class="encode-btn on" id="enc-sjis" data-csp-click="h9" data-csp-source-click="setEncoding('sjis')">Shift-JIS（標準）</button>
+            <button class="encode-btn" id="enc-utf8" data-csp-click="h10" data-csp-source-click="setEncoding('utf8')">UTF-8</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel hid" id="panel-step2">
+      <div class="panel-header"><div class="panel-title">👁 Step 2 — データ確認</div><div style="font-size:12px;color:var(--tx2)" id="preview-count">0件</div></div>
+      <div class="panel-body">
+        <div class="stats-bar" id="preview-stats"></div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px">📋 取り込むカラムを選択 <span style="font-size:11px;font-weight:400;color:var(--tx2);margin-left:8px">（青バッジ＝作業報告書で使用する必須カラム）</span></div>
+          <div style="margin-bottom:8px;display:flex;gap:8px">
+            <button class="btn" style="font-size:11px;padding:4px 10px" id="btn-col-all" data-csp-click="h11" data-csp-source-click="selectAllCols(true)">全て選択</button>
+            <button class="btn" style="font-size:11px;padding:4px 10px" id="btn-col-none" data-csp-click="h12" data-csp-source-click="selectAllCols(false)">全て解除</button>
+            <button class="btn pri" style="font-size:11px;padding:4px 10px" id="btn-col-rec" data-csp-click="h13" data-csp-source-click="selectRecommended()">✨ 推奨セット</button>
+          </div>
+          <div class="col-mapping" id="col-mapping"></div>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px">プレビュー（先頭5件）</div>
+        <div class="preview-wrap" id="preview-wrap"></div>
+        <div class="btn-row" style="margin-top:16px">
+          <button class="btn" id="btn-back-s1" data-csp-click="h14" data-csp-source-click="clearFile()">← 戻る</button>
+          <button class="btn pri lg" id="btn-to-step3" data-csp-click="h15" data-csp-source-click="goStep3()">次へ: 更新方法を選択 →</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel hid" id="panel-step3">
+      <div class="panel-header"><div class="panel-title">⚙️ Step 3 — 更新方法を選択</div></div>
+      <div class="panel-body">
+        <div class="update-tabs">
+          <button class="update-tab on" id="tab-merge" data-csp-click="h16" data-csp-source-click="setUpdateMode('merge')">🔄 差分更新（推奨）</button>
+          <button class="update-tab" id="tab-overwrite" data-csp-click="h17" data-csp-source-click="setUpdateMode('overwrite')">🗑 全件上書き</button>
+        </div>
+        <div class="mode-desc" id="mode-desc">
+          <span>ℹ️</span>
+          <div><strong>差分更新：</strong>既存データを保持しながら、CSVの内容で追加・更新します。<br>品番が一致する行は上書き、新しい品番は追加、CSVにない品番はそのまま残ります。<br><strong>通常の更新作業はこちらを推奨します。</strong></div>
+        </div>
+        <div class="stats-bar">
+          <div class="stat-chip"><div><div class="stat-val" id="s3-total">0</div><div class="stat-lbl">CSV行数</div></div></div>
+          <div class="stat-chip"><div><div class="stat-val" id="s3-cols">0</div><div class="stat-lbl">取込カラム数</div></div></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="btn-back-s2" data-csp-click="h18" data-csp-source-click="goStep2()">← 戻る</button>
+          <button class="btn success lg" id="btn-upload" data-csp-click="h19" data-csp-source-click="startUpload()">☁️ Googleスプレッドシートに保存</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel hid" id="panel-step4">
+      <div class="panel-header"><div class="panel-title">✅ Step 4 — 保存結果</div></div>
+      <div class="panel-body" id="result-body"></div>
+    </div>
+    <!-- 部品構成用Step2〜4（製品マスタStep1から振り分け） -->
+    <div class="panel hid" id="p-panel-step2">
+      <div class="panel-header"><div class="panel-title">👁 Step 2 — 部品構成データ確認</div><div style="font-size:12px;color:var(--tx2)" id="p-preview-count">0件</div></div>
+      <div class="panel-body">
+        <div class="stats-bar" id="p-preview-stats"></div>
+        <div class="preview-wrap" id="p-preview-wrap"></div>
+        <div class="btn-row" style="margin-top:16px">
+          <button class="btn" id="p-btn-back-s1" data-csp-click="h20" data-csp-source-click="clearFile()">← 戻る</button>
+          <button class="btn pri lg" id="p-btn-to-step3" data-csp-click="h21" data-csp-source-click="partsGoStep3()">次へ: 更新方法を選択 →</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel hid" id="p-panel-step3">
+      <div class="panel-header"><div class="panel-title">⚙️ Step 3 — 更新方法を選択（部品構成）</div></div>
+      <div class="panel-body">
+        <div class="update-tabs">
+          <button class="update-tab on" id="p-tab-merge" data-csp-click="h22" data-csp-source-click="partsSetUpdateMode('merge')">🔄 差分更新（推奨）</button>
+          <button class="update-tab" id="p-tab-overwrite" data-csp-click="h23" data-csp-source-click="partsSetUpdateMode('overwrite')">🗑 全件上書き</button>
+        </div>
+        <div class="mode-desc" id="p-mode-desc"><span>ℹ️</span><div><strong>差分更新：</strong>整番＋子整番をキーに追加・更新します。</div></div>
+        <div class="stats-bar"><div class="stat-chip"><div><div class="stat-val" id="p-s3-total">0</div><div class="stat-lbl">CSV行数</div></div></div></div>
+        <div class="btn-row">
+          <button class="btn" id="p-btn-back-s2" data-csp-click="h24" data-csp-source-click="partsBackToStep2()">← 戻る</button>
+          <button class="btn success lg" id="p-btn-upload" data-csp-click="h25" data-csp-source-click="partsStartUpload()">☁️ Googleスプレッドシートに保存</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel hid" id="p-panel-step4">
+      <div class="panel-header"><div class="panel-title">✅ Step 4 — 保存結果（部品構成）</div></div>
+      <div class="panel-body" id="p-result-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== 一覧タブ ===== -->
+  <div id="tab-list" class="hid">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">📋 製品マスタ一覧</div>
+        <div class="updated-badge" id="list-updated-badge" style="display:none"><span>🕐</span><span id="list-updated-at">--</span></div>
+      </div>
+      <div class="panel-body">
+        <div class="search-bar">
+          <input class="search-input" type="text" id="search-input" placeholder="品番・製品名・取引先で検索...">
+          <span class="record-count" id="record-count">0件</span>
+          <button class="btn pri" id="btn-load-list" data-csp-click="h26" data-csp-source-click="loadList()">🔄 最新データ取得</button>
+          <button class="btn" id="btn-show-import" data-csp-click="h27" data-csp-source-click="showTab('import')">📥 CSV取込</button>
+        </div>
+        <div class="list-wrap">
+          <table class="list-table" id="list-table">
+            <thead><tr><th>品番</th><th>整番</th><th>製品名</th><th>基本取引先</th><th>箱入数</th><th>製品種別</th><th>金型コード</th><th>最終更新</th></tr></thead>
+            <tbody id="list-tbody"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--tx3)">「最新データ取得」ボタンを押してください</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 部品一覧タブ ===== -->
+  <div id="tab-parts" class="hid">
+    <div class="panel" style="margin-top:0">
+      <div class="panel-header">
+        <div class="panel-title">🔩 部品構成一覧</div>
+        <button class="btn" style="font-size:12px;padding:5px 12px" id="p-btn-load-list" data-csp-click="h28" data-csp-source-click="partsLoadList()">🔄 取得</button>
+      </div>
+      <div class="panel-body">
+        <div class="search-bar">
+          <input class="search-input" type="text" id="p-search-input" placeholder="整番・子整番で検索...">
+          <span class="record-count" id="p-record-count">—</span>
+        </div>
+        <div class="list-wrap">
+          <table class="list-table">
+            <thead><tr><th>整番（親製品）</th><th>子整番（部品）</th><th>構成数</th><th>成形時在庫減少</th><th>出荷時在庫減少</th><th>区分</th></tr></thead>
+            <tbody id="p-list-tbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--tx3)">「取得」ボタンを押してください</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<div class="loading-overlay hid" id="loading">
+  <div class="spinner"></div>
+  <div class="lmsg" id="lmsg">処理中...</div>
+  <div class="progress-wrap" id="progress-wrap" style="width:300px;display:none">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label" id="progress-label">準備中...</div>
+  </div>
+</div>
+<div class="confirm-overlay hid" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="cf-title" id="cf-title">確認</div>
+    <div class="cf-msg"   id="cf-msg"></div>
+    <div class="cf-btns">
+      <button class="btn-cf-cancel" id="btn-cf-cancel" data-csp-click="h29" data-csp-source-click="closeConfirm()">キャンセル</button>
+      <button class="btn-cf-ok" id="cf-ok" data-csp-click="h30" data-csp-source-click="execConfirm()">実行</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// 共通ユーティリティ
+// ============================================================
+const KEY_COLS = ['品番','整番','製品名','基本取引先','箱入数','製品コード'];
+const RECOMMENDED_COLS = ['製品コード','整番','品番','製品名','金型コード','サイクル','共取区分','ワンショット重量','取数','単重','製品種別','単位','基本取引先','成形先','箱入数','在庫管理区分','材料コード','発注材料コード','色コード','材料種別コード','新材料使用率','材料ロットＮＯ','材料ロット履歴','マスタバッチコード','マスタバッチ使用率','成形区分','成形周期','ショット数入力不可','在庫確認周期','次回在庫確認日','平均出荷数','現品票色','背番号','現品票納入先','現品票出荷元','現品票工程名１','現品票取消区分１','現品票工程名２','現品票取消区分２','現品票工程名３','現品票取消区分３','現品票工程名４','現品票取消区分４','現品票工程名５','現品票取消区分５','単価','外注仕入単価','外注払出単価','小数丸め区分','ドキュメント名称１','ドキュメントファイル名１','ドキュメント名称２','ドキュメントファイル名２','ドキュメント名称３','ドキュメントファイル名３','ドキュメント名称４','ドキュメントファイル名４','ドキュメント名称５','ドキュメントファイル名５','ドキュメント名称６','ドキュメントファイル名６','ドキュメント名称７','ドキュメントファイル名７','ドキュメント名称８','ドキュメントファイル名８','売掛借方科目コード','売掛借方補助コード','売掛貸方科目コード','売掛貸方補助コード','売掛課税区分','払出借方科目コード','払出借方補助コード','払出貸方科目コード','払出貸方補助コード','払出課税区分','受入借方科目コード','受入借方補助コード','受入貸方科目コード','受入貸方補助コード','受入課税区分','サンプル提出区分','参考サンプル入手区分','設計通知書区分','製造仕様書＿作業標準書区分','有人区分','アッシー区分','単品検査区分','予備区分１','予備区分２','予備長１','予備長２','備考','削除区分'];
+const PARTS_KEY_COLS = ['製品コード','整番','子製品コード','子整番'];
+const PARTS_ALL_COLS = ['製品コード','整番','子製品コード','子整番','構成数','成形時在庫減少','出荷時在庫減少','区分'];
+
+let csvHeaders=[],csvRows=[],selectedCols=new Set(RECOMMENDED_COLS),updateMode='merge',encoding='sjis',confirmCb=null,listAllData=[];
+let csvImportType='products'; // 'products' or 'parts'
+
+function setCsvType(type){
+  csvImportType=type;
+  document.getElementById('csv-tab-products').classList.toggle('on',type==='products');
+  document.getElementById('csv-tab-parts').classList.toggle('on',type==='parts');
+  document.getElementById('parts-csv-note').style.display=type==='parts'?'block':'none';
+  // ファイルが選択済みなら再解析
+  const fi=document.getElementById('file-input');
+  if(fi.files[0]) readCSV(fi.files[0]);
+}
+let partsCsvHeaders=[],partsCsvRows=[],partsUpdateMode='merge',partsEncoding='sjis',partsAllData=[];
+
+// ★SSO署名トークン：このページはGAS(HtmlService)配信のため、親URLの#sso=は
+//   google.script.url.getLocation() で取得する（書き込みAPIに付与する）。
+var AUTH_TOKEN='';
+const PRODUCT_GAS_URL='https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec';
+// ★§5：読み取り(getProductsFull/getAllPartsFull)もトークン必須にしたため、
+//   トークン取得(getLocationは非同期)を Promise 化し、読み込み前に必ず待つ。
+var TOKEN_READY=new Promise(function(resolve){
+  if (typeof google==='undefined' || !google.script || !google.script.url) {
+    try {
+      const url=new URL(window.location.href);
+      AUTH_TOKEN=new URLSearchParams(url.hash.replace(/^#/, '')).get('sso')||'';
+      url.hash='';url.searchParams.delete('sso');
+      history.replaceState(null,'',url.toString());
+    } catch(e) { AUTH_TOKEN=''; }
+    resolve(AUTH_TOKEN);return;
+  }
+  try{
+    google.script.url.getLocation(function(loc){
+      try{
+        var h=(loc&&loc.hash)||'';
+        var m=h.match(/(?:^|[#&])sso=([^&]+)/);
+        if(m){AUTH_TOKEN=decodeURIComponent(m[1]);}
+      }catch(e){}
+      resolve(AUTH_TOKEN);
+    });
+  }catch(e){ resolve(''); }
+});
+
+async function gasRun(fn,params={}){
+  if(!['getProductsFull','getAllPartsFull','importProducts','importParts'].includes(fn))throw new Error('unauthorized');
+  await TOKEN_READY;
+  if(typeof AUTH_TOKEN!=='string'||!AUTH_TOKEN)throw new Error('認証がありません。ポータルから開き直してください。');
+  const payload={...params,token:AUTH_TOKEN};
+  if(typeof google==='undefined'||!google.script||!google.script.run){
+    if(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{1,200}\/exec$/.test(PRODUCT_GAS_URL))throw new Error('接続設定が不正です');
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
+    try{
+      const response=await fetch(PRODUCT_GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({...payload,action:fn}),credentials:'omit',referrerPolicy:'no-referrer',signal:controller.signal});
+      if(!response.ok)throw new Error('transport_failed');
+      const result=await response.json();
+      if(!result||typeof result!=='object'||Array.isArray(result))throw new Error('invalid_response');
+      if(result.ok===false&&result.error==='unauthorized')AUTH_TOKEN='';
+      return result;
+    }catch(error){throw new Error('通信結果を確認できません。再送前に保存状態を確認してください');}
+    finally{clearTimeout(timer);}
+  }
+  return new Promise((resolve,reject)=>{google.script.run.withSuccessHandler(resolve).withFailureHandler(err=>reject(new Error(err.message||String(err))))[fn](payload);});
+}
+async function gasImport(params){
+  await TOKEN_READY;
+  return gasRun('importProducts',{rowsJson:JSON.stringify(params.rows),mode:params.mode,isFirst:params.isFirst,isLast:params.isLast,total:params.total});
+}
+async function gasImportParts(params){
+  await TOKEN_READY;
+  return gasRun('importParts',{rowsJson:JSON.stringify(params.rows),mode:params.mode,isFirst:params.isFirst,isLast:params.isLast,total:params.total});
+}
+let uploadInProgress=false;
+
+function showLoading(msg,showProg){document.getElementById('lmsg').textContent=msg||'処理中...';document.getElementById('progress-wrap').style.display=showProg?'block':'none';if(showProg)updateProgress(0,'準備中...');document.getElementById('loading').classList.remove('hid')}
+function hideLoading(){document.getElementById('loading').classList.add('hid')}
+function updateProgress(pct,label){document.getElementById('progress-fill').style.width=pct+'%';document.getElementById('progress-label').textContent=label}
+function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)}
+function openConfirm(msg,title,cb,danger=false){confirmCb=cb;document.getElementById('cf-title').textContent=title||'確認';document.getElementById('cf-msg').textContent=msg;document.getElementById('cf-ok').className='btn-cf-ok'+(danger?' danger':'');document.getElementById('confirm-overlay').classList.remove('hid')}
+function closeConfirm(){document.getElementById('confirm-overlay').classList.add('hid');confirmCb=null}
+function execConfirm(){const cb=confirmCb;closeConfirm();if(cb)cb()}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function decodeSJIS(bytes){try{return new TextDecoder('shift-jis').decode(bytes)}catch(e){return new TextDecoder('windows-1252').decode(bytes)}}
+
+function parseCSVText(text){
+  if(typeof text!=='string'||text.length>16000000)throw new Error('CSVのサイズが上限を超えています。');
+  text=text.replace(/^\uFEFF/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const records=[];let row=[],field='',quoted=false,closed=false;
+  const endField=()=>{row.push(field.trim());field='';closed=false;};
+  const endRow=()=>{const blankLine=row.length===0&&field.trim()===''&&!closed;endField();if(!blankLine)records.push(row);row=[];};
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(quoted){
+      if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else{quoted=false;closed=true;}}
+      else field+=c;
+    }else if(c===','){endField();}
+    else if(c==='\n'){endRow();}
+    else if(c==='"'){
+      if(field!==''||closed)throw new Error('CSVの引用符が不正です。');
+      quoted=true;
+    }else{
+      if(closed)throw new Error('CSVの引用符の後に不正な文字があります。');
+      field+=c;
+    }
+  }
+  if(quoted)throw new Error('CSVの引用符が閉じていません。');
+  if(field!==''||row.length||closed)endRow();
+  const headers=records.shift()||[];
+  if(!headers.length||headers.some(h=>!h)||new Set(headers).size!==headers.length)throw new Error('CSVのヘッダーが空、または重複しています。');
+  const rows=records;
+  if(rows.some(r=>r.length!==headers.length))throw new Error('CSVの列数がヘッダーと一致しません。');
+  return{headers,rows};
+}
+
+// タブ切り替え
+function showTab(tab){
+  document.getElementById('steps-bar').style.display=tab==='import'?'flex':'none';
+  document.getElementById('tab-import').classList.toggle('hid',tab!=='import');
+  document.getElementById('tab-list').classList.toggle('hid',tab!=='list');
+  document.getElementById('tab-parts').classList.toggle('hid',tab!=='parts');
+}
+
+// ============================================================
+// 製品マスタインポート
+// ============================================================
+function setEncoding(enc){encoding=enc;document.getElementById('enc-sjis').classList.toggle('on',enc==='sjis');document.getElementById('enc-utf8').classList.toggle('on',enc==='utf8');const fi=document.getElementById('file-input');if(fi.files[0])readCSV(fi.files[0])}
+function onDragOver(e){e.preventDefault();document.getElementById('dropzone').classList.add('drag')}
+function onDragLeave(e){document.getElementById('dropzone').classList.remove('drag')}
+function onDrop(e){e.preventDefault();document.getElementById('dropzone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.csv'))onFileSelect(f);else showToast('CSVファイルを選択してください','error')}
+function onFileSelect(file){if(!file)return;document.getElementById('fs-name').textContent=file.name+' ('+(file.size<1024*1024?(file.size/1024).toFixed(1)+'KB':(file.size/1024/1024).toFixed(1)+'MB')+')';document.getElementById('file-selected').classList.remove('hid');readCSV(file)}
+function clearFile(){document.getElementById('file-input').value='';document.getElementById('file-selected').classList.add('hid');['panel-step2','panel-step3','panel-step4','p-panel-step2','p-panel-step3','p-panel-step4'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('hid')});csvHeaders=[];csvRows=[];setStep(1)}
+function readCSV(file){csvHeaders=[];csvRows=[];partsCsvHeaders=[];partsCsvRows=[];const reader=new FileReader();reader.onload=function(e){try{let text;if(encoding==='sjis'){text=decodeSJIS(new Uint8Array(e.target.result))}else{text=e.target.result}const{headers,rows}=parseCSVText(text);
+      if(csvImportType==='parts'){
+        // 部品構成CSVとして処理
+        partsCsvHeaders=headers;partsCsvRows=rows;
+        // 製品マスタ用Step2を隠す
+        document.getElementById('panel-step2').classList.add('hid');
+        document.getElementById('panel-step3').classList.add('hid');
+        document.getElementById('panel-step4').classList.add('hid');
+        // 部品構成用Step2を表示
+        partsBuildStep2();
+        partsSetStep(2);
+        setStep(2);
+      } else {
+        // 製品マスタCSVとして処理
+        csvHeaders=headers;csvRows=rows;
+        selectedCols=new Set(RECOMMENDED_COLS.filter(c=>headers.includes(c)));
+        KEY_COLS.forEach(c=>{if(headers.includes(c))selectedCols.add(c)});
+        buildStep2();setStep(2);
+      }
+    }catch(err){showToast('CSV読み込みエラー: '+err.message,'error')}};if(encoding==='sjis')reader.readAsArrayBuffer(file);else reader.readAsText(file,'UTF-8')}
+
+function buildStep2(){
+  document.getElementById('panel-step2').classList.remove('hid');
+  document.getElementById('preview-count').textContent=csvRows.length.toLocaleString()+'件';
+  document.getElementById('preview-stats').innerHTML=`<div class="stat-chip green"><div><div class="stat-val">${csvRows.length.toLocaleString()}</div><div class="stat-lbl">総件数</div></div></div><div class="stat-chip"><div><div class="stat-val">${csvHeaders.length}</div><div class="stat-lbl">総カラム数</div></div></div><div class="stat-chip orange"><div><div class="stat-val">${selectedCols.size}</div><div class="stat-lbl">選択カラム</div></div></div>`;
+  renderColMapping();renderPreview();
+}
+function renderColMapping(){
+  // ★F03/O01：CSVヘッダーはテキストとして表示（escHtml）。インラインJSへCSV文字列を埋め込まず、
+  //   data-idx＋イベント委譲で扱う（ヘッダーに引用符やタグ相当文字が入っても実行されない）。
+  //   ※コメント内に生の閉じスクリプトタグ文字列を書かないこと（HTML解析でscriptが早期終了する）。
+  document.getElementById('col-mapping').innerHTML=csvHeaders.map((h,i)=>{const isKey=KEY_COLS.includes(h);const isChecked=selectedCols.has(h);return`<label class="col-map-item ${isKey?'key':''}" style="cursor:pointer"><input type="checkbox" class="col-check" data-idx="${i}" id="col-${i}" ${isChecked?'checked':''}><span class="col-label ${isKey?'key':''}">${escHtml(h)}</span>${isKey?'<span class="col-badge-key">必須</span>':''}</label>`}).join('');
+  const cm=document.getElementById('col-mapping');
+  if(cm&&!cm._bound){cm.addEventListener('change',function(ev){const cb=ev.target;if(cb&&cb.classList&&cb.classList.contains('col-check')){const idx=parseInt(cb.getAttribute('data-idx'),10);const name=csvHeaders[idx];if(name!==undefined)toggleCol(name,cb.checked);}});cm._bound=true;}
+}
+function toggleCol(name,checked){if(checked)selectedCols.add(name);else{if(KEY_COLS.includes(name)){document.querySelectorAll('.col-check').forEach((cb,i)=>{if(csvHeaders[i]===name)cb.checked=true});showToast('必須カラムは解除できません','warn');return}selectedCols.delete(name)}updatePreviewStats();renderPreview()}
+function selectAllCols(checked){csvHeaders.forEach(h=>{if(checked)selectedCols.add(h);else if(!KEY_COLS.includes(h))selectedCols.delete(h)});renderColMapping();updatePreviewStats();renderPreview()}
+function selectRecommended(){selectedCols=new Set(RECOMMENDED_COLS.filter(c=>csvHeaders.includes(c)));KEY_COLS.forEach(c=>{if(csvHeaders.includes(c))selectedCols.add(c)});renderColMapping();updatePreviewStats();renderPreview();showToast('推奨セットを選択しました','success')}
+function updatePreviewStats(){document.getElementById('preview-stats').innerHTML=`<div class="stat-chip green"><div><div class="stat-val">${csvRows.length.toLocaleString()}</div><div class="stat-lbl">総件数</div></div></div><div class="stat-chip"><div><div class="stat-val">${csvHeaders.length}</div><div class="stat-lbl">総カラム数</div></div></div><div class="stat-chip orange"><div><div class="stat-val">${selectedCols.size}</div><div class="stat-lbl">選択カラム</div></div></div>`}
+function renderPreview(){const activeCols=csvHeaders.filter(h=>selectedCols.has(h));const wrap=document.getElementById('preview-wrap');let html='<table class="preview-table"><thead><tr>';activeCols.forEach(h=>{html+=`<th class="${KEY_COLS.includes(h)?'key':''}">${escHtml(h)}</th>`});html+='</tr></thead><tbody>';csvRows.slice(0,5).forEach(row=>{html+='<tr>';activeCols.forEach(h=>{const idx=csvHeaders.indexOf(h);const val=idx>=0?(row[idx]||''):'';const isKey=KEY_COLS.includes(h);html+=`<td class="${isKey?'key':''}" title="${escHtml(val)}">${escHtml(val)}</td>`});html+='</tr>'});html+='</tbody></table>';wrap.innerHTML=html}
+
+function goStep2(){document.getElementById('panel-step3').classList.add('hid');setStep(2)}
+function goStep3(){document.getElementById('panel-step3').classList.remove('hid');document.getElementById('s3-total').textContent=csvRows.length.toLocaleString();document.getElementById('s3-cols').textContent=selectedCols.size;setStep(3);window.scrollTo({top:document.getElementById('panel-step3').offsetTop-20,behavior:'smooth'})}
+function setUpdateMode(mode){updateMode=mode;document.getElementById('tab-merge').classList.toggle('on',mode==='merge');document.getElementById('tab-overwrite').classList.toggle('on',mode==='overwrite');const desc=document.getElementById('mode-desc');if(mode==='overwrite'){desc.className='mode-desc full';desc.innerHTML='<span>⚠️</span><div><strong>全件上書き：</strong>スプレッドシートの製品データを全て削除し、CSVの内容で置き換えます。<br>既存の手動編集データも失われます。<strong>CSVが完全な最新マスタの場合のみ使用してください。</strong></div>'}else{desc.className='mode-desc';desc.innerHTML='<span>ℹ️</span><div><strong>差分更新：</strong>既存データを保持しながら、CSVの内容で追加・更新します。<br>品番が一致する行は上書き、新しい品番は追加、CSVにない品番はそのまま残ります。<br><strong>通常の更新作業はこちらを推奨します。</strong></div>'}}
+
+function startUpload(){const msg=updateMode==='overwrite'?`全件上書きモードで保存します。
+
+件数: ${csvRows.length.toLocaleString()} 件
+カラム: ${selectedCols.size} 個
+
+既存の製品データは全て削除されます。
+本当に実行しますか？`:`差分更新モードで保存します。
+
+CSV件数: ${csvRows.length.toLocaleString()} 件
+カラム: ${selectedCols.size} 個
+
+既存データに追加・上書きします。`;openConfirm(msg,'スプレッドシートに保存',doUpload,updateMode==='overwrite')}
+async function doUpload(){
+  if(uploadInProgress)return;
+  uploadInProgress=true;
+  try{
+  showLoading('データを準備中...',true);setStep(4);document.getElementById('panel-step4').classList.remove('hid');window.scrollTo({top:document.getElementById('panel-step4').offsetTop-20,behavior:'smooth'});
+  const activeCols=csvHeaders.filter(h=>selectedCols.has(h));
+  const rows=csvRows.map(row=>{const obj={};activeCols.forEach(h=>{const idx=csvHeaders.indexOf(h);obj[h]=idx>=0?(row[idx]||''):''});return obj});
+    if(!rows.length||rows.length>20000)throw new Error('製品CSVは1〜20,000件で指定してください。');
+    updateProgress(10,'全件を検証・保存中...');
+    const res=await gasImport({rows,mode:updateMode,isFirst:true,isLast:true,total:rows.length});
+    if(!res||!res.ok||res.count!==rows.length)throw new Error((res&&(res.message||res.error))||'保存結果を確認できません。再送前に一覧を確認してください。');
+    updateProgress(100,'完了!');hideLoading();
+    document.getElementById('result-body').innerHTML=`<div class="result-box success"><div class="result-icon">✅</div><div class="result-title">製品マスタを更新しました ✅</div><div class="result-stats"><div class="rs-item"><div class="rs-val">${rows.length.toLocaleString()}</div><div class="rs-lbl">保存件数</div></div><div class="rs-item"><div class="rs-val">${activeCols.length}</div><div class="rs-lbl">カラム数</div></div><div class="rs-item"><div class="rs-val">${updateMode==='merge'?'差分':'全件'}</div><div class="rs-lbl">更新モード</div></div></div></div><div class="btn-row" style="margin-top:16px;justify-content:center"><button class="btn pri" id="btn-result-list">📋 一覧で確認</button><button class="btn" id="btn-result-import">📥 別のCSVを取り込む</button></div>`;
+    showToast('保存完了しました！','success');
+  }catch(e){hideLoading();document.getElementById('result-body').innerHTML=`<div class="result-box error"><div class="result-icon">❌</div><div class="result-title">保存に失敗しました</div><div class="result-detail">${escHtml(e.message)}</div></div>`;showToast('エラー: '+e.message,'error')}finally{uploadInProgress=false;}
+}
+
+function setStep(n){[1,2,3,4].forEach(i=>{const el=document.getElementById('step'+i);el.classList.remove('active','done');if(i<n)el.classList.add('done');else if(i===n)el.classList.add('active')})}
+
+async function loadList(){showLoading('製品データを取得中...');try{await TOKEN_READY;const res=await gasRun('getProductsFull',{token:AUTH_TOKEN});if(!res.ok)throw new Error(res.message);listAllData=res.data||[];renderList(listAllData);document.getElementById('list-updated-badge').style.display='inline-flex';document.getElementById('list-updated-at').textContent=new Date().toLocaleTimeString('ja-JP');showToast(`${listAllData.length.toLocaleString()} 件取得しました`,'success')}catch(e){showToast('取得エラー: '+e.message,'error')}hideLoading()}
+function filterList(q){if(!q.trim()){renderList(listAllData);return}const kw=q.toLowerCase();renderList(listAllData.filter(p=>String(p['品番']||'').toLowerCase().includes(kw)||String(p['製品名']||'').toLowerCase().includes(kw)||String(p['基本取引先']||'').toLowerCase().includes(kw)||String(p['整番']||'').toLowerCase().includes(kw)))}
+function renderList(data){
+  document.getElementById('record-count').textContent=data.length.toLocaleString()+'件';
+  const tbody=document.getElementById('list-tbody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--tx3)">データがありません</td></tr>';return}
+  // 製品種別バッジの色分け
+  function typeBadge(t){
+    const s=String(t||'');
+    if(!s)return'';
+    const color=s.includes('完成')?'background:#e5f0e8;color:#1a5c2a;border-color:rgba(11,122,61,.25)':s.includes('成形素材')?'background:#f0f5e8;color:#3a5c1a;border-color:rgba(60,100,26,.25)':'background:var(--sf2);color:var(--tx2);border-color:var(--bd)';
+    return`<span style="font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid;white-space:nowrap;${color}">${escHtml(s)}</span>`;
+  }
+  tbody.innerHTML=data.slice(0,500).map(p=>`<tr>
+    <td class="hinban">${escHtml(p['品番']||'')}</td>
+    <td>${escHtml(p['整番']||'')}</td>
+    <td title="${escHtml(p['製品名']||'')}" style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${escHtml(p['製品名']||'')}</td>
+    <td>${escHtml(p['基本取引先']||'')}</td>
+    <td style="text-align:right;font-weight:600">${escHtml(String(p['箱入数']||''))}</td>
+    <td>${typeBadge(p['製品種別'])}</td>
+    <td style="font-family:monospace;font-size:11px">${escHtml(p['金型コード']||'')}</td>
+    <td style="font-size:11px;color:var(--tx3)">${escHtml(p['_updated']||'')}</td>
+  </tr>`).join('');
+  if(data.length>500)tbody.innerHTML+=`<tr><td colspan="8" style="text-align:center;padding:12px;color:var(--tx3);font-size:12px">先頭500件を表示（全${data.length.toLocaleString()}件）</td></tr>`;
+}
+
+async function autoLoadList(){try{await TOKEN_READY;const res=await gasRun('getProductsFull',{token:AUTH_TOKEN});if(!res.ok)throw new Error(res.message||res.error||'取得失敗');listAllData=res.data||[];renderList(listAllData);const badge=document.getElementById('list-updated-badge');const at=document.getElementById('list-updated-at');if(badge)badge.style.display='inline-flex';if(at)at.textContent=new Date().toLocaleTimeString('ja-JP')}catch(e){showToast('取得エラー: '+e.message,'error')}}
+
+// ============================================================
+// 部品構成タブ
+// ============================================================
+function partsSetEncoding(enc){partsEncoding=enc;document.getElementById('p-enc-sjis').classList.toggle('on',enc==='sjis');document.getElementById('p-enc-utf8').classList.toggle('on',enc==='utf8');const fi=document.getElementById('p-file-input');if(fi.files[0])partsReadCSV(fi.files[0])}
+function partsOnFileSelect(file){if(!file)return;document.getElementById('p-fs-name').textContent=file.name;document.getElementById('p-file-selected').classList.remove('hid');partsReadCSV(file)}
+function partsClearFile(){document.getElementById('p-file-input')&&(document.getElementById('p-file-input').value='');['p-panel-step2','p-panel-step3','p-panel-step4'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('hid')});partsCsvHeaders=[];partsCsvRows=[];partsSetStep(1)}
+function partsReadCSV(file){partsCsvHeaders=[];partsCsvRows=[];const reader=new FileReader();reader.onload=function(e){try{let text;if(partsEncoding==='sjis'){text=decodeSJIS(new Uint8Array(e.target.result))}else{text=e.target.result}const{headers,rows}=parseCSVText(text);partsCsvHeaders=headers;partsCsvRows=rows;partsBuildStep2();partsSetStep(2)}catch(err){showToast('CSV読み込みエラー: '+err.message,'error')}};if(partsEncoding==='sjis')reader.readAsArrayBuffer(file);else reader.readAsText(file,'UTF-8')}
+function partsBuildStep2(){document.getElementById('p-panel-step2').classList.remove('hid');document.getElementById('p-preview-count').textContent=partsCsvRows.length.toLocaleString()+'件';document.getElementById('p-preview-stats').innerHTML=`<div class="stat-chip green"><div><div class="stat-val">${partsCsvRows.length.toLocaleString()}</div><div class="stat-lbl">総件数</div></div></div><div class="stat-chip"><div><div class="stat-val">${partsCsvHeaders.length}</div><div class="stat-lbl">列数</div></div></div>`;partsRenderPreview()}
+function getPartsColIndexMap(){
+  const COL_ALIASES={
+    '製品コード':['製品コード','製品ｺｰﾄﾞ'],
+    '整番':['整番','整番号'],
+    '子製品コード':['子製品コード','子製品ｺｰﾄﾞ'],
+    '子整番':['子整番','子製番','子番','子整番号'],
+    '構成数':['構成数','構成','数量'],
+    '成形時在庫減少':['成形時在庫減少','成形時','成形時減少'],
+    '出荷時在庫減少':['出荷時在庫減少','出荷時','出荷時減少'],
+    '区分':['区分'],
+  };
+  const map={};
+  Object.entries(COL_ALIASES).forEach(([canonical,aliases])=>{
+    for(const alias of aliases){
+      const idx=partsCsvHeaders.findIndex(h=>h.trim()===alias.trim());
+      if(idx>=0){map[canonical]=idx;break;}
+    }
+    if(map[canonical]===undefined){
+      const idx=partsCsvHeaders.findIndex(h=>h.trim()===canonical.trim());
+      if(idx>=0)map[canonical]=idx;
+    }
+  });
+  return map;
+}
+function partsRenderPreview(){
+  const colMap=getPartsColIndexMap();
+  const useCols=PARTS_ALL_COLS.filter(h=>colMap[h]!==undefined);
+  const wrap=document.getElementById('p-preview-wrap');
+  let html='<table class="preview-table"><thead><tr>';
+  useCols.forEach(h=>{html+=`<th class="${PARTS_KEY_COLS.includes(h)?'key':''}">${h}</th>`});
+  html+='</tr></thead><tbody>';
+  partsCsvRows.slice(0,5).forEach(row=>{
+    html+='<tr>';
+    useCols.forEach(h=>{
+      const idx=colMap[h];
+      const val=idx!==undefined?(row[idx]||''):'';
+      html+=`<td class="${PARTS_KEY_COLS.includes(h)?'key':''}">${escHtml(val)}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  wrap.innerHTML=html;
+}
+function partsGoStep3(){
+  document.getElementById('p-panel-step3').classList.remove('hid');
+  document.getElementById('p-s3-total').textContent=partsCsvRows.length.toLocaleString();
+  partsSetStep(3);
+  setTimeout(()=>document.getElementById('p-panel-step3').scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+function partsSetUpdateMode(mode){partsUpdateMode=mode;document.getElementById('p-tab-merge').classList.toggle('on',mode==='merge');document.getElementById('p-tab-overwrite').classList.toggle('on',mode==='overwrite');const desc=document.getElementById('p-mode-desc');if(mode==='overwrite'){desc.className='mode-desc full';desc.innerHTML='<span>⚠️</span><div><strong>全件上書き：</strong>部品構成データを全て削除し、CSVの内容で置き換えます。</div>'}else{desc.className='mode-desc';desc.innerHTML='<span>ℹ️</span><div><strong>差分更新：</strong>整番＋子整番をキーに追加・更新します。</div>'}}
+async function partsDoUpload(){
+  if(uploadInProgress)return;
+  uploadInProgress=true;
+  try{
+  showLoading('部品構成データを準備中...',true);partsSetStep(4);document.getElementById('p-panel-step4').classList.remove('hid');
+  // CSV列名→PARTS_HEADERSのマッピング（共通関数使用）
+  const colIndexMap=getPartsColIndexMap();
+  const rows=partsCsvRows.map(row=>{
+    const obj={};
+    PARTS_ALL_COLS.forEach(h=>{
+      const idx=colIndexMap[h];
+      obj[h]=idx!==undefined?(row[idx]||''):'';
+    });
+    return obj;
+  });
+    if(!rows.length||rows.length>50000)throw new Error('部品CSVは1〜50,000件で指定してください。');
+    updateProgress(10,'全件を検証・保存中...');
+    const res=await gasImportParts({rows,mode:partsUpdateMode,isFirst:true,isLast:true,total:rows.length});
+    if(!res||!res.ok||res.count!==rows.length)throw new Error((res&&(res.message||res.error))||'保存結果を確認できません。再送前に一覧を確認してください。');
+    updateProgress(100,'完了!');hideLoading();
+    document.getElementById('p-result-body').innerHTML=`<div class="result-box success"><div class="result-icon">✅</div><div class="result-title">部品構成データを保存しました</div><div class="result-stats"><div class="rs-item"><div class="rs-val">${rows.length.toLocaleString()}</div><div class="rs-lbl">保存件数</div></div><div class="rs-item"><div class="rs-val">${partsUpdateMode==='merge'?'差分':'全件'}</div><div class="rs-lbl">更新モード</div></div></div></div><div class="btn-row" style="margin-top:16px;justify-content:center"><button class="btn pri" data-csp-click="h31" data-csp-source-click="partsLoadList()">📋 一覧で確認</button><button class="btn" data-csp-click="h32" data-csp-source-click="partsClearFile();partsSetStep(1)">📥 別のCSVを取り込む</button></div>`;
+    showToast('部品構成データを保存しました！','success');
+  }catch(e){hideLoading();document.getElementById('p-result-body').innerHTML=`<div class="result-box error"><div class="result-icon">❌</div><div class="result-title">保存に失敗しました</div><div class="result-detail">${escHtml(e.message)}</div></div>`;showToast('エラー: '+e.message,'error')}finally{uploadInProgress=false;}
+}
+function partsSetStep(n){[1,2,3,4].forEach(i=>{const el=document.getElementById('pstep'+i);if(!el)return;el.classList.remove('active','done');if(i<n)el.classList.add('done');else if(i===n)el.classList.add('active')})}
+function partsStartUpload(){
+  const msg=`部品構成データを保存します。
+
+件数: ${partsCsvRows.length.toLocaleString()} 件
+更新モード: ${partsUpdateMode==='merge'?'差分更新':'全件上書き'}
+
+実行しますか？`;
+  openConfirm(msg,'部品構成データを保存',partsDoUpload,partsUpdateMode==='overwrite');
+}
+function partsBackToStep2(){
+  document.getElementById('p-panel-step3').classList.add('hid');
+  partsSetStep(2);
+}
+async function partsLoadList(){showLoading('部品構成データを取得中...');try{await TOKEN_READY;const res=await gasRun('getAllPartsFull',{token:AUTH_TOKEN});if(!res.ok)throw new Error(res.message);partsAllData=res.data||[];partsRenderList(partsAllData);showToast(`${partsAllData.length.toLocaleString()} 件取得しました`,'success')}catch(e){showToast('取得エラー: '+e.message,'error')}hideLoading()}
+function filterPartsList(q){if(!q.trim()){partsRenderList(partsAllData);return}const kw=q.toLowerCase();partsRenderList(partsAllData.filter(p=>String(p['整番']||'').toLowerCase().includes(kw)||String(p['子整番']||'').toLowerCase().includes(kw)))}
+function partsRenderList(data){document.getElementById('p-record-count').textContent=data.length.toLocaleString()+'件';const tbody=document.getElementById('p-list-tbody');if(!data.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--tx3)">データがありません</td></tr>';return}tbody.innerHTML=data.slice(0,500).map(p=>`<tr><td class="hinban">${escHtml(p['整番']||'')}</td><td class="hinban">${escHtml(p['子整番']||'')}</td><td style="text-align:right;font-weight:600">${escHtml(String(p['構成数']||''))}</td><td style="text-align:center">${p['成形時在庫減少']==='1'||p['成形時在庫減少']===1?'✅':''}</td><td style="text-align:center">${p['出荷時在庫減少']==='1'||p['出荷時在庫減少']===1?'✅':''}</td><td>${escHtml(p['区分']||'')}</td></tr>`).join('')}
+
+// ============================================================
+// 初期化
+// ============================================================
+window.addEventListener('load',function(){const b=document.getElementById('gas-url-banner');if(b)b.style.display='none';autoLoadList()});
+
+document.addEventListener('DOMContentLoaded',function(){
+  // タブ切り替え
+  document.getElementById('btn-show-list').addEventListener('click',()=>showTab('list'));
+  document.getElementById('btn-show-parts').addEventListener('click',()=>{
+    showTab('parts');
+    if(!partsAllData.length) partsLoadList();
+  });
+  document.getElementById('btn-show-import').addEventListener('click',()=>showTab('import'));
+
+  // 製品マスタ
+  document.getElementById('dropzone').addEventListener('click',()=>document.getElementById('file-input').click());
+  document.getElementById('btn-file-clear').addEventListener('click',clearFile);
+  document.getElementById('enc-sjis').addEventListener('click',()=>setEncoding('sjis'));
+  document.getElementById('enc-utf8').addEventListener('click',()=>setEncoding('utf8'));
+  document.getElementById('btn-col-all').addEventListener('click',()=>selectAllCols(true));
+  document.getElementById('btn-col-none').addEventListener('click',()=>selectAllCols(false));
+  document.getElementById('btn-col-rec').addEventListener('click',selectRecommended);
+  document.getElementById('btn-back-s1').addEventListener('click',clearFile);
+  document.getElementById('btn-to-step3').addEventListener('click',goStep3);
+  document.getElementById('btn-back-s2').addEventListener('click',goStep2);
+  document.getElementById('tab-merge').addEventListener('click',()=>setUpdateMode('merge'));
+  document.getElementById('tab-overwrite').addEventListener('click',()=>setUpdateMode('overwrite'));
+  document.getElementById('btn-upload').addEventListener('click',startUpload);
+  document.getElementById('search-input').addEventListener('input',e=>filterList(e.target.value));
+  document.getElementById('btn-load-list').addEventListener('click',loadList);
+
+  // 部品構成
+  // CSV入力・文字コードは製品/部品で共通の入力欄を使う。
+  document.getElementById('p-btn-back-s1').addEventListener('click',clearFile);
+  document.getElementById('p-btn-to-step3').addEventListener('click',partsGoStep3);
+  document.getElementById('p-btn-back-s2').addEventListener('click',()=>{document.getElementById('p-panel-step3').classList.add('hid');partsSetStep(2)});
+  document.getElementById('p-tab-merge').addEventListener('click',()=>partsSetUpdateMode('merge'));
+  document.getElementById('p-tab-overwrite').addEventListener('click',()=>partsSetUpdateMode('overwrite'));
+  document.getElementById('p-btn-upload').addEventListener('click',()=>{const msg=`部品構成データを保存します。
+
+件数: ${partsCsvRows.length.toLocaleString()} 件
+更新モード: ${partsUpdateMode==='merge'?'差分更新':'全件上書き'}
+
+実行しますか？`;openConfirm(msg,'部品構成データを保存',partsDoUpload,partsUpdateMode==='overwrite')});
+  document.getElementById('p-btn-load-list').addEventListener('click',partsLoadList);
+  document.getElementById('p-search-input').addEventListener('input',e=>filterPartsList(e.target.value));
+
+  // 共通
+  document.getElementById('btn-cf-cancel').addEventListener('click',closeConfirm);
+  document.getElementById('cf-ok').addEventListener('click',execConfirm);
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.id==='btn-result-list'){showTab('list');loadList()}
+    if(e.target&&e.target.id==='btn-result-import'){clearFile();setStep(1)}
+  });
+});
+</script>
+</body>
+</html>
