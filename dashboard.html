@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lQqSk/H6LfEsd9v7g03gLiXglJr+j3PgbewBurhj1bw=' 'sha256-GOVmDKNWGb4DYACY2rsq5RP+P+qH7o1uVubzsCTohHw=' https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lQqSk/H6LfEsd9v7g03gLiXglJr+j3PgbewBurhj1bw=' 'sha256-Y5OmKIlEtkWW1Kvby4iOjfuRNWfr8WNgykU3GtkcsA8=' https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { switchPage('dashboard')
@@ -568,7 +568,7 @@ function clearBrowserBusinessData_() {
 clearBrowserBusinessData_();
 
 // セキュリティ改修：接続先は固定（?fuguai_gas_url= 差し替え・localStorage保持を撤去）。
-const defectUrl = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_FUGUAI/exec';
+const defectUrl = 'https://script.google.com/macros/s/AKfycbyTbAs19IzWjpKvYxmAjNkuHr-kbEZLL13Aoy6qZp7Td0GU8QGAU3oCVTL20RNSIqJ0/exec';
 
 // ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
 const AUTH_TOKEN_KEY = 'kpk_fuguai_dash_token';
