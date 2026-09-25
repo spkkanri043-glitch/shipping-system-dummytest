@@ -1,7 +1,111 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-5xrIA6qKpO0JuS2ehVizAleCN4QwNwyo9lJwqg9vdTg='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<script>/* MOGU_CSP_RUNTIME_V1 */
+const __moguCsp = (() => {
+  const handlers = {"h0": function(event, _p) { goPortal()
+},
+"h1": function(event, _p) { doLogout()
+},
+"h2": function(event, _p) { goPage('adjust')
+},
+"h3": function(event, _p) { loadDriveFiles()
+},
+"h4": function(event, _p) { loadLocalCSV(this)
+},
+"h5": function(event, _p) { clearLoaded()
+},
+"h6": function(event, _p) { loadAdjustmentHistory_()
+},
+"h7": function(event, _p) { loadPendingAdjustments_()
+},
+"h8": function(event, _p) { loadSelectedDriveFile()
+},
+"h9": function(event, _p) { document.getElementById('drive-file-area').style.display='none'
+},
+"h10": function(event, _p) { renderRecords()
+},
+"h11": function(event, _p) { selectAll()
+},
+"h12": function(event, _p) { deselectAll()
+},
+"h13": function(event, _p) { openAdjModal('前倒し')
+},
+"h14": function(event, _p) { openAdjModal('後ろ倒し')
+},
+"h15": function(event, _p) { openAdjModal('キャンセル')
+},
+"h16": function(event, _p) { setFilter('all',this)
+},
+"h17": function(event, _p) { setFilter('unadjusted',this)
+},
+"h18": function(event, _p) { setFilter('mae',this)
+},
+"h19": function(event, _p) { setFilter('ato',this)
+},
+"h20": function(event, _p) { setFilter('cancel',this)
+},
+"h21": function(event, _p) { execExport()
+},
+"h22": function(event, _p) { closeAdjModal()
+},
+"h23": function(event, _p) { applyAdj()
+},
+"h24": function(event, _p) { toggleFileSelect(this)
+},
+"h25": function(event, _p) { event.stopPropagation();toggleFileSelect(this.closest('.file-item'))
+},
+"h26": function(event, _p) { toggleFileSelect(this)
+},
+"h27": function(event, _p) { event.stopPropagation();toggleFileSelect(this.closest('.file-item'))
+}};
+  const events = ["click","change","input"];
+  const bound = new WeakMap();
+  function bind(el) {
+    if (!el || el.nodeType !== 1) return;
+    let state = bound.get(el); if (!state) { state = new Map(); bound.set(el, state); }
+    for (const type of events) {
+      const id = el.getAttribute('data-csp-' + type);
+      if (!id || state.get(type) === id) continue;
+      if (!Object.prototype.hasOwnProperty.call(handlers, id)) continue;
+      const fn = function(event) {
+        const value = this.getAttribute('data-csp-args-' + type);
+        const params = value ? JSON.parse(decodeURIComponent(value)) : [];
+        return handlers[id].call(this, event, params);
+      };
+      // Native event-handler properties preserve this/currentTarget, cancellation,
+      // async return behavior and later application assignments to .onclick etc.
+      el['on' + type] = fn;
+      state.set(type, id);
+    }
+  }
+  function scan(root) {
+    bind(root);
+    if (root.querySelectorAll) for (const el of root.querySelectorAll('*')) bind(el);
+  }
+  for (const type of events) document.addEventListener(type, event => {
+    for (const el of event.composedPath()) bind(el);
+  }, true);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') bind(record.target);
+      else for (const node of record.addedNodes) scan(node);
+    }
+  }).observe(document, {subtree:true, childList:true, attributes:true,
+    attributeFilter: events.map(type => 'data-csp-' + type)});
+  document.addEventListener('DOMContentLoaded', () => scan(document));
+  const encode = values => encodeURIComponent(JSON.stringify(values)).replace(/'/g, '%27');
+  function assign(el,type,id,values) {
+    el.setAttribute('data-csp-' + type,id);
+    el.setAttribute('data-csp-args-' + type,encode(values));
+    bind(el);
+  }
+  return Object.freeze({ encode, scan, assign });
+})();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>出荷調整システム - 関ケ原プラ工業</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -163,14 +267,14 @@ select.fi{cursor:pointer}
   </div>
   <div class="topbar-right">
     <span class="topbar-user" id="disp-user">👤 読込中...</span>
-    <button class="btn-top" onclick="goPortal()">← ポータルへ</button>
-    <button class="btn-top danger" onclick="doLogout()">ログアウト</button>
+    <button class="btn-top" data-csp-click="h0" data-csp-source-click="goPortal()">← ポータルへ</button>
+    <button class="btn-top danger" data-csp-click="h1" data-csp-source-click="doLogout()">ログアウト</button>
   </div>
 </div>
 
 <!-- ナビ -->
 <div class="nav">
-  <div class="nav-item on" id="nav-adjust" onclick="goPage('adjust')">📋 出荷調整</div>
+  <div class="nav-item on" id="nav-adjust" data-csp-click="h2" data-csp-source-click="goPage('adjust')">📋 出荷調整</div>
 </div>
 
 <!-- ▼ 出荷調整ページ -->
@@ -184,18 +288,22 @@ select.fi{cursor:pointer}
   <div class="card" id="card-file">
     <div class="card-title">Step 1　納品ラベルCSVを選択</div>
     <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="loadDriveFiles()">☁️ ドライブから読込</button>
+      <button class="btn btn-primary" data-csp-click="h3" data-csp-source-click="loadDriveFiles()">☁️ ドライブから読込</button>
       <label class="btn btn-secondary" style="cursor:pointer">
-        📁 ファイルから選択
-        <input type="file" accept=".csv,.CSV" multiple style="display:none" onchange="loadLocalCSV(this)">
+        CSVを正本登録
+        <input type="file" accept=".csv,.CSV" style="display:none" data-csp-change="h4" data-csp-source-change="loadLocalCSV(this)">
       </label>
-      <button class="btn btn-secondary btn-sm" onclick="clearLoaded()" style="margin-left:auto">🗑 クリア</button>
+      <button class="btn btn-secondary btn-sm" data-csp-click="h5" data-csp-source-click="clearLoaded()" style="margin-left:auto">🗑 クリア</button>
     </div>
+    <div id="adjustment-requests"></div>
+    <button class="btn btn-secondary btn-sm" data-csp-click="h6" data-csp-source-click="loadAdjustmentHistory_()">調整履歴</button>
+    <div id="adjustment-history"></div>
+    <button class="btn btn-secondary btn-sm" data-csp-click="h7" data-csp-source-click="loadPendingAdjustments_()">未完了要求を確認</button>
     <div id="drive-file-area" style="display:none">
       <div id="drive-file-list" class="file-list"></div>
       <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn btn-green" onclick="loadSelectedDriveFile()">✅ 選択して読込</button>
-        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('drive-file-area').style.display='none'">閉じる</button>
+        <button class="btn btn-green" data-csp-click="h8" data-csp-source-click="loadSelectedDriveFile()">✅ 選択して読込</button>
+        <button class="btn btn-secondary btn-sm" data-csp-click="h9" data-csp-source-click="document.getElementById('drive-file-area').style.display='none'">閉じる</button>
       </div>
     </div>
     <div id="loaded-chips" style="margin-top:8px;display:none">
@@ -209,9 +317,9 @@ select.fi{cursor:pointer}
     <div class="section-hd">
       <div class="card-title" style="margin:0">Step 2　調整対象を選択</div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <input type="text" class="fi" id="rec-search" placeholder="品番・BC検索" style="width:170px;font-size:13px;padding:7px 11px" oninput="renderRecords()">
-        <button class="btn btn-secondary btn-sm" onclick="selectAll()">全選択</button>
-        <button class="btn btn-secondary btn-sm" onclick="deselectAll()">全解除</button>
+        <input type="text" class="fi" id="rec-search" placeholder="品番・BC検索" style="width:170px;font-size:13px;padding:7px 11px" data-csp-input="h10" data-csp-source-input="renderRecords()">
+        <button class="btn btn-secondary btn-sm" data-csp-click="h11" data-csp-source-click="selectAll()">全選択</button>
+        <button class="btn btn-secondary btn-sm" data-csp-click="h12" data-csp-source-click="deselectAll()">全解除</button>
       </div>
     </div>
 
@@ -226,18 +334,18 @@ select.fi{cursor:pointer}
     <!-- アクションバー -->
     <div class="action-bar" id="action-bar">
       <div class="action-bar-count" id="action-count">0件選択中</div>
-      <button class="btn btn-blue btn-sm" onclick="openAdjModal('前倒し')">⏩ 前倒し</button>
-      <button class="btn btn-danger btn-sm" onclick="openAdjModal('後ろ倒し')">⏪ 後ろ倒し</button>
-      <button class="btn btn-secondary btn-sm" onclick="openAdjModal('キャンセル')">🚫 キャンセル</button>
+      <button class="btn btn-blue btn-sm" data-csp-click="h13" data-csp-source-click="openAdjModal('前倒し')">⏩ 前倒し</button>
+      <button class="btn btn-danger btn-sm" data-csp-click="h14" data-csp-source-click="openAdjModal('後ろ倒し')">⏪ 後ろ倒し</button>
+      <button class="btn btn-secondary btn-sm" data-csp-click="h15" data-csp-source-click="openAdjModal('キャンセル')">🚫 キャンセル</button>
     </div>
 
     <!-- フィルタ -->
     <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-      <button class="btn btn-secondary btn-sm filter-btn on" data-f="all" onclick="setFilter('all',this)">すべて</button>
-      <button class="btn btn-secondary btn-sm filter-btn" data-f="unadjusted" onclick="setFilter('unadjusted',this)">未調整のみ</button>
-      <button class="btn btn-secondary btn-sm filter-btn" data-f="mae" onclick="setFilter('mae',this)">前倒し</button>
-      <button class="btn btn-secondary btn-sm filter-btn" data-f="ato" onclick="setFilter('ato',this)">後ろ倒し</button>
-      <button class="btn btn-secondary btn-sm filter-btn" data-f="cancel" onclick="setFilter('cancel',this)">キャンセル</button>
+      <button class="btn btn-secondary btn-sm filter-btn on" data-f="all" data-csp-click="h16" data-csp-source-click="setFilter('all',this)">すべて</button>
+      <button class="btn btn-secondary btn-sm filter-btn" data-f="unadjusted" data-csp-click="h17" data-csp-source-click="setFilter('unadjusted',this)">未調整のみ</button>
+      <button class="btn btn-secondary btn-sm filter-btn" data-f="mae" data-csp-click="h18" data-csp-source-click="setFilter('mae',this)">前倒し</button>
+      <button class="btn btn-secondary btn-sm filter-btn" data-f="ato" data-csp-click="h19" data-csp-source-click="setFilter('ato',this)">後ろ倒し</button>
+      <button class="btn btn-secondary btn-sm filter-btn" data-f="cancel" data-csp-click="h20" data-csp-source-click="setFilter('cancel',this)">キャンセル</button>
     </div>
 
     <div id="rec-body"></div>
@@ -247,11 +355,10 @@ select.fi{cursor:pointer}
   <div class="card" id="card-export" style="display:none">
     <div class="card-title">Step 3　ドライブに保存</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.7">
-      調整済みデータを種別ごとにファイル分割してGoogleドライブの未完了フォルダに保存します。<br>
-      元ファイルから調整対象は削除されます。
+      保存前
     </div>
     <div id="export-preview" style="margin-bottom:12px"></div>
-    <button class="btn btn-primary" onclick="execExport()">📤 ドライブに保存実行</button>
+    <button class="btn btn-primary" data-csp-click="h21" data-csp-source-click="execExport()">📤 ドライブに保存実行</button>
   </div>
 
 </div>
@@ -275,8 +382,8 @@ select.fi{cursor:pointer}
       <div style="font-size:13px;font-weight:700;color:var(--accent);background:var(--dark3);padding:9px 13px;border-radius:var(--radius-sm);font-family:monospace" id="adj-modal-fname">─</div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeAdjModal()">キャンセル</button>
-      <button class="btn btn-primary" onclick="applyAdj()">✅ 適用</button>
+      <button class="btn btn-secondary" data-csp-click="h22" data-csp-source-click="closeAdjModal()">キャンセル</button>
+      <button class="btn btn-primary" data-csp-click="h23" data-csp-source-click="applyAdj()">✅ 適用</button>
     </div>
   </div>
 </div>
@@ -285,52 +392,84 @@ select.fi{cursor:pointer}
 // ============================================================
 // 設定
 // ============================================================
-let GAS_URL = '';  // SSO/URLパラメータから取得
+// セキュリティ改修：接続先は固定（?adjust_gas_url= / ?gas_url= 差し替えを撤去）。
+const GAS_URL = 'https://script.google.com/macros/s/TEST_DEPLOY_ID_SHIPPING/exec';
 const SESSION_KEY = 'shipping_session_v1';
+
+// ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
+const AUTH_TOKEN_KEY = 'kpk_adjust_shipping_v2';
+let AUTH_TOKEN = (function() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, t);
+      history.replaceState(null, '', location.pathname + location.search);
+      return t;
+    }
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch(e) { return ''; }
+})();
+
+function decodeTokenClaims_(t) {
+  try {
+    const p = String(t).split('.')[0];
+    const b64 = p.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
+  } catch(e) { return null; }
+}
+
+function handleUnauthorized_() {
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = ''; currentUser = null;
+  showStatus('err', '認証が無効です。業務管理ポータルから入り直してください。');
+}
+
+// 全API：トークン付きPOST（text/plain）。getCSVはテキスト応答なので rawText:true で受ける。
+async function gasCall_(action, payload, opts) {
+  opts = opts || {};
+  if (!AUTH_TOKEN) { handleUnauthorized_(); return null; }
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ ...(payload || {}), action, appId:'shipping', token: AUTH_TOKEN })
+    });
+    if (opts.rawText) {
+      const txt = await res.text();
+      // 認証エラー時はJSON({error:'unauthorized'})が返る
+      if (txt && txt.indexOf('"unauthorized"') !== -1) { handleUnauthorized_(); return null; }
+      return txt;
+    }
+    const json = await res.json();
+    if (json && json.error === 'unauthorized') { handleUnauthorized_(); return null; }
+    return json;
+  } catch(e) { throw new Error('通信結果を確認できません。同じ要求IDで再試行してください。'); }
+}
 
 let currentUser  = null;
 let allRecords   = [];   // 読み込んだ全レコード
 let selectedBCs  = new Set();
 let filterMode   = 'all';
-let expandedGrps = {};
+let expandedGrps = Object.create(null);
+let batchSnapshot_ = null;
+let pendingAdjustment_ = null;
+let operationBusy_ = false;
 let currentAdjType = '';
 let loadedFileNames = [];
 
 // ============================================================
 // 起動処理
 // ============================================================
-(function init() {
-  const params = new URLSearchParams(window.location.search);
-
-  // GAS URL取得
-  const gasParam = params.get('adjust_gas_url') || params.get('gas_url');
-  if (gasParam) GAS_URL = decodeURIComponent(gasParam);
-
-  // SSO
-  const token = params.get('sso');
-  if (token) {
-    try {
-      const decoded = JSON.parse(atob(token.split('').reverse().join('')));
-      if (Date.now() - decoded.ts < 10 * 60 * 1000) {
-        let name = decoded.name || '';
-        try { name = decodeURIComponent(escape(name)); } catch(e) {}
-        currentUser = { id: decoded.id, name: name, admin: decoded.role === 'admin' || decoded.role === 'master' };
-        window.history.replaceState({}, '', window.location.pathname);
-        enterApp();
-        return;
-      }
-    } catch(e) {}
-  }
-
-  // セッション復元
+(async function init() {
   try {
-    const sess = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
-    if (sess) { currentUser = sess; enterApp(); return; }
-  } catch(e) {}
-
-  // 権限なし
-  showStatus('err', '⛔ 管理者権限が必要です。ポータルからログインしてください。');
-  document.querySelector('.nav').style.display = 'none';
+    const user=await gasCall_('whoami',{});
+    if(!user||!user.ok||!['admin','master'].includes(user.role))throw new Error('管理者権限が必要です');
+    currentUser={id:user.id,name:user.name||user.id,admin:true};
+    enterApp();
+    await loadPendingAdjustments_();
+  }catch(e){showStatus('err',e.message);}
 })();
 
 function enterApp() {
@@ -343,14 +482,20 @@ function enterApp() {
 }
 
 function goPortal() {
-  const portalUrl = new URLSearchParams(window.location.search).get('portal_url');
-  if (portalUrl) { window.location.href = decodeURIComponent(portalUrl); }
-  else { history.back(); }
+  const raw=new URLSearchParams(window.location.search).get('portal_url');
+  if(raw==='https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html'){window.location.href=raw;return;}
+  const fallback='https://script.google.com/macros/s/TEST_DEPLOY_ID_PORTAL/exec';
+  try {
+    const url=new URL(raw||fallback);
+    window.location.href=url.protocol==='https:'&&url.hostname==='script.google.com'&&!url.port&&!url.username&&!url.password?url.href:fallback;
+  }catch(e){window.location.href=fallback;}
 }
 
 function doLogout() {
   if (!confirm('ログアウトしますか？')) return;
   try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {}
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = '';
   goPortal();
 }
 
@@ -379,11 +524,12 @@ function showStatus(type, msg) {
 // ドライブからファイル一覧取得
 // ============================================================
 async function loadDriveFiles() {
-  if (!GAS_URL) { showStatus('err', 'GAS URLが設定されていません'); return; }
+  if (!AUTH_TOKEN) { handleUnauthorized_(); return; }
   showStatus('loading', '⏳ ドライブからファイル一覧を取得中...');
   try {
-    const res  = await fetch(GAS_URL + '?action=getFileList');
-    const data = await res.json();
+    const data = await gasCall_('getFileList', {});
+    renderAdjustmentRequests_(data && data.pendingRequests || []);
+    if (!data) return;
     if (!data.ok) throw new Error(data.message);
     if (!data.files || !data.files.length) { showStatus('warn', 'ファイルが見つかりません'); return; }
 
@@ -400,19 +546,19 @@ async function loadDriveFiles() {
       pending.forEach(f => {
         const lbl = f.label || '作業中';
         const lcls = lbl.includes('前倒し') ? 'label-mae' : lbl.includes('後ろ倒し') ? 'label-ato' : 'label-pending';
-        html += `<div class="file-item" data-id="${f.id}" data-name="${escHtml(f.name)}" onclick="toggleFileSelect(this)">
-          <input type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);flex-shrink:0" onclick="event.stopPropagation();toggleFileSelect(this.closest('.file-item'))">
-          <div style="flex:1;min-width:0"><div class="file-name">${escHtml(f.name)}</div><div class="file-date">${f.updated}</div></div>
-          <span class="file-label ${lcls}">${lbl}</span>
+        html += `<div class="file-item" data-id="${escHtml(f.id)}" data-name="${escHtml(f.name)}" data-csp-click="h24" data-csp-source-click="toggleFileSelect(this)">
+          <input type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);flex-shrink:0" data-csp-click="h25" data-csp-source-click="event.stopPropagation();toggleFileSelect(this.closest('.file-item'))">
+          <div style="flex:1;min-width:0"><div class="file-name">${escHtml(f.name)}</div><div class="file-date">${escHtml(f.updated)}</div></div>
+          <span class="file-label ${lcls}">${escHtml(lbl)}</span>
         </div>`;
       });
     }
     if (source.length) {
       html += '<div style="padding:7px 14px;background:rgba(58,123,220,.15);font-size:11px;font-weight:700;color:#80b0f0;letter-spacing:.05em">🆕 読込元フォルダ</div>';
       source.forEach(f => {
-        html += `<div class="file-item" data-id="${f.id}" data-name="${escHtml(f.name)}" onclick="toggleFileSelect(this)">
-          <input type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);flex-shrink:0" onclick="event.stopPropagation();toggleFileSelect(this.closest('.file-item'))">
-          <div style="flex:1;min-width:0"><div class="file-name">${escHtml(f.name)}</div><div class="file-date">${f.updated}</div></div>
+        html += `<div class="file-item" data-id="${escHtml(f.id)}" data-name="${escHtml(f.name)}" data-csp-click="h26" data-csp-source-click="toggleFileSelect(this)">
+          <input type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);flex-shrink:0" data-csp-click="h27" data-csp-source-click="event.stopPropagation();toggleFileSelect(this.closest('.file-item'))">
+          <div style="flex:1;min-width:0"><div class="file-name">${escHtml(f.name)}</div><div class="file-date">${escHtml(f.updated)}</div></div>
           <span class="file-label label-new">🆕 新規</span>
         </div>`;
       });
@@ -429,39 +575,22 @@ function toggleFileSelect(item) {
 }
 
 async function loadSelectedDriveFile() {
-  const checks = document.querySelectorAll('#drive-file-list .file-item input:checked');
-  if (!checks.length) { showStatus('warn', 'ファイルを選択してください'); return; }
-  document.getElementById('drive-file-area').style.display = 'none';
-  for (const cb of checks) {
-    const item   = cb.closest('.file-item');
-    const fileId = item.dataset.id;
-    const fname  = item.dataset.name;
-    showStatus('loading', '⏳ ' + fname + ' 読込中...');
-    try {
-      const res  = await fetch(GAS_URL + '?action=getCSV&fileId=' + fileId);
-      let text = await res.text();
-      if (text.trim().startsWith('{')) { const d = JSON.parse(text); if (!d.ok) throw new Error(d.message); }
-      parseAndMergeCSV(text, fname);
-      // 読込記録
-      fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'recordLoadedFileId', fileId }) }).catch(() => {});
-    } catch(err) { showStatus('err', '❌ ' + fname + ': ' + err.message); }
-  }
-  updateAll();
-  showStatus('ok', '✅ 読込完了（' + allRecords.length + '件）');
+  const checks=document.querySelectorAll('#drive-file-list .file-item input:checked');
+  if(checks.length!==1){showStatus('err','1バッチだけ選択してください');return;}
+  if(pendingAdjustment_){showStatus('err','未完了要求を先に再試行してください');return;}
+  const item=checks[0].closest('.file-item');
+  return loadAdjustmentBatch_(item.dataset.name.replace(/\.csv$/i,''));
 }
 
-function loadLocalCSV(input) {
-  const files = Array.from(input.files);
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      parseAndMergeCSV(e.target.result, file.name);
-      updateAll();
-      showStatus('ok', '✅ ' + file.name + ' 読込完了');
-    };
-    reader.readAsText(file, 'utf-8');
-  });
-  input.value = '';
+async function loadLocalCSV(input) {
+  if(operationBusy_||pendingAdjustment_){showStatus('err','未完了要求を先に再試行してください');return;}
+  const files=Array.from(input.files);
+  if(files.length!==1){showStatus('err','1つのCSVを選択してください');return;}
+  try {
+    pendingAdjustment_={action:'prepareBatch',payload:{requestId:crypto.randomUUID(),csvText:await files[0].text()}};
+    await runAdjustmentOperation_();
+  }catch(e){showStatus('err',e.message);}
+  input.value='';
 }
 
 function parseAndMergeCSV(text, fname) {
@@ -500,6 +629,8 @@ function splitCSV(line) {
 }
 
 function clearLoaded() {
+  if(pendingAdjustment_||operationBusy_){showStatus('err','未完了要求を先に再試行してください');return;}
+  batchSnapshot_=null;
   if (allRecords.length && !confirm('読み込んだデータをすべてクリアしますか？')) return;
   allRecords = []; selectedBCs.clear(); loadedFileNames = [];
   document.getElementById('card-data').style.display   = 'none';
@@ -575,7 +706,7 @@ function renderRecords() {
   }
 
   // 品番グループ
-  const groups = {}; const order = [];
+  const groups = Object.create(null); const order = [];
   list.forEach(r => {
     const hn = (r['品番'] || '(不明)');
     if (!groups[hn]) { groups[hn] = []; order.push(hn); }
@@ -588,7 +719,7 @@ function renderRecords() {
     const adjCnt = grp.filter(r => r['納品調整']).length;
     const isOpen = expandedGrps[hn] !== false;
     rows.push(
-      `<div class="group-hd" onclick="toggleGrp('${hn.replace(/'/g,"\\'")}')">
+      `<div class="group-hd" data-grp="${escHtml(hn)}">
         <span>${escHtml(hn)} <span style="font-size:12px;color:var(--text3);font-weight:400">${isOpen?'▲':'▼'}</span></span>
         <span style="font-size:12px;color:var(--text2)">${adjCnt > 0 ? `<span style="color:var(--accent)">${adjCnt}件調整済</span> / ` : ''}${grp.length}件</span>
       </div>`
@@ -599,27 +730,27 @@ function renderRecords() {
       const bc   = r['バーコード番号'] || '';
       const adj  = r['納品調整'] || '';
       const isSel = selectedBCs.has(bc);
-      const bcSafe = bc.replace(/'/g,"\\'");
       let adjBadge = '';
       if (adj === '前倒し')   adjBadge = '<span class="badge badge-mae">前倒し</span>';
       if (adj === '後ろ倒し') adjBadge = '<span class="badge badge-ato">後ろ倒し</span>';
       if (adj === 'キャンセル') adjBadge = '<span class="badge badge-cancel">キャンセル</span>';
+      // ★F03：CSV由来値は全てエスケープ。onclick へ bc を埋め込まず data-bc＋委譲で扱う。
       rows.push(
-        `<div class="rec-row${isSel?' selected':''}" onclick="toggleRec('${bcSafe}',event)">
-          <input type="checkbox" class="rec-check" ${isSel?'checked':''} onclick="event.stopPropagation();toggleRec('${bcSafe}',event)">
+        `<div class="rec-row${isSel?' selected':''}" data-bc="${escHtml(bc)}">
+          <input type="checkbox" class="rec-check" ${isSel?'checked':''} tabindex="-1">
           <div class="rec-body">
             <div class="rec-top">
               <span class="rec-hinban">${escHtml(r['品番']||'')}</span>
               <span style="display:flex;gap:4px;align-items:center;flex-shrink:0">${adjBadge}</span>
             </div>
-            <div class="rec-bc">${bc}</div>
+            <div class="rec-bc">${escHtml(bc)}</div>
             <div class="rec-meta">
-              <span>数量:${r['数量']||''}</span>
-              <span>連番:${r['連番']||''}/${r['総数']||''}</span>
-              <span class="nouhi">納品日:${r['納品日']||''}</span>
-              ${adj && r['_origDate'] && r['_origDate'] !== r['納品日'] ? `<span style="color:var(--text3)">変更前:${r['_origDate']}</span>` : ''}
-              <span>発注:${r['発注番号']||''}</span>
-              <span>納品先:${r['納品先']||''}</span>
+              <span>数量:${escHtml(r['数量']||'')}</span>
+              <span>連番:${escHtml(r['連番']||'')}/${escHtml(r['総数']||'')}</span>
+              <span class="nouhi">納品日:${escHtml(r['納品日']||'')}</span>
+              ${adj && r['_origDate'] && r['_origDate'] !== r['納品日'] ? `<span style="color:var(--text3)">変更前:${escHtml(r['_origDate'])}</span>` : ''}
+              <span>発注:${escHtml(r['発注番号']||'')}</span>
+              <span>納品先:${escHtml(r['納品先']||'')}</span>
             </div>
           </div>
         </div>`
@@ -628,6 +759,16 @@ function renderRecords() {
     rows.push('</div>');
   });
   body.innerHTML = rows.join('');
+  // ★F03：イベントは data-* + 委譲で設定（CSV文字列をJSソースへ埋め込まない）。
+  if (!body._bound) {
+    body.addEventListener('click', function (ev) {
+      const gh = ev.target.closest && ev.target.closest('.group-hd');
+      if (gh) { toggleGrp(gh.getAttribute('data-grp')); return; }
+      const rr = ev.target.closest && ev.target.closest('.rec-row');
+      if (rr) { toggleRec(rr.getAttribute('data-bc'), ev); }
+    });
+    body._bound = true;
+  }
   updateActionBar();
 }
 
@@ -702,6 +843,7 @@ function updateModalFname() {
 }
 
 function applyAdj() {
+  if(pendingAdjustment_||operationBusy_){showStatus('err','未完了要求を先に再試行してください');return;}
   const type   = currentAdjType;
   const toDt   = document.getElementById('adj-modal-date').value;
   if (type !== 'キャンセル' && !toDt) { alert('変更後の納品日を選択してください'); return; }
@@ -717,7 +859,7 @@ function applyAdj() {
   closeAdjModal();
   selectedBCs.clear();
   updateAll();
-  showStatus('ok', '✅ ' + type + ' を適用しました');
+  showStatus('warn', type + ' を選択しました（未保存）');
 }
 
 // ============================================================
@@ -747,7 +889,7 @@ function updateExportPreview() {
     rows.push({ label:'キャンセル', count:cancel.length, fname:'キャンセル_' + fromDates + '.csv', color:'var(--text3)' });
   }
   if (unadj.length) {
-    rows.push({ label:'未調整（元ファイル更新）', count:unadj.length, fname:'─', color:'var(--accent)' });
+    rows.push({ label:'未調整（派生バッチへ継続）', count:unadj.length, fname:'─', color:'var(--accent)' });
   }
 
   const el = document.getElementById('export-preview');
@@ -767,44 +909,20 @@ function updateExportPreview() {
 // ドライブに保存実行
 // ============================================================
 async function execExport() {
-  if (!allRecords.length) { showStatus('err', 'データがありません'); return; }
-  if (!GAS_URL) { showStatus('err', 'GAS URLが設定されていません'); return; }
-
-  const hasAdj = allRecords.some(r => r['納品調整']);
-  if (!hasAdj) { showStatus('warn', '調整済みデータがありません'); return; }
-
-  if (!confirm('ドライブに保存します。\n元ファイルから調整対象データが削除されます。\n実行しますか？')) return;
-
-  showStatus('loading', '⏳ ドライブに保存中...');
-
-  try {
-    const today = (() => { const d=new Date(); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate()); })();
-    const baseName = loadedFileNames.length ? getBaseFileName(loadedFileNames[0]) : ('出荷調整_' + today);
-
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action:    'saveAdjustment',
-        records:   allRecords,
-        baseName:  baseName,
-        today:     today,
-        tanto:     currentUser ? currentUser.name : '不明',
-        saveHistory: false
-      })
-    });
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.message);
-
-    let msg = '✅ 保存完了！\n';
-    (data.results || []).forEach(r => { msg += `${r.type}：${r.count}件 → ${r.filename}\n`; });
-    showStatus('ok', msg.trim());
-
-    // 調整済みをリストから除去
-    allRecords = allRecords.filter(r => !r['納品調整']);
-    selectedBCs.clear();
-    updateAll();
-
-  } catch(err) { showStatus('err', '❌ ' + err.message); }
+  if(pendingAdjustment_)return runAdjustmentOperation_();
+  if(!batchSnapshot_){showStatus('err','元バッチを読み込んでください');return;}
+  const changes=allRecords.filter(r=>r['納品調整']).map(r=>{
+    const c={rowKey:r._rowKey,type:r['納品調整']};
+    if(c.type!=='キャンセル')c.deliveryDate=r['納品日'];
+    return c;
+  });
+  if(!changes.length){showStatus('err','調整対象がありません');return;}
+  if(!confirm('この調整を確定しますか？'))return;
+  pendingAdjustment_={action:'saveAdjustment',payload:{
+    requestId:crypto.randomUUID(),batchId:batchSnapshot_.batchId,sourceFileId:batchSnapshot_.sourceFileId,
+    version:batchSnapshot_.version,revision:batchSnapshot_.revision,records:batchSnapshot_.records,changes
+  }};
+  return runAdjustmentOperation_();
 }
 
 function getBaseFileName(filename) {
@@ -819,6 +937,83 @@ function getBaseFileName(filename) {
 // ============================================================
 function pad(n) { return String(n).padStart(2,'0'); }
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function loadAdjustmentBatch_(batchId) {
+  try {
+    const batch=await gasCall_('getBatch',{batchId});
+    if(!batch||!batch.ok)throw new Error(batch&&batch.message||'バッチ読込失敗');
+    batchSnapshot_=JSON.parse(JSON.stringify(batch));
+    allRecords=batch.records.map(r=>({...r,_origDate:r['納品日']}));
+    loadedFileNames=[batch.batchId+'.csv'];selectedBCs.clear();updateAll();
+    showStatus('ok','読込済み: '+batch.batchId);
+  }catch(e){showStatus('err',e.message);}
+}
+async function runAdjustmentOperation_() {
+  if(operationBusy_||!pendingAdjustment_)return;
+  operationBusy_=true;
+  const operation=pendingAdjustment_;
+  showStatus('loading','保存中 / 要求ID: '+operation.payload.requestId);
+  try {
+    const result=await gasCall_(operation.action,operation.payload);
+    if(!result||!result.ok){
+      const receipt=await gasCall_('getBatch',{requestId:operation.payload.requestId});
+      if(receipt&&!receipt.ok&&receipt.message==='REQUEST_NOT_OWNED')pendingAdjustment_=null;
+      throw new Error(result&&result.message||'保存未完了');
+    }
+    pendingAdjustment_=null;
+    const live=(result.results||[]).find(r=>r.state==='ACTIVE');
+    allRecords=[];selectedBCs.clear();loadedFileNames=[];batchSnapshot_=null;updateAll();
+    if(live)await loadAdjustmentBatch_(live.batchId);
+    const notificationFailed=result.notification&&!result.notification.ok;
+    showStatus(notificationFailed?'warn':'ok','保存済み / '+(result.results||[]).map(r=>r.state+': '+r.batchId+' ('+r.count+'件)').join(' / ')+(notificationFailed?' / 通知結果は未確認です':''));
+  }catch(e){
+    showStatus('err',e.message+' / 要求ID: '+operation.payload.requestId);
+  }finally{
+    operationBusy_=false;
+    if(pendingAdjustment_)renderAdjustmentRequests_([{requestId:operation.payload.requestId,kind:operation.action==='prepareBatch'?'prepare':'adjust'}]);
+    else await loadPendingAdjustments_();
+  }
+}
+async function loadPendingAdjustments_() {
+  try {
+    const result=await gasCall_('getFileList',{});
+    if(result&&result.ok)renderAdjustmentRequests_(result.pendingRequests||[]);
+    else if(result)showStatus('err',result.message||'要求一覧を取得できません');
+  }catch(e){showStatus('err',e.message);}
+}
+function renderAdjustmentRequests_(items) {
+  const box=document.getElementById('adjustment-requests');box.replaceChildren();
+  items.forEach(item=>{
+    const button=document.createElement('button');button.type='button';button.className='btn btn-secondary btn-sm';
+    button.style.cssText='max-width:100%;overflow-wrap:anywhere;margin:6px 0';
+    button.textContent='再開: '+item.requestId;
+    button.onclick=async()=>{
+      if(operationBusy_)return;
+      try{
+        const result=await gasCall_('getBatch',{requestId:item.requestId});
+        if(!result||!result.ok)throw new Error(result&&result.message||'要求を取得できません');
+        pendingAdjustment_={action:result.operation.kind==='prepare'?'prepareBatch':'saveAdjustment',payload:result.operation.payload};
+        await runAdjustmentOperation_();
+      }catch(e){showStatus('err',e.message);}
+    };
+    box.appendChild(button);
+  });
+}
+
+async function loadAdjustmentHistory_() {
+  try {
+    const data=await gasCall_('getAdjustmentHistory',{});
+    if(!data||!data.ok)throw new Error(data&&data.message||'履歴読込失敗');
+    const box=document.getElementById('adjustment-history');box.replaceChildren();
+    data.records.slice().reverse().forEach(record=>{
+      const entry=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('pre');
+      summary.textContent=record.state+' / '+record.requestId;
+      body.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;padding:8px';
+      body.textContent=JSON.stringify({actor:record.actor,parent:record.plan&&record.plan.parent,changes:record.plan&&record.plan.changes,result:record.result},null,2);
+      entry.appendChild(summary);entry.appendChild(body);box.appendChild(entry);
+    });
+  }catch(e){showStatus('err',e.message);}
+}
 </script>
 </body>
 </html>
