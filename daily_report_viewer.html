@@ -1,7 +1,95 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-eBj8qr5tS33+WxXsa+tMXeAK/CBjvejwhj4bkU8IeYs=' 'sha256-rKJ6n3emCQQ0RW/cqEuklOGxHLiynf1szeHPJzTAv8M='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<script>/* MOGU_CSP_RUNTIME_V1 */
+const __moguCsp = (() => {
+  const handlers = {"h0": function(event, _p) { goPortal()
+},
+"h1": function(event, _p) { saveUrl()
+},
+"h2": function(event, _p) { setPeriod('today')
+},
+"h3": function(event, _p) { setPeriod(7)
+},
+"h4": function(event, _p) { setPeriod(30)
+},
+"h5": function(event, _p) { setPeriod(0)
+},
+"h6": function(event, _p) { clearPeriodBtn();applyFilter()
+},
+"h7": function(event, _p) { clearPeriodBtn();applyFilter()
+},
+"h8": function(event, _p) { applyFilter()
+},
+"h9": function(event, _p) { applyFilter()
+},
+"h10": function(event, _p) { applyFilter()
+},
+"h11": function(event, _p) { loadData()
+},
+"h12": function(event, _p) { exportCSV()
+},
+"h13": function(event, _p) { closeModal()
+},
+"h14": function(event, _p) { openDetail(Number(_p[0]))
+},
+"h15": function(event, _p) { goPage(Number(_p[0]))
+},
+"h16": function(event, _p) { goPage(1)
+},
+"h17": function(event, _p) { goPage(Number(_p[1]))
+},
+"h18": function(event, _p) { goPage(Number(_p[1]))
+},
+"h19": function(event, _p) { goPage(Number(_p[0]))
+}};
+  const events = ["click","change"];
+  const bound = new WeakMap();
+  function bind(el) {
+    if (!el || el.nodeType !== 1) return;
+    let state = bound.get(el); if (!state) { state = new Map(); bound.set(el, state); }
+    for (const type of events) {
+      const id = el.getAttribute('data-csp-' + type);
+      if (!id || state.get(type) === id) continue;
+      if (!Object.prototype.hasOwnProperty.call(handlers, id)) continue;
+      const fn = function(event) {
+        const value = this.getAttribute('data-csp-args-' + type);
+        const params = value ? JSON.parse(decodeURIComponent(value)) : [];
+        return handlers[id].call(this, event, params);
+      };
+      // Native event-handler properties preserve this/currentTarget, cancellation,
+      // async return behavior and later application assignments to .onclick etc.
+      el['on' + type] = fn;
+      state.set(type, id);
+    }
+  }
+  function scan(root) {
+    bind(root);
+    if (root.querySelectorAll) for (const el of root.querySelectorAll('*')) bind(el);
+  }
+  for (const type of events) document.addEventListener(type, event => {
+    for (const el of event.composedPath()) bind(el);
+  }, true);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') bind(record.target);
+      else for (const node of record.addedNodes) scan(node);
+    }
+  }).observe(document, {subtree:true, childList:true, attributes:true,
+    attributeFilter: events.map(type => 'data-csp-' + type)});
+  document.addEventListener('DOMContentLoaded', () => scan(document));
+  const encode = values => encodeURIComponent(JSON.stringify(values)).replace(/'/g, '%27');
+  function assign(el,type,id,values) {
+    el.setAttribute('data-csp-' + type,id);
+    el.setAttribute('data-csp-args-' + type,encode(values));
+    bind(el);
+  }
+  return Object.freeze({ encode, scan, assign });
+})();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>日報確認 | 関ケ原プラ工業(株)</title>
 <style>
@@ -182,7 +270,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
       <div class="header-user-dot"></div>
       <span id="header-user-name"></span>
     </div>
-    <button class="btn-portal-back" id="btn-portal-back" onclick="goPortal()">✕ タブを閉じる</button>
+    <button class="btn-portal-back" id="btn-portal-back" data-csp-click="h0" data-csp-source-click="goPortal()">✕ タブを閉じる</button>
   </div>
 </div>
 
@@ -193,7 +281,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
     <span class="setup-label">作業報告書 GAS URL</span>
     <input class="setup-input" id="gas-url-input" type="text" placeholder="https://script.google.com/macros/s/.../exec">
   </div>
-  <div><button class="btn-primary" onclick="saveUrl()">接続する</button></div>
+  <div><button class="btn-primary" data-csp-click="h1" data-csp-source-click="saveUrl()">接続する</button></div>
 </div>
 
 <div class="main">
@@ -202,40 +290,40 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
   <div class="filter-panel">
     <div class="filter-top">
       <span class="filter-label">期間:</span>
-      <button class="period-btn on" id="p-today"  onclick="setPeriod('today')">今日</button>
-      <button class="period-btn"    id="p-7"      onclick="setPeriod(7)">直近7日</button>
-      <button class="period-btn"    id="p-30"     onclick="setPeriod(30)">直近30日</button>
-      <button class="period-btn"    id="p-0"      onclick="setPeriod(0)">全期間</button>
+      <button class="period-btn on" id="p-today"  data-csp-click="h2" data-csp-source-click="setPeriod('today')">今日</button>
+      <button class="period-btn"    id="p-7"      data-csp-click="h3" data-csp-source-click="setPeriod(7)">直近7日</button>
+      <button class="period-btn"    id="p-30"     data-csp-click="h4" data-csp-source-click="setPeriod(30)">直近30日</button>
+      <button class="period-btn"    id="p-0"      data-csp-click="h5" data-csp-source-click="setPeriod(0)">全期間</button>
       <div class="date-inputs">
-        <input class="date-input" type="date" id="date-from" onchange="clearPeriodBtn();applyFilter()">
+        <input class="date-input" type="date" id="date-from" data-csp-change="h6" data-csp-source-change="clearPeriodBtn();applyFilter()">
         <span style="color:var(--tx3);font-size:12px">〜</span>
-        <input class="date-input" type="date" id="date-to" onchange="clearPeriodBtn();applyFilter()">
+        <input class="date-input" type="date" id="date-to" data-csp-change="h7" data-csp-source-change="clearPeriodBtn();applyFilter()">
       </div>
     </div>
     <div class="filter-selects">
       <div class="filter-group">
         <label>👤 担当者(報告者)</label>
-        <select class="filter-select" id="f-worker" onchange="applyFilter()">
+        <select class="filter-select" id="f-worker" data-csp-change="h8" data-csp-source-change="applyFilter()">
           <option value="">すべて</option>
         </select>
       </div>
       <div class="filter-group">
         <label>📦 品番</label>
-        <select class="filter-select" id="f-part" onchange="applyFilter()">
+        <select class="filter-select" id="f-part" data-csp-change="h9" data-csp-source-change="applyFilter()">
           <option value="">すべて</option>
         </select>
       </div>
       <div class="filter-group">
         <label>🔧 作業項目</label>
-        <select class="filter-select" id="f-sakugyo" onchange="applyFilter()">
+        <select class="filter-select" id="f-sakugyo" data-csp-change="h10" data-csp-source-change="applyFilter()">
           <option value="">すべて</option>
         </select>
       </div>
     </div>
     <div class="filter-actions">
-      <button class="btn-reload" onclick="loadData()">🔄 更新</button>
+      <button class="btn-reload" data-csp-click="h11" data-csp-source-click="loadData()">🔄 更新</button>
       <span id="filter-count" style="font-size:12px;color:var(--tx2)"></span>
-      <button class="btn-csv" onclick="exportCSV()">⬇️ CSVダウンロード</button>
+      <button class="btn-csv" data-csp-click="h12" data-csp-source-click="exportCSV()">⬇️ CSVダウンロード</button>
     </div>
   </div>
 
@@ -272,7 +360,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-title">作業詳細</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" data-csp-click="h13" data-csp-source-click="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
   </div>
@@ -281,6 +369,37 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
 <div class="toast" id="toast"></div>
 
 <script>
+
+// Business drafts are page-memory only. SSO tokens stay in sessionStorage;
+// static HTML/GAS cannot issue HttpOnly cookies.
+const pageMemoryStorage = (() => {
+  const entries = new Map();
+  return {
+    getItem: key => entries.has(key) ? entries.get(key) : null,
+    setItem: (key, value) => entries.set(key, String(value)),
+    removeItem: key => entries.delete(key),
+    clear: () => entries.clear()
+  };
+})();
+function clearBrowserBusinessData_() {
+  pageMemoryStorage.clear();
+  const known = new Set(['kpk_app_perms', 'kpk_shift_employees', 'kpk_shift_data',
+    'kpk_cal_special', 'kpk_data_ver', 'kpk_session', 'kpk_vac_req', 'kpk_ot_req',
+    'kpk_h_req', 'kpk_sync_log', 'sakugyo_wip_backup', 'inv_current_user',
+    'inv_sat_v2', 'inv_portal_url', 'inv_gas_url', 'inv_master_url',
+    'sakugyo_portal_url', 'daily_report_portal_url']);
+  for (const name of ['localStorage', 'sessionStorage']) {
+    try {
+      const storage = window[name];
+      for (let i = storage.length - 1; i >= 0; i--) {
+        const key = storage.key(i);
+        if (known.has(key) || (key && key.startsWith('inv_sat_v2_'))) storage.removeItem(key);
+      }
+    } catch (e) {}
+  }
+}
+clearBrowserBusinessData_();
+
 // ============================================================
 // 作業報告書 GAS URL（固定）
 // ============================================================
@@ -302,19 +421,13 @@ let AUTH_TOKEN = (function() {
     return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
   } catch(e) { return ''; }
 })();
-function decodeTokenClaims_(t) {
-  try {
-    const p = String(t).split('.')[0];
-    const b64 = p.replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(decodeURIComponent(escape(atob(b64 + '==='.slice((b64.length + 3) % 4)))));
-  } catch(e) { return null; }
-}
 async function gasPost_(action, data) {
-  const body = JSON.stringify({ action, token: AUTH_TOKEN, ...(data || {}) });
+  const body = JSON.stringify({ ...(data || {}), action, token: AUTH_TOKEN });
   const res  = await fetch(gasUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body });
   if (!res.ok) throw new Error('通信エラー ' + res.status);
   const json = await res.json();
-  if (json && json.error === 'unauthorized') throw new Error('認証が無効です。ポータルから入り直してください。');
+  if (json && json.error === 'unauthorized') { handleUnauthorized_(); throw new Error('認証が無効です。ポータルから入り直してください。'); }
+  if (!json || typeof json !== 'object' || json.ok === false || json.error) throw new Error('処理に失敗しました');
   return json;
 }
 
@@ -325,8 +438,17 @@ let currentPage = 1;
 let activeWorker = '';
 let portalUrl = ''; // ポータルに戻るURL
 
+function handleUnauthorized_() {
+  clearPrivatePhotoViews_();
+  AUTH_TOKEN = '';
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) {}
+  allReports = []; filtered = [];
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('table-area').textContent = '認証が無効です。ポータルから入り直してください。';
+}
+
 // 起動
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(location.search);
 
   // ① GAS URL：固定（差し替え廃止）。セットアップパネルは常に非表示。
@@ -336,26 +458,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ② SSO署名トークン：aud・期限を確認し、ユーザー名をヘッダーに表示
   if (AUTH_TOKEN) {
-    const claims = decodeTokenClaims_(AUTH_TOKEN);
-    const nowSec = Math.floor(Date.now() / 1000);
-    if (claims && claims.aud === 'report' && claims.exp && claims.exp > nowSec) {
-      if (claims.name) {
-        document.getElementById('header-user-name').textContent = claims.name;
+    try {
+      const user = await gasPost_('whoami', {});
+      if (user && user.ok === true && typeof user.id === 'string' && user.id) {
+        document.getElementById('header-user-name').textContent = String(user.name || user.id);
         document.getElementById('header-user').style.display = 'flex';
-      }
-    } else {
-      try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
-      AUTH_TOKEN = '';
-    }
+      } else throw new Error('invalid identity');
+    } catch (error) { handleUnauthorized_(); }
   }
 
   // ③ ポータルURL：戻るボタンの表示制御
   const portalParam = params.get('portal_url');
   if (portalParam) {
     portalUrl = portalParam;
-    localStorage.setItem('daily_report_portal_url', portalParam);
+    pageMemoryStorage.setItem('daily_report_portal_url', portalParam);
   } else {
-    portalUrl = localStorage.getItem('daily_report_portal_url') || '';
+    portalUrl = pageMemoryStorage.getItem('daily_report_portal_url') || '';
   }
   if (portalUrl) {
     document.getElementById('btn-portal-back').classList.add('show');
@@ -371,15 +489,16 @@ function saveUrl() {
   loadData();
 }
 
-// ★F10：戻り先は https かつ許可ホスト(script.google.com)のURLのみ。無効なら '' を返す（部分一致/二重デコードは使わない）。
+// GASのHTTPS URLと静的ポータルの完全一致のみ。URLSearchParams後の二重デコードはしない。
 function safePortalUrl_(raw) {
-  if (!raw) return '';
-  var s; try { s = decodeURIComponent(String(raw)); } catch (e) { return ''; }
-  var u; try { u = new URL(s); } catch (e) { return ''; }
-  if (u.protocol !== 'https:' || u.hostname !== 'script.google.com') return '';
-  return u.href;
+  if (typeof raw !== 'string' || !raw) return '';
+  if (raw === 'https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html') return raw;
+  let url; try { url = new URL(raw); } catch (e) { return ''; }
+  if (url.protocol !== 'https:' || url.hostname !== 'script.google.com' || url.username || url.password || url.port) return '';
+  return url.href;
 }
 function goPortal() {
+  clearPrivatePhotoViews_();
   // 別タブで開かれているので、このタブを閉じてポータルに戻る
   try {
     window.close();
@@ -406,7 +525,8 @@ async function loadData() {
   document.getElementById('table-area').innerHTML = '<div class="loading"><div class="spinner"></div>読み込み中...</div>';
   try {
     const d = await gasPost_('getReports', {});   // トークン付きPOST（GETの匿名取得は廃止）
-    allReports = (d.data || []).filter(r => r['完了フラグ'] === '完了');
+    if (!Array.isArray(d.data)) throw new Error('不正な応答');
+    allReports = d.data.filter(r => r['完了フラグ'] === '完了');
     buildFilterOptions();
     applyFilter();
   } catch(e) {
@@ -592,7 +712,7 @@ function renderTable() {
     const dt = fmtDateTime(r['作成日時']);
     const date = dt.slice(0,10);
     const timeStr = dt.slice(11,16);
-    return `<tr onclick="openDetail(${idx})">
+    return `<tr data-csp-click="h14" data-csp-source-click="openDetail()" data-csp-args-click="${__moguCsp.encode([(idx),null,null,null,null,null,null,null,null,null,null,null])}">
       <td style="white-space:nowrap;color:var(--tx2);font-size:11px">${escapeHtml(date)}<br><span style="color:var(--tx3)">${escapeHtml(timeStr)}</span></td>
       <td style="font-weight:600">${escapeHtml(r['担当者']||'—')}</td>
       <td>${escapeHtml(r['作業項目']||'—')}</td>
@@ -635,13 +755,13 @@ function renderPagination(totalPages) {
   if (totalPages <= 1) { document.getElementById('pagination-area').innerHTML = ''; return; }
   const pg = currentPage;
   let btns = '';
-  btns += `<button class="page-btn" onclick="goPage(${pg-1})" ${pg<=1?'disabled':''}>‹ 前</button>`;
+  btns += `<button class="page-btn" data-csp-click="h15" data-csp-source-click="goPage()" data-csp-args-click="${__moguCsp.encode([(pg-1),null])}" ${pg<=1?'disabled':''}>‹ 前</button>`;
   const range = [];
   for (let i = Math.max(1,pg-2); i <= Math.min(totalPages,pg+2); i++) range.push(i);
-  if (range[0] > 1) btns += `<button class="page-btn" onclick="goPage(1)">1</button>${range[0]>2?'<span class="page-info">…</span>':''}`;
-  range.forEach(i => { btns += `<button class="page-btn ${i===pg?'on':''}" onclick="goPage(${i})">${i}</button>`; });
-  if (range[range.length-1] < totalPages) btns += `${range[range.length-1]<totalPages-1?'<span class="page-info">…</span>':''}<button class="page-btn" onclick="goPage(${totalPages})">${totalPages}</button>`;
-  btns += `<button class="page-btn" onclick="goPage(${pg+1})" ${pg>=totalPages?'disabled':''}>次 ›</button>`;
+  if (range[0] > 1) btns += `<button class="page-btn" data-csp-click="h16" data-csp-source-click="goPage(1)">1</button>${range[0]>2?'<span class="page-info">…</span>':''}`;
+  range.forEach(i => { btns += `<button class="page-btn ${i===pg?'on':''}" data-csp-click="h17" data-csp-source-click="goPage()" data-csp-args-click="${__moguCsp.encode([null,(i),null])}">${i}</button>`; });
+  if (range[range.length-1] < totalPages) btns += `${range[range.length-1]<totalPages-1?'<span class="page-info">…</span>':''}<button class="page-btn" data-csp-click="h18" data-csp-source-click="goPage()" data-csp-args-click="${__moguCsp.encode([null,(totalPages),null])}">${totalPages}</button>`;
+  btns += `<button class="page-btn" data-csp-click="h19" data-csp-source-click="goPage()" data-csp-args-click="${__moguCsp.encode([(pg+1),null])}" ${pg>=totalPages?'disabled':''}>次 ›</button>`;
   btns += `<span class="page-info">${pg} / ${totalPages} ページ</span>`;
   document.getElementById('pagination-area').innerHTML = btns;
 }
@@ -656,6 +776,7 @@ function goPage(p) {
 
 // 詳細モーダル
 function openDetail(idx) {
+  clearPrivatePhotoViews_();
   const r = filtered[idx];
   if (!r) return;
   const isFinal = r['完了フラグ'] === '完了';
@@ -669,21 +790,8 @@ function openDetail(idx) {
   try { pauseLog = JSON.parse(r['一時停止ログ'] || '[]'); } catch(e) {}
 
   // 写真
-  const photos = [r['写真1'], r['写真2'], r['写真3']].filter(Boolean);
-  // ★写真URLは https のみ許可（javascript: 等のスキーム注入を防ぐ）＋属性エスケープ
-  const safeUrl = u => /^https:\/\//i.test(String(u)) ? String(u) : '';
-  const photoHtml = photos.length
-    ? `<div class="photo-grid">
-        ${photos.map(url => {
-          const su = safeUrl(url);
-          if (!su) return '';
-          if (su.includes('/preview')) {
-            return `<div class="photo-frame"><iframe src="${escapeAttr(su)}" allowfullscreen></iframe></div>`;
-          }
-          return `<div class="photo-frame"><a href="${escapeAttr(su)}" target="_blank" rel="noopener"><img src="${escapeAttr(su)}" alt="写真" onerror="this.parentElement.innerHTML='📷'"></a></div>`;
-        }).join('')}
-      </div>`
-    : '<span style="color:var(--tx3);font-size:12px">写真なし</span>';
+  const photos = [0,1,2].filter(slot => !!r['写真'+(slot+1)])
+    .map(slot => ({name:'写真'+(slot+1), binding:{recordId:String(r.id || ''), slot}}));
 
   // 不具合リスト
   const defectHtml = defectItems.length
@@ -736,7 +844,7 @@ function openDetail(idx) {
         return `
         <div class="pause-log-item">
           <span class="pause-type pause">休憩 #${i+1}</span>
-          <span style="font-weight:600">${startStr} 〜 ${endStr}</span>
+          <span style="font-weight:600">${escapeHtml(startStr)} 〜 ${escapeHtml(endStr)}</span>
           ${dur !== null ? `<span style="color:var(--tx2)">（${dur}分）</span>` : `<span style="color:var(--a)">（未再開）</span>`}
         </div>`;
       }).join('')}</div>`
@@ -753,8 +861,8 @@ function openDetail(idx) {
         <div class="detail-item"><div class="detail-label">ステータス</div><div class="detail-value"><span class="status-badge ${isFinal?'status-complete':'status-working'}">${isFinal?'✔ 完了':'作業中'}</span></div></div>
         <div class="detail-item"><div class="detail-label">担当者(報告者)</div><div class="detail-value" style="font-weight:700">${escapeHtml(r['担当者']||'—')}</div></div>
         <div class="detail-item"><div class="detail-label">作業項目</div><div class="detail-value">${escapeHtml(r['作業項目']||'—')}</div></div>
-        <div class="detail-item"><div class="detail-label">作成日時</div><div class="detail-value">${fmtDateTime(r['作成日時'])}</div></div>
-        <div class="detail-item"><div class="detail-label">終了日時</div><div class="detail-value">${fmtDateTime(r['終了日時'])}</div></div>
+        <div class="detail-item"><div class="detail-label">作成日時</div><div class="detail-value">${escapeHtml(fmtDateTime(r['作成日時']))}</div></div>
+        <div class="detail-item"><div class="detail-label">終了日時</div><div class="detail-value">${escapeHtml(fmtDateTime(r['終了日時']))}</div></div>
       </div>
     </div>
 
@@ -764,11 +872,11 @@ function openDetail(idx) {
       <div class="detail-grid">
         <div class="detail-item"><div class="detail-label">品番</div><div class="detail-value" style="font-family:monospace">${escapeHtml(r['品番']||'—')}</div></div>
         <div class="detail-item"><div class="detail-label">基本取引先</div><div class="detail-value">${escapeHtml(r['基本取引先']||'—')}</div></div>
-        <div class="detail-item"><div class="detail-label">箱入数</div><div class="detail-value">${r['箱入数']||'—'} 個/箱</div></div>
-        <div class="detail-item"><div class="detail-label">カウント</div><div class="detail-value">${r['カウント']||0} 箱</div></div>
+        <div class="detail-item"><div class="detail-label">箱入数</div><div class="detail-value">${escapeHtml(r['箱入数']||'—')} 個/箱</div></div>
+        <div class="detail-item"><div class="detail-label">カウント</div><div class="detail-value">${escapeHtml(r['カウント']||0)} 箱</div></div>
         <div class="detail-item"><div class="detail-label">端数個数</div><div class="detail-value">${Number(r['端数個数']||0)} 個</div></div>
         <div class="detail-item"><div class="detail-label">合計数量</div><div class="detail-value large">${(Number(r['合計'])||0).toLocaleString()} 個</div></div>
-        <div class="detail-item"><div class="detail-label">作業時間</div><div class="detail-value">${r['作業時間分']||0} 分</div></div>
+        <div class="detail-item"><div class="detail-label">作業時間</div><div class="detail-value">${escapeHtml(r['作業時間分']||0)} 分</div></div>
       </div>
     </div>
 
@@ -782,7 +890,7 @@ function openDetail(idx) {
     <!-- 写真 -->
     <div class="detail-section">
       <div class="detail-section-title">📷 写真</div>
-      ${photoHtml}
+      <div id="detail-private-photos" class="photo-grid"></div>
     </div>
 
     <!-- 休憩時間 -->
@@ -792,9 +900,10 @@ function openDetail(idx) {
     </div>
   `;
   document.getElementById('modal').classList.add('open');
+  return renderPrivatePhotos_(document.getElementById('detail-private-photos'), photos);
 }
 
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function closeModal() { clearPrivatePhotoViews_(); document.getElementById('modal').classList.remove('open'); }
 document.getElementById('modal').addEventListener('click', e => { if (e.target===document.getElementById('modal')) closeModal(); });
 
 // CSVエクスポート
@@ -825,6 +934,155 @@ function showToast(msg, type='') {
   t.className = 'toast show' + (type ? ' '+type : '');
   setTimeout(() => t.classList.remove('show'), 2800);
 }
+
+const PRIVATE_PHOTO_API_URL = gasUrl;
+
+const PRIVATE_PHOTO_MAX_BYTES = 8 * 1024 * 1024;
+const PRIVATE_PHOTO_MAX_BASE64 = Math.ceil(PRIVATE_PHOTO_MAX_BYTES / 3) * 4;
+const PRIVATE_PHOTO_VIEWS = new Map();
+
+function clearPrivatePhotoView_(container) {
+  const state = PRIVATE_PHOTO_VIEWS.get(container);
+  if (state) {
+    state.cancelled = true;
+    state.controller.abort();
+    state.urls.forEach(url => URL.revokeObjectURL(url));
+    state.urls.clear();
+    PRIVATE_PHOTO_VIEWS.delete(container);
+  }
+  if (container) container.replaceChildren();
+}
+
+function clearPrivatePhotoViews_() {
+  Array.from(PRIVATE_PHOTO_VIEWS.keys()).forEach(clearPrivatePhotoView_);
+}
+
+function privatePhotoBytes_(photo) {
+  if (!photo || !['image/jpeg','image/png'].includes(photo.mimeType) ||
+      typeof photo.base64 !== 'string' || !photo.base64 || photo.base64.length > PRIVATE_PHOTO_MAX_BASE64 ||
+      photo.base64.length % 4 || !/^[A-Za-z0-9+/]+={0,2}$/.test(photo.base64) ||
+      !Number.isInteger(photo.byteLength) || photo.byteLength <= 0 || photo.byteLength > PRIVATE_PHOTO_MAX_BYTES) throw new Error('invalid_image');
+  const binary = atob(photo.base64);
+  if (binary.length !== photo.byteLength || btoa(binary) !== photo.base64) throw new Error('invalid_image');
+  const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+  const valid = photo.mimeType === 'image/png'
+    ? bytes.length >= 45 && Array.from(bytes.slice(0,8)).join(',') === '137,80,78,71,13,10,26,10'
+    : bytes.length >= 16 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255 &&
+      bytes[bytes.length-2] === 255 && bytes[bytes.length-1] === 217;
+  if (!valid) throw new Error('invalid_image');
+  let width = 0, height = 0;
+  if (photo.mimeType === 'image/png') {
+    const u32 = at => bytes[at]*0x1000000+(bytes[at+1]<<16)+(bytes[at+2]<<8)+bytes[at+3];
+    width = u32(16); height = u32(20);
+  } else {
+    let pos = 2;
+    while (pos+4 < bytes.length) {
+      if (bytes[pos++] !== 255) throw new Error('invalid_image');
+      while (bytes[pos] === 255) pos++;
+      const marker = bytes[pos++], length = (bytes[pos]<<8)+bytes[pos+1];
+      if (length < 2 || pos+length > bytes.length) throw new Error('invalid_image');
+      if ([192,193,194].includes(marker)) {
+        height = (bytes[pos+3]<<8)+bytes[pos+4]; width = (bytes[pos+5]<<8)+bytes[pos+6]; break;
+      }
+      if (marker === 218 || marker === 217) break;
+      pos += length;
+    }
+  }
+  if (!width || !height || width > 8192 || height > 8192 || width*height > 16*1024*1024) throw new Error('invalid_image');
+  return bytes;
+}
+
+function privatePhotoFromDraft_(dataUrl) {
+  if (typeof dataUrl !== 'string' || dataUrl.length > PRIVATE_PHOTO_MAX_BASE64+64) throw new Error('invalid_image');
+  const match = dataUrl.match(/^data:(image\/(?:jpeg|png));base64,([A-Za-z0-9+/]+={0,2})$/);
+  if (!match) throw new Error('invalid_image');
+  const padding = match[2].endsWith('==') ? 2 : match[2].endsWith('=') ? 1 : 0;
+  return {mimeType:match[1], base64:match[2], byteLength:match[2].length/4*3-padding};
+}
+
+async function requestPrivatePhoto_(binding, signal) {
+  if (!AUTH_TOKEN) throw new Error('unauthorized');
+  if (!binding || typeof binding !== 'object' || !Number.isInteger(binding.slot) || binding.slot < 0 || binding.slot >= 100 ||
+      (!!binding.recordId === !!binding.partNo) || binding.fileId !== undefined || binding.url !== undefined) throw new Error('invalid_binding');
+  const request = {slot:binding.slot};
+  if (binding.recordId) request.recordId = String(binding.recordId);
+  else request.partNo = String(binding.partNo);
+  if (binding.collection !== undefined) request.collection = binding.collection;
+  const token = AUTH_TOKEN;
+  const response = await fetch(PRIVATE_PHOTO_API_URL, {
+    method:'POST', credentials:'omit', headers:{'Content-Type':'text/plain'}, cache:'no-store', signal,
+    body:JSON.stringify({...request, action:'getPhoto', token})
+  });
+  if (!response.ok) throw new Error('photo_unavailable');
+  const raw = await response.text();
+  if (raw.length > PRIVATE_PHOTO_MAX_BASE64+2048) throw new Error('photo_unavailable');
+  const result = JSON.parse(raw);
+  if (result && result.error === 'unauthorized') {
+    clearPrivatePhotoViews_();
+    if (typeof handleUnauthorized_ === 'function') handleUnauthorized_();
+    else { AUTH_TOKEN = ''; try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) {} }
+    throw new Error('unauthorized');
+  }
+  if (!result || result.ok !== true || !result.photo || token !== AUTH_TOKEN) throw new Error('photo_unavailable');
+  return result.photo;
+}
+
+async function renderPrivatePhotos_(container, items) {
+  if (!container) return;
+  clearPrivatePhotoView_(container);
+  const state = {cancelled:false, urls:new Set(), controller:new AbortController()};
+  PRIVATE_PHOTO_VIEWS.set(container, state);
+  if (!items.length) { container.textContent = '写真なし'; return; }
+  for (const item of items) {
+    if (state.cancelled) return;
+    const figure = document.createElement('figure');
+    figure.className = 'private-photo';
+    figure.style.cssText = 'display:inline-flex;flex-direction:column;gap:4px;margin:4px;max-width:100%;vertical-align:top';
+    const img = document.createElement('img');
+    img.alt = String(item.name || '写真');
+    img.style.cssText = 'width:240px;height:180px;max-width:100%;object-fit:contain';
+    const caption = document.createElement('figcaption');
+    caption.textContent = String(item.name || '写真');
+    const status = document.createElement('span');
+    status.setAttribute('role','status');
+    status.textContent = '写真を読み込み中...';
+    figure.append(img, caption, status);
+    container.appendChild(figure);
+    let url;
+    try {
+      if (!item.binding && !item.localDataUrl) throw new Error('save_before_view');
+      const photo = item.binding
+        ? await requestPrivatePhoto_(item.binding, state.controller.signal)
+        : privatePhotoFromDraft_(item.localDataUrl);
+      const bytes = privatePhotoBytes_(photo);
+      if (state.cancelled) return;
+      url = URL.createObjectURL(new Blob([bytes], {type:photo.mimeType}));
+      state.urls.add(url);
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('image_timeout')), 10000);
+        img.onload = () => {
+          clearTimeout(timer);
+          if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth > 8192 || img.naturalHeight > 8192 ||
+              img.naturalWidth * img.naturalHeight > 16*1024*1024) reject(new Error('invalid_image'));
+          else resolve();
+        };
+        img.onerror = () => { clearTimeout(timer); reject(new Error('invalid_image')); };
+        img.src = url;
+      });
+      if (state.cancelled) { img.removeAttribute('src'); return; }
+      status.textContent = '';
+    } catch (error) {
+      if (url) { URL.revokeObjectURL(url); state.urls.delete(url); }
+      img.removeAttribute('src');
+      if (!state.cancelled) status.textContent = error.message === 'save_before_view'
+        ? '保存後に写真を表示できます'
+        : '写真を表示できません（権限または画像を確認してください）';
+    }
+  }
+}
+window.addEventListener('pagehide', clearPrivatePhotoViews_);
+window.addEventListener('beforeunload', clearPrivatePhotoViews_);
+
 </script>
 </body>
 </html>
