@@ -1,7 +1,233 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-5KSTYknc6oIDlmbzxau0JAQvdbsAwfnub2IGCE3OGkE='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<script>/* MOGU_CSP_RUNTIME_V1 */
+const __moguCsp = (() => {
+  const handlers = {"h0": function(event, _p) { manualSyncSheet()
+},
+"h1": function(event, _p) { doLogoutAndClose()
+},
+"h2": function(event, _p) { sp('db',this)
+},
+"h3": function(event, _p) { sp('sh',this)
+},
+"h4": function(event, _p) { sp('emp',this)
+},
+"h5": function(event, _p) { sp('pl',this)
+},
+"h6": function(event, _p) { sp('vreq',this)
+},
+"h7": function(event, _p) { sp('otreq',this)
+},
+"h8": function(event, _p) { sp('hreq',this)
+},
+"h9": function(event, _p) { sp('ot',this)
+},
+"h10": function(event, _p) { sp('cal',this)
+},
+"h11": function(event, _p) { sp('st',this)
+},
+"h12": function(event, _p) { sp('vreq',document.querySelector('[data-csp-source-click*=vreq]'))
+},
+"h13": function(event, _p) { sp('otreq',document.querySelector('[data-csp-source-click*=otreq]'))
+},
+"h14": function(event, _p) { sp('hreq',document.querySelector('[data-csp-source-click*=hreq]'))
+},
+"h15": function(event, _p) { setD('all',this)
+},
+"h16": function(event, _p) { setD('製造部',this)
+},
+"h17": function(event, _p) { setD('生産管理部',this)
+},
+"h18": function(event, _p) { setD('品質保証部',this)
+},
+"h19": function(event, _p) { setD('派遣',this)
+},
+"h20": function(event, _p) { chM(-1)
+},
+"h21": function(event, _p) { chM(1)
+},
+"h22": function(event, _p) { applyBulk()
+},
+"h23": function(event, _p) { clearSel()
+},
+"h24": function(event, _p) { openAddEmp()
+},
+"h25": function(event, _p) { setED('all',this)
+},
+"h26": function(event, _p) { setED('製造部',this)
+},
+"h27": function(event, _p) { setED('生産管理部',this)
+},
+"h28": function(event, _p) { setED('品質保証部',this)
+},
+"h29": function(event, _p) { setED('派遣',this)
+},
+"h30": function(event, _p) { setPD('all',this)
+},
+"h31": function(event, _p) { setPD('製造部',this)
+},
+"h32": function(event, _p) { setPD('生産管理部',this)
+},
+"h33": function(event, _p) { setPD('品質保証部',this)
+},
+"h34": function(event, _p) { setPD('派遣',this)
+},
+"h35": function(event, _p) { calcVreqPreview()
+},
+"h36": function(event, _p) { submitVreq()
+},
+"h37": function(event, _p) { clearVreqForm()
+},
+"h38": function(event, _p) { setRF('all',this)
+},
+"h39": function(event, _p) { setRF('pending',this)
+},
+"h40": function(event, _p) { setRF('approved',this)
+},
+"h41": function(event, _p) { setRF('rejected',this)
+},
+"h42": function(event, _p) { setRF('cancelled',this)
+},
+"h43": function(event, _p) { calcOTReqPreview()
+},
+"h44": function(event, _p) { calcOTReqPreview()
+},
+"h45": function(event, _p) { calcOTReqPreview()
+},
+"h46": function(event, _p) { submitOTReq()
+},
+"h47": function(event, _p) { clearOTReqForm()
+},
+"h48": function(event, _p) { setOTRF('all',this)
+},
+"h49": function(event, _p) { setOTRF('pending',this)
+},
+"h50": function(event, _p) { setOTRF('approved',this)
+},
+"h51": function(event, _p) { setOTRF('rejected',this)
+},
+"h52": function(event, _p) { setOTRF('cancelled',this)
+},
+"h53": function(event, _p) { checkHreqDay()
+},
+"h54": function(event, _p) { calcHreqHours()
+},
+"h55": function(event, _p) { calcHreqHours()
+},
+"h56": function(event, _p) { submitHReq()
+},
+"h57": function(event, _p) { clearHReqForm()
+},
+"h58": function(event, _p) { setHRF('all',this)
+},
+"h59": function(event, _p) { setHRF('pending',this)
+},
+"h60": function(event, _p) { setHRF('approved',this)
+},
+"h61": function(event, _p) { setHRF('rejected',this)
+},
+"h62": function(event, _p) { setHRF('cancelled',this)
+},
+"h63": function(event, _p) { setOD('all',this)
+},
+"h64": function(event, _p) { setOD('製造部',this)
+},
+"h65": function(event, _p) { setOD('生産管理部',this)
+},
+"h66": function(event, _p) { setOD('品質保証部',this)
+},
+"h67": function(event, _p) { setOD('派遣',this)
+},
+"h68": function(event, _p) { chCalM(-1)
+},
+"h69": function(event, _p) { chCalM(1)
+},
+"h70": function(event, _p) { resetCalMonth()
+},
+"h71": function(event, _p) { manualSyncSheet()
+},
+"h72": function(event, _p) { loadSyncLog()
+},
+"h73": function(event, _p) { saveDeptSettings()
+},
+"h74": function(event, _p) { closeMod()
+},
+"h75": function(event, _p) { calcPTHours()
+},
+"h76": function(event, _p) { calcPTHours()
+},
+"h77": function(event, _p) { onShiftTypeChange()
+},
+"h78": function(event, _p) { closeMod()
+},
+"h79": function(event, _p) { saveSh()
+},
+"h80": function(event, _p) { closeEmod()
+},
+"h81": function(event, _p) { updateTeamOpts()
+},
+"h82": function(event, _p) { updateEtypeOpts()
+},
+"h83": function(event, _p) { togglePartTimeFields()
+},
+"h84": function(event, _p) { updatePTPreview()
+},
+"h85": function(event, _p) { updatePTPreview()
+},
+"h86": function(event, _p) { closeEmod()
+},
+"h87": function(event, _p) { saveEmp()
+},
+"h88": function(event, _p) { toggleCalDay(Number(_p[1]),Number(_p[2]),Number(_p[3]))
+}};
+  const events = ["click","change"];
+  const bound = new WeakMap();
+  function bind(el) {
+    if (!el || el.nodeType !== 1) return;
+    let state = bound.get(el); if (!state) { state = new Map(); bound.set(el, state); }
+    for (const type of events) {
+      const id = el.getAttribute('data-csp-' + type);
+      if (!id || state.get(type) === id) continue;
+      if (!Object.prototype.hasOwnProperty.call(handlers, id)) continue;
+      const fn = function(event) {
+        const value = this.getAttribute('data-csp-args-' + type);
+        const params = value ? JSON.parse(decodeURIComponent(value)) : [];
+        return handlers[id].call(this, event, params);
+      };
+      // Native event-handler properties preserve this/currentTarget, cancellation,
+      // async return behavior and later application assignments to .onclick etc.
+      el['on' + type] = fn;
+      state.set(type, id);
+    }
+  }
+  function scan(root) {
+    bind(root);
+    if (root.querySelectorAll) for (const el of root.querySelectorAll('*')) bind(el);
+  }
+  for (const type of events) document.addEventListener(type, event => {
+    for (const el of event.composedPath()) bind(el);
+  }, true);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') bind(record.target);
+      else for (const node of record.addedNodes) scan(node);
+    }
+  }).observe(document, {subtree:true, childList:true, attributes:true,
+    attributeFilter: events.map(type => 'data-csp-' + type)});
+  document.addEventListener('DOMContentLoaded', () => scan(document));
+  const encode = values => encodeURIComponent(JSON.stringify(values)).replace(/'/g, '%27');
+  function assign(el,type,id,values) {
+    el.setAttribute('data-csp-' + type,id);
+    el.setAttribute('data-csp-args-' + type,encode(values));
+    bind(el);
+  }
+  return Object.freeze({ encode, scan, assign });
+})();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>関ケ原プラ工業(株) シフト管理システム</title>
 <style>
@@ -346,22 +572,22 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
       <div><div class="tbco">関ケ原プラ工業(株) シフト管理</div><div class="tbmd" id="tbmd">管理者モード</div></div>
       <span id="sync-badge" style="display:none;font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600;margin-left:8px"></span>
       <span id="sync-info" style="font-size:9px;color:rgba(255,255,255,.6);margin-left:6px;display:none"></span>
-      <button onclick="manualSyncSheet()" style="font-size:10px;padding:3px 8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:5px;cursor:pointer;margin-left:4px" title="最新データに同期（手動）">🔄 同期</button>
+      <button data-csp-click="h0" data-csp-source-click="manualSyncSheet()" style="font-size:10px;padding:3px 8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:5px;cursor:pointer;margin-left:4px" title="最新データに同期（手動）">🔄 同期</button>
       <span id="auto-sync-badge" style="font-size:9px;color:rgba(255,255,255,.45);margin-left:4px" title="自動同期（1時間ごと）">⏱ 自動</span>
     </div>
-    <div class="tbr"><span class="rbg ra" id="rbg">管理者</span><button class="blo" onclick="doLogoutAndClose()">✕ タブを閉じる</button></div>
+    <div class="tbr"><span class="rbg ra" id="rbg">管理者</span><button class="blo" data-csp-click="h1" data-csp-source-click="doLogoutAndClose()">✕ タブを閉じる</button></div>
   </div>
   <div class="nav">
-    <div class="nt on" onclick="sp('db',this)">📊 ダッシュボード</div>
-    <div class="nt"    onclick="sp('sh',this)">📋 シフト表</div>
-    <div class="nt ao" onclick="sp('emp',this)">👥 従業員管理</div>
-    <div class="nt"    onclick="sp('pl',this)">🌿 有給管理</div>
-    <div class="nt"    onclick="sp('vreq',this)" id="nav-vreq">📝 有給申請<span class="badge-cnt hid" id="req-badge">0</span></div>
-    <div class="nt"    onclick="sp('otreq',this)" id="nav-otreq">⏱ 残業申請<span class="badge-cnt hid" id="otreq-badge">0</span></div>
-    <div class="nt"    onclick="sp('hreq',this)" id="nav-hreq">🏭 休日出勤申請<span class="badge-cnt hid" id="hreq-badge">0</span></div>
-    <div class="nt ao" onclick="sp('ot',this)">📊 残業管理</div>
-    <div class="nt ao" onclick="sp('cal',this)">📅 カレンダー設定</div>
-    <div class="nt ao" onclick="sp('st',this)">⚙ 設定</div>
+    <div class="nt on" data-csp-click="h2" data-csp-source-click="sp('db',this)">📊 ダッシュボード</div>
+    <div class="nt"    data-csp-click="h3" data-csp-source-click="sp('sh',this)">📋 シフト表</div>
+    <div class="nt ao" data-csp-click="h4" data-csp-source-click="sp('emp',this)">👥 従業員管理</div>
+    <div class="nt"    data-csp-click="h5" data-csp-source-click="sp('pl',this)">🌿 有給管理</div>
+    <div class="nt"    data-csp-click="h6" data-csp-source-click="sp('vreq',this)" id="nav-vreq">📝 有給申請<span class="badge-cnt hid" id="req-badge">0</span></div>
+    <div class="nt"    data-csp-click="h7" data-csp-source-click="sp('otreq',this)" id="nav-otreq">⏱ 残業申請<span class="badge-cnt hid" id="otreq-badge">0</span></div>
+    <div class="nt"    data-csp-click="h8" data-csp-source-click="sp('hreq',this)" id="nav-hreq">🏭 休日出勤申請<span class="badge-cnt hid" id="hreq-badge">0</span></div>
+    <div class="nt ao" data-csp-click="h9" data-csp-source-click="sp('ot',this)">📊 残業管理</div>
+    <div class="nt ao" data-csp-click="h10" data-csp-source-click="sp('cal',this)">📅 カレンダー設定</div>
+    <div class="nt ao" data-csp-click="h11" data-csp-source-click="sp('st',this)">⚙ 設定</div>
   </div>
   <div class="content">
 
@@ -374,13 +600,13 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
         <div class="mc"><div class="mv" id="m-ot" style="color:var(--r)">—</div><div class="ml" id="ml-ot">残業超過(42H)</div></div>
       </div>
       <div class="mgrid" style="grid-template-columns:repeat(3,1fr);margin-top:-4px">
-        <div class="mc" style="cursor:pointer;border-top:2px solid #d1fae5" onclick="sp('vreq',document.querySelector('[onclick*=vreq]'))" title="有給申請一覧へ">
+        <div class="mc" style="cursor:pointer;border-top:2px solid #d1fae5" data-csp-click="h12" data-csp-source-click="sp('vreq',document.querySelector('[onclick*=vreq]'))" title="有給申請一覧へ">
           <div class="mv" id="m-req" style="color:var(--a)">—</div><div class="ml">📝 有給申請待ち</div>
         </div>
-        <div class="mc" style="cursor:pointer;border-top:2px solid #fee2e2" onclick="sp('otreq',document.querySelector('[onclick*=otreq]'))" title="残業申請一覧へ">
+        <div class="mc" style="cursor:pointer;border-top:2px solid #fee2e2" data-csp-click="h13" data-csp-source-click="sp('otreq',document.querySelector('[onclick*=otreq]'))" title="残業申請一覧へ">
           <div class="mv" id="m-otreq" style="color:var(--r)">—</div><div class="ml">⏱ 残業申請待ち</div>
         </div>
-        <div class="mc" style="cursor:pointer;border-top:2px solid #fef3c7" onclick="sp('hreq',document.querySelector('[onclick*=hreq]'))" title="休日出勤申請一覧へ">
+        <div class="mc" style="cursor:pointer;border-top:2px solid #fef3c7" data-csp-click="h14" data-csp-source-click="sp('hreq',document.querySelector('[onclick*=hreq]'))" title="休日出勤申請一覧へ">
           <div class="mv" id="m-hreq" style="color:var(--a)">—</div><div class="ml">🏭 休出申請待ち</div>
         </div>
       </div>
@@ -392,16 +618,16 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
     <div class="pg" id="pg-sh">
       <div class="stbar">
         <div class="dtabs" id="dt">
-          <div class="dtab on" onclick="setD('all',this)">全体</div>
-          <div class="dtab" onclick="setD('製造部',this)">製造部</div>
-          <div class="dtab" onclick="setD('生産管理部',this)">生産管理部</div>
-          <div class="dtab" onclick="setD('品質保証部',this)">品質保証部</div>
-          <div class="dtab" onclick="setD('派遣',this)">派遣</div>
+          <div class="dtab on" data-csp-click="h15" data-csp-source-click="setD('all',this)">全体</div>
+          <div class="dtab" data-csp-click="h16" data-csp-source-click="setD('製造部',this)">製造部</div>
+          <div class="dtab" data-csp-click="h17" data-csp-source-click="setD('生産管理部',this)">生産管理部</div>
+          <div class="dtab" data-csp-click="h18" data-csp-source-click="setD('品質保証部',this)">品質保証部</div>
+          <div class="dtab" data-csp-click="h19" data-csp-source-click="setD('派遣',this)">派遣</div>
         </div>
         <div class="mnw">
-          <button class="mnb" onclick="chM(-1)">‹</button>
+          <button class="mnb" data-csp-click="h20" data-csp-source-click="chM(-1)">‹</button>
           <span class="mlbl" id="mlbl"></span>
-          <button class="mnb" onclick="chM(1)">›</button>
+          <button class="mnb" data-csp-click="h21" data-csp-source-click="chM(1)">›</button>
         </div>
       </div>
       <div class="bulk-bar hid" id="bulk-bar">
@@ -409,8 +635,8 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
         <select class="sel" id="bulk-type" style="font-size:11px">
           <option value="">─ シフト ─</option>
         </select>
-        <button class="btn pri sm" onclick="applyBulk()">一括適用</button>
-        <button class="btn sm" onclick="clearSel()">選択解除</button>
+        <button class="btn pri sm" data-csp-click="h22" data-csp-source-click="applyBulk()">一括適用</button>
+        <button class="btn sm" data-csp-click="h23" data-csp-source-click="clearSel()">選択解除</button>
       </div>
       <div class="leg">
         <div class="li"><div class="ld sA"></div>A勤</div><div class="li"><div class="ld sB"></div>B勤</div>
@@ -437,14 +663,14 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
     <!-- EMPLOYEE -->
     <div class="pg" id="pg-emp">
       <div class="stl">👥 従業員登録一覧
-        <button class="btn pri sm" style="margin-left:auto" onclick="openAddEmp()">＋ 追加</button>
+        <button class="btn pri sm" style="margin-left:auto" data-csp-click="h24" data-csp-source-click="openAddEmp()">＋ 追加</button>
       </div>
       <div class="dtabs" id="edt" style="margin-bottom:10px">
-        <div class="dtab on" onclick="setED('all',this)">全体</div>
-        <div class="dtab" onclick="setED('製造部',this)">製造部</div>
-        <div class="dtab" onclick="setED('生産管理部',this)">生産管理部</div>
-        <div class="dtab" onclick="setED('品質保証部',this)">品質保証部</div>
-        <div class="dtab" onclick="setED('派遣',this)">派遣</div>
+        <div class="dtab on" data-csp-click="h25" data-csp-source-click="setED('all',this)">全体</div>
+        <div class="dtab" data-csp-click="h26" data-csp-source-click="setED('製造部',this)">製造部</div>
+        <div class="dtab" data-csp-click="h27" data-csp-source-click="setED('生産管理部',this)">生産管理部</div>
+        <div class="dtab" data-csp-click="h28" data-csp-source-click="setED('品質保証部',this)">品質保証部</div>
+        <div class="dtab" data-csp-click="h29" data-csp-source-click="setED('派遣',this)">派遣</div>
       </div>
       <div class="card">
         <div class="tw"><table class="t">
@@ -463,11 +689,11 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
       <div class="notice">📌 <strong>労基法第39条：</strong>年10日以上付与の従業員は年5日以上の取得が義務付けられています。</div>
       <div id="pl-al" style="margin-bottom:10px"></div>
       <div class="dtabs" id="pdt" style="margin-bottom:10px">
-        <div class="dtab on" onclick="setPD('all',this)">全体</div>
-        <div class="dtab" onclick="setPD('製造部',this)">製造部</div>
-        <div class="dtab" onclick="setPD('生産管理部',this)">生産管理部</div>
-        <div class="dtab" onclick="setPD('品質保証部',this)">品質保証部</div>
-        <div class="dtab" onclick="setPD('派遣',this)">派遣</div>
+        <div class="dtab on" data-csp-click="h30" data-csp-source-click="setPD('all',this)">全体</div>
+        <div class="dtab" data-csp-click="h31" data-csp-source-click="setPD('製造部',this)">製造部</div>
+        <div class="dtab" data-csp-click="h32" data-csp-source-click="setPD('生産管理部',this)">生産管理部</div>
+        <div class="dtab" data-csp-click="h33" data-csp-source-click="setPD('品質保証部',this)">品質保証部</div>
+        <div class="dtab" data-csp-click="h34" data-csp-source-click="setPD('派遣',this)">派遣</div>
       </div>
       <div class="card">
         <div class="tw"><table class="t">
@@ -492,7 +718,7 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
           <div class="req-row" id="vreq-target-row" style="display:none">
             <div class="req-lbl">申請対象者</div>
             <div class="req-ctrl">
-              <select class="req-inp" id="vreq-target" onchange="calcVreqPreview()"></select>
+              <select class="req-inp" id="vreq-target" data-csp-change="h35" data-csp-source-change="calcVreqPreview()"></select>
               <div style="font-size:10px;color:var(--tx2);margin-top:3px">管理者は代理申請が可能です</div>
             </div>
           </div>
@@ -536,19 +762,19 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
           </div>
           <div id="vreq-remain-preview" style="margin-bottom:10px"></div>
           <div style="display:flex;gap:8px">
-            <button class="btn pri" onclick="submitVreq()">申請する</button>
-            <button class="btn" onclick="clearVreqForm()">クリア</button>
+            <button class="btn pri" data-csp-click="h36" data-csp-source-click="submitVreq()">申請する</button>
+            <button class="btn" data-csp-click="h37" data-csp-source-click="clearVreqForm()">クリア</button>
           </div>
         </div>
       </div>
 
       <!-- フィルタ -->
       <div class="req-filter" id="vreq-filter">
-        <button class="rfbtn on" onclick="setRF('all',this)">すべて</button>
-        <button class="rfbtn" onclick="setRF('pending',this)">申請中</button>
-        <button class="rfbtn" onclick="setRF('approved',this)">承認済</button>
-        <button class="rfbtn" onclick="setRF('rejected',this)">却下</button>
-        <button class="rfbtn" onclick="setRF('cancelled',this)">取消済</button>
+        <button class="rfbtn on" data-csp-click="h38" data-csp-source-click="setRF('all',this)">すべて</button>
+        <button class="rfbtn" data-csp-click="h39" data-csp-source-click="setRF('pending',this)">申請中</button>
+        <button class="rfbtn" data-csp-click="h40" data-csp-source-click="setRF('approved',this)">承認済</button>
+        <button class="rfbtn" data-csp-click="h41" data-csp-source-click="setRF('rejected',this)">却下</button>
+        <button class="rfbtn" data-csp-click="h42" data-csp-source-click="setRF('cancelled',this)">取消済</button>
       </div>
 
       <!-- 申請一覧 -->
@@ -570,13 +796,13 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
           <div class="req-row" id="otreq-target-row" style="display:none">
             <div class="req-lbl">申請対象者</div>
             <div class="req-ctrl">
-              <select class="req-inp" id="otreq-target" onchange="calcOTReqPreview()"></select>
+              <select class="req-inp" id="otreq-target" data-csp-change="h43" data-csp-source-change="calcOTReqPreview()"></select>
               <div style="font-size:10px;color:var(--tx2);margin-top:3px">管理者は代理申請が可能です</div>
             </div>
           </div>
           <div class="req-row">
             <div class="req-lbl">対象日</div>
-            <div class="req-ctrl"><input type="date" class="req-inp" id="otreq-date" onchange="calcOTReqPreview()"></div>
+            <div class="req-ctrl"><input type="date" class="req-inp" id="otreq-date" data-csp-change="h44" data-csp-source-change="calcOTReqPreview()"></div>
           </div>
           <div class="req-row">
             <div class="req-lbl">勤務シフト</div>
@@ -593,7 +819,7 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
           <div class="req-row">
             <div class="req-lbl">残業時間</div>
             <div class="req-ctrl" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <select class="req-inp" id="otreq-hours" onchange="calcOTReqPreview()" style="width:130px">
+              <select class="req-inp" id="otreq-hours" data-csp-change="h45" data-csp-source-change="calcOTReqPreview()" style="width:130px">
                 <option value="0.5">0.5時間</option><option value="1">1時間</option>
                 <option value="1.5">1.5時間</option><option value="2" selected>2時間</option>
                 <option value="2.5">2.5時間</option><option value="3">3時間</option>
@@ -611,17 +837,17 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
           </div>
           <div id="otreq-month-preview" style="margin-bottom:10px"></div>
           <div style="display:flex;gap:8px">
-            <button class="btn pri" onclick="submitOTReq()">申請する</button>
-            <button class="btn" onclick="clearOTReqForm()">クリア</button>
+            <button class="btn pri" data-csp-click="h46" data-csp-source-click="submitOTReq()">申請する</button>
+            <button class="btn" data-csp-click="h47" data-csp-source-click="clearOTReqForm()">クリア</button>
           </div>
         </div>
       </div>
       <div class="req-filter" id="otreq-filter">
-        <button class="rfbtn on" onclick="setOTRF('all',this)">すべて</button>
-        <button class="rfbtn" onclick="setOTRF('pending',this)">申請中</button>
-        <button class="rfbtn" onclick="setOTRF('approved',this)">承認済</button>
-        <button class="rfbtn" onclick="setOTRF('rejected',this)">却下</button>
-        <button class="rfbtn" onclick="setOTRF('cancelled',this)">取消済</button>
+        <button class="rfbtn on" data-csp-click="h48" data-csp-source-click="setOTRF('all',this)">すべて</button>
+        <button class="rfbtn" data-csp-click="h49" data-csp-source-click="setOTRF('pending',this)">申請中</button>
+        <button class="rfbtn" data-csp-click="h50" data-csp-source-click="setOTRF('approved',this)">承認済</button>
+        <button class="rfbtn" data-csp-click="h51" data-csp-source-click="setOTRF('rejected',this)">却下</button>
+        <button class="rfbtn" data-csp-click="h52" data-csp-source-click="setOTRF('cancelled',this)">取消済</button>
       </div>
       <div id="otreq-list"></div>
     </div>
@@ -648,16 +874,16 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
           <div class="req-row">
             <div class="req-lbl">出勤日</div>
             <div class="req-ctrl">
-              <input type="date" class="req-inp" id="hreq-date" onchange="checkHreqDay()">
+              <input type="date" class="req-inp" id="hreq-date" data-csp-change="h53" data-csp-source-change="checkHreqDay()">
               <div id="hreq-day-check" style="font-size:11px;margin-top:4px"></div>
             </div>
           </div>
           <div class="req-row">
             <div class="req-lbl">出勤時間</div>
             <div class="req-ctrl" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <input type="time" class="req-inp" id="hreq-start" value="08:00" style="width:110px" onchange="calcHreqHours()">
+              <input type="time" class="req-inp" id="hreq-start" value="08:00" style="width:110px" data-csp-change="h54" data-csp-source-change="calcHreqHours()">
               <span style="font-size:12px;color:var(--tx2)">〜</span>
-              <input type="time" class="req-inp" id="hreq-end" value="17:00" style="width:110px" onchange="calcHreqHours()">
+              <input type="time" class="req-inp" id="hreq-end" value="17:00" style="width:110px" data-csp-change="h55" data-csp-source-change="calcHreqHours()">
               <div id="hreq-hours-preview" style="font-size:11px;color:var(--tx2)"></div>
             </div>
           </div>
@@ -675,17 +901,17 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
             </div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn pri" onclick="submitHReq()">申請する</button>
-            <button class="btn" onclick="clearHReqForm()">クリア</button>
+            <button class="btn pri" data-csp-click="h56" data-csp-source-click="submitHReq()">申請する</button>
+            <button class="btn" data-csp-click="h57" data-csp-source-click="clearHReqForm()">クリア</button>
           </div>
         </div>
       </div>
       <div class="req-filter" id="hreq-filter">
-        <button class="rfbtn on" onclick="setHRF('all',this)">すべて</button>
-        <button class="rfbtn" onclick="setHRF('pending',this)">申請中</button>
-        <button class="rfbtn" onclick="setHRF('approved',this)">承認済</button>
-        <button class="rfbtn" onclick="setHRF('rejected',this)">却下</button>
-        <button class="rfbtn" onclick="setHRF('cancelled',this)">取消済</button>
+        <button class="rfbtn on" data-csp-click="h58" data-csp-source-click="setHRF('all',this)">すべて</button>
+        <button class="rfbtn" data-csp-click="h59" data-csp-source-click="setHRF('pending',this)">申請中</button>
+        <button class="rfbtn" data-csp-click="h60" data-csp-source-click="setHRF('approved',this)">承認済</button>
+        <button class="rfbtn" data-csp-click="h61" data-csp-source-click="setHRF('rejected',this)">却下</button>
+        <button class="rfbtn" data-csp-click="h62" data-csp-source-click="setHRF('cancelled',this)">取消済</button>
       </div>
       <div id="hreq-list"></div>
     </div>
@@ -697,11 +923,11 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
       </div>
       <div class="al ai" style="margin-bottom:10px">ℹ 社内上限: <strong>42H/月</strong>　法定: 月45H・年360H（特別条項:月100H未満）　※残業はシフト編集時に個別入力</div>
       <div class="dtabs" id="odt" style="margin-bottom:10px">
-        <div class="dtab on" onclick="setOD('all',this)">全体</div>
-        <div class="dtab" onclick="setOD('製造部',this)">製造部</div>
-        <div class="dtab" onclick="setOD('生産管理部',this)">生産管理部</div>
-        <div class="dtab" onclick="setOD('品質保証部',this)">品質保証部</div>
-        <div class="dtab" onclick="setOD('派遣',this)">派遣</div>
+        <div class="dtab on" data-csp-click="h63" data-csp-source-click="setOD('all',this)">全体</div>
+        <div class="dtab" data-csp-click="h64" data-csp-source-click="setOD('製造部',this)">製造部</div>
+        <div class="dtab" data-csp-click="h65" data-csp-source-click="setOD('生産管理部',this)">生産管理部</div>
+        <div class="dtab" data-csp-click="h66" data-csp-source-click="setOD('品質保証部',this)">品質保証部</div>
+        <div class="dtab" data-csp-click="h67" data-csp-source-click="setOD('派遣',this)">派遣</div>
       </div>
       <div class="ot-grid" id="ot-cards"></div>
       <div class="card">
@@ -722,10 +948,10 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
         ℹ <strong>基本:</strong> 土日は休日。土曜日をクリックして「出勤日」に設定するか、任意の日を「会社休日」に設定できます。設定はシフト表の列色に反映されます。
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-        <button class="mnb" onclick="chCalM(-1)">‹</button>
+        <button class="mnb" data-csp-click="h68" data-csp-source-click="chCalM(-1)">‹</button>
         <span class="mlbl" id="cal-mlbl" style="font-size:15px;min-width:100px"></span>
-        <button class="mnb" onclick="chCalM(1)">›</button>
-        <button class="btn sm" onclick="resetCalMonth()">今月リセット</button>
+        <button class="mnb" data-csp-click="h69" data-csp-source-click="chCalM(1)">›</button>
+        <button class="btn sm" data-csp-click="h70" data-csp-source-click="resetCalMonth()">今月リセット</button>
       </div>
       <div class="cal-legend" style="margin-bottom:12px">
         <div class="cl-item"><div class="cl-dot" style="background:#f1f5f9;border:1px solid #cfd9e6"></div>通常日</div>
@@ -757,8 +983,8 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
             <span id="auto-sync-status" style="font-size:10px;color:var(--g);display:flex;align-items:center;gap:4px">
               <span class="auto-sync-dot"></span>自動同期 ON（1時間ごと）
             </span>
-            <button class="btn sm pri" onclick="manualSyncSheet()">🔄 今すぐ同期</button>
-            <button class="btn sm" onclick="loadSyncLog()">📋 ログ更新</button>
+            <button class="btn sm pri" data-csp-click="h71" data-csp-source-click="manualSyncSheet()">🔄 今すぐ同期</button>
+            <button class="btn sm" data-csp-click="h72" data-csp-source-click="loadSyncLog()">📋 ログ更新</button>
           </div>
         </div>
         <div style="font-size:11px;color:var(--tx2);margin-bottom:8px">
@@ -771,7 +997,7 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
       <div class="card">
         <div class="stl">🏢 部署・チーム設定</div>
         <div id="dept-setting"></div>
-        <button class="btn pri sm" style="margin-top:10px" onclick="saveDeptSettings()">保存</button>
+        <button class="btn pri sm" style="margin-top:10px" data-csp-click="h73" data-csp-source-click="saveDeptSettings()">保存</button>
       </div>
       <div class="card">
         <div class="stl">🔧 勤務体制</div>
@@ -799,7 +1025,7 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
     <!-- タイトル＋閉じるボタン -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div class="mttl" style="margin-bottom:0">✏ <span id="mttl">シフト編集</span></div>
-      <button onclick="closeMod()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx2);line-height:1;padding:0 2px">✕</button>
+      <button data-csp-click="h74" data-csp-source-click="closeMod()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx2);line-height:1;padding:0 2px">✕</button>
     </div>
     <div class="mr"><span class="mlb">対象者</span><select class="msel" id="memp"></select></div>
     <!-- パート・アルバイト専用：個別勤務時間 -->
@@ -807,17 +1033,17 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
       <div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:8px">🕐 この日の勤務時間（パート・アルバイト）</div>
       <div class="mr" style="margin-bottom:7px">
         <span class="mlb" style="font-size:11px;min-width:50px">開始</span>
-        <input class="msel" id="m-start" type="time" style="flex:1" onchange="calcPTHours()">
+        <input class="msel" id="m-start" type="time" style="flex:1" data-csp-change="h75" data-csp-source-change="calcPTHours()">
       </div>
       <div class="mr" style="margin-bottom:7px">
         <span class="mlb" style="font-size:11px;min-width:50px">終了</span>
-        <input class="msel" id="m-end" type="time" style="flex:1" onchange="calcPTHours()">
+        <input class="msel" id="m-end" type="time" style="flex:1" data-csp-change="h76" data-csp-source-change="calcPTHours()">
       </div>
       <div id="pt-hours-calc" style="font-size:11px;font-weight:600;color:#166534;margin-bottom:4px"></div>
       <div style="font-size:10px;color:var(--tx2)">※ 休憩時間は含みません</div>
     </div>
     <div class="mr"><span class="mlb">シフト区分</span>
-      <select class="msel" id="mtype" onchange="onShiftTypeChange()">
+      <select class="msel" id="mtype" data-csp-change="h77" data-csp-source-change="onShiftTypeChange()">
         <option value="A">A勤 (8:00〜20:00)</option><option value="B">B勤 (8:00〜17:00)</option>
         <option value="C">C勤 (21:00〜翌8:00)</option><option value="D">D勤 (8:00〜18:00)</option>
         <option value="E">E勤 (17:00〜翌2:00)</option><option value="F">F勤 (20:00〜翌5:00)</option>
@@ -842,8 +1068,8 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
       <div id="ot-month-preview" style="font-size:10px;color:var(--a);margin-top:5px;font-weight:600"></div>
     </div>
     <div class="mbtns">
-      <button class="mbtn" onclick="closeMod()">キャンセル</button>
-      <button class="mbtn p" onclick="saveSh()">保存</button>
+      <button class="mbtn" data-csp-click="h78" data-csp-source-click="closeMod()">キャンセル</button>
+      <button class="mbtn p" data-csp-click="h79" data-csp-source-click="saveSh()">保存</button>
     </div>
   </div>
 </div>
@@ -853,23 +1079,23 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
   <div class="mod" style="max-width:min(520px,calc(100vw - 20px))">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div class="mttl" style="margin-bottom:0">👤 <span id="emttl">従業員追加</span></div>
-      <button onclick="closeEmod()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx2);line-height:1;padding:0 2px">✕</button>
+      <button data-csp-click="h80" data-csp-source-click="closeEmod()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx2);line-height:1;padding:0 2px">✕</button>
     </div>
     <div class="mr"><span class="mlb">氏名</span><input class="msel" id="e-name" placeholder="例: 山田 太郎"></div>
     <div class="mr"><span class="mlb">部署</span>
-      <select class="msel" id="e-dept" onchange="updateTeamOpts()">
+      <select class="msel" id="e-dept" data-csp-change="h81" data-csp-source-change="updateTeamOpts()">
         <option>製造部</option><option>生産管理部</option><option>品質保証部</option><option>派遣</option>
       </select></div>
     <div class="mr"><span class="mlb">チーム</span><select class="msel" id="e-team"></select></div>
     <div class="mr"><span class="mlb">勤続年数</span><input class="msel" id="e-years" type="number" min="0" step="0.5" placeholder="0"></div>
     <div class="mr"><span class="mlb">雇用区分</span>
-      <select class="msel" id="e-ecat" onchange="updateEtypeOpts()">
+      <select class="msel" id="e-ecat" data-csp-change="h82" data-csp-source-change="updateEtypeOpts()">
         <option value="無期雇用">無期雇用</option>
         <option value="有期雇用">有期雇用</option>
         <option value="派遣">派遣</option>
       </select></div>
     <div class="mr" id="e-etype-row"><span class="mlb">雇用形態</span>
-      <select class="msel" id="e-etype" onchange="togglePartTimeFields()">
+      <select class="msel" id="e-etype" data-csp-change="h83" data-csp-source-change="togglePartTimeFields()">
         <option>正社員</option><option>嘱託社員</option>
       </select></div>
     <!-- パート・アルバイト専用：デフォルト勤務時間 -->
@@ -878,23 +1104,75 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
       <div style="font-size:10px;color:#166534;margin-bottom:8px">この従業員の標準勤務時間を設定します。シフト登録時にこの時間が初期値として入ります（個別変更も可能）。</div>
       <div class="mr" style="margin-bottom:7px">
         <span class="mlb" style="font-size:11px;min-width:50px">開始</span>
-        <input class="msel" id="e-start" type="time" value="09:00" style="flex:1" onchange="updatePTPreview()">
+        <input class="msel" id="e-start" type="time" value="09:00" style="flex:1" data-csp-change="h84" data-csp-source-change="updatePTPreview()">
       </div>
       <div class="mr" style="margin-bottom:7px">
         <span class="mlb" style="font-size:11px;min-width:50px">終了</span>
-        <input class="msel" id="e-end" type="time" value="15:00" style="flex:1" onchange="updatePTPreview()">
+        <input class="msel" id="e-end" type="time" value="15:00" style="flex:1" data-csp-change="h85" data-csp-source-change="updatePTPreview()">
       </div>
       <div id="pt-hours-preview" style="font-size:11px;font-weight:600;color:#166534;text-align:right"></div>
     </div>
-    <div class="mr"><span class="mlb">パスワード</span><input class="msel" id="e-pw" placeholder="初期: 1234"></div>
     <div class="mbtns">
-      <button class="mbtn" onclick="closeEmod()">キャンセル</button>
-      <button class="mbtn p" onclick="saveEmp()">保存</button>
+      <button class="mbtn" data-csp-click="h86" data-csp-source-click="closeEmod()">キャンセル</button>
+      <button class="mbtn p" data-csp-click="h87" data-csp-source-click="saveEmp()">保存</button>
     </div>
   </div>
 </div>
 
 <script>
+document.addEventListener('click', event => {
+  const el = event.target.closest('[data-shift-action]');
+  if (!el) return;
+  const actions = { openEditEmp, delEmp, approveReq, rejectReq, cancelReq, approveOTReq, rejectOTReq, cancelOTReq, approveHReq, rejectHReq, cancelHReq, editFurikae, deleteCalDay };
+  if (el.dataset.shiftAction === 'cell') return onCell(event, el.dataset.eid, el.dataset.dk);
+  if (Object.prototype.hasOwnProperty.call(actions, el.dataset.shiftAction)) actions[el.dataset.shiftAction](el.dataset.id);
+});
+document.addEventListener('change', event => {
+  const el = event.target.closest('[data-shift-change]');
+  if (!el) return;
+  const actions = { chEmpDept, chEmpTeam, chEmpYears, chEmpAL };
+  if (Object.prototype.hasOwnProperty.call(actions, el.dataset.shiftChange)) actions[el.dataset.shiftChange](el.dataset.id, el.value);
+});
+for (const type of ['dragstart','dragover','dragleave','drop']) document.addEventListener(type, event => {
+  const el = event.target.closest('[data-shift-drag]');
+  if (!el) return;
+  if (type === 'dragstart') onDragStart(event, el.dataset.eid, el.dataset.dk);
+  if (type === 'dragover') onDragOver(event);
+  if (type === 'dragleave') onDragLeave(event);
+  if (type === 'drop') onDrop(event, el.dataset.eid, el.dataset.dk);
+});
+
+
+// Business drafts are page-memory only. SSO tokens stay in sessionStorage;
+// static HTML/GAS cannot issue HttpOnly cookies.
+const pageMemoryStorage = (() => {
+  const entries = new Map();
+  return {
+    getItem: key => entries.has(key) ? entries.get(key) : null,
+    setItem: (key, value) => entries.set(key, String(value)),
+    removeItem: key => entries.delete(key),
+    clear: () => entries.clear()
+  };
+})();
+function clearBrowserBusinessData_() {
+  pageMemoryStorage.clear();
+  const known = new Set(['kpk_app_perms', 'kpk_shift_employees', 'kpk_shift_data',
+    'kpk_cal_special', 'kpk_data_ver', 'kpk_session', 'kpk_vac_req', 'kpk_ot_req',
+    'kpk_h_req', 'kpk_sync_log', 'sakugyo_wip_backup', 'inv_current_user',
+    'inv_sat_v2', 'inv_portal_url', 'inv_gas_url', 'inv_master_url',
+    'sakugyo_portal_url', 'daily_report_portal_url']);
+  for (const name of ['localStorage', 'sessionStorage']) {
+    try {
+      const storage = window[name];
+      for (let i = storage.length - 1; i >= 0; i--) {
+        const key = storage.key(i);
+        if (known.has(key) || (key && key.startsWith('inv_sat_v2_'))) storage.removeItem(key);
+      }
+    } catch (e) {}
+  }
+}
+clearBrowserBusinessData_();
+
 // ══════════════════════════════
 //  CONSTANTS & MASTER
 // ══════════════════════════════
@@ -978,10 +1256,14 @@ function getDayType(y,m,d){
 // ══ EMPLOYEES ══
 let EMPLOYEES = [];
 let _eid = 1;
+function withoutEmployeePassword_(employee) {
+  const { pw, password, ...publicEmployee } = employee;
+  return publicEmployee;
+}
 function mkEmp(name,dept,team,years,ecat,etype,ptStart,ptEnd){
   const id='emp'+String(_eid++).padStart(3,'0');
   return{id,name,dept,team,years,ecat,etype,
-    ptStart:ptStart||'09:00',ptEnd:ptEnd||'15:00',pw:'1234'};
+    ptStart:ptStart||'09:00',ptEnd:ptEnd||'15:00'};
 }
 // ※ 従業員は「従業員管理」画面から登録してください
 
@@ -1013,7 +1295,6 @@ function getEmpOrCurrent(targetId) {
       ptStart: '09:00',
       ptEnd:   '18:00',
       al:      10,
-      pw:      ''
     };
     // 仮データをEMPLOYEESに追加して次回から使えるようにする
     EMPLOYEES.push(emp);
@@ -1108,10 +1389,17 @@ function notifyOffline() {
 }
 
 function doLogout(){
+  clearBrowserBusinessData_();
+  EMPLOYEES.length = 0;
+  Object.keys(SHIFTS).forEach(key => delete SHIFTS[key]);
+  CAL_SPECIAL = {};
+  VAC_REQUESTS.length = 0; OT_REQUESTS.length = 0; H_REQUESTS.length = 0;
+  _syncLog = [];
+  if (_saveTimer) clearTimeout(_saveTimer);
   notifyOffline();
   cUser=null;isA=false;
   // セッション・トークンを破棄（次回はポータルからの入場が必要）
-  try { localStorage.removeItem(LS_USER); } catch(e) {}
+  try { pageMemoryStorage.removeItem(LS_USER); } catch(e) {}
   try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
   AUTH_TOKEN = null;
   document.getElementById('lw').classList.remove('hid');
@@ -1123,9 +1411,16 @@ window.addEventListener('beforeunload', notifyOffline);
 window.addEventListener('pagehide', notifyOffline);
 
   function doLogoutAndClose() {
+  clearBrowserBusinessData_();
+  EMPLOYEES.length = 0;
+  Object.keys(SHIFTS).forEach(key => delete SHIFTS[key]);
+  CAL_SPECIAL = {};
+  VAC_REQUESTS.length = 0; OT_REQUESTS.length = 0; H_REQUESTS.length = 0;
+  _syncLog = [];
+  if (_saveTimer) clearTimeout(_saveTimer);
   notifyOffline();
   cUser = null; isA = false;
-  try { localStorage.removeItem(LS_USER); } catch(e) {}
+  try { pageMemoryStorage.removeItem(LS_USER); } catch(e) {}
   try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
   AUTH_TOKEN = null;
   try {
@@ -1152,7 +1447,7 @@ function launch(){
   restoreSyncLog(); // ログ復元
   startAutoSync(); // 自動同期タイマー開始
   // ログインセッションをlocalStorageに保存（リロード後も維持）
-  try { localStorage.setItem(LS_USER, JSON.stringify({ user: cUser, isA })); } catch(e) {}
+
 }
 function sp(pg,el){
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
@@ -1173,7 +1468,7 @@ function rDB(){
     const s=(SHIFTS[e.id]||{})[k]||{type:'OFF',ot:0};
     const st=SHIFT_DEF[s.type]||SHIFT_DEF.OFF;
     const w=s.type!=='OFF'&&s.type!=='VAC';if(w)wk++;
-    const oStr=s.ot>0?` <span style="font-size:9px;background:#fff7db;color:#b07000;padding:1px 4px;border-radius:3px">残業${s.ot}H</span>`:'';
+    const oStr=s.ot>0?` <span style="font-size:9px;background:#fff7db;color:#b07000;padding:1px 4px;border-radius:3px">残業${escapeHtml(s.ot)}H</span>`:'';
     const isMe=cUser&&String(e.id)===String(cUser.id);
     h+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)${isMe?';background:#fffbea;border-radius:4px;padding:5px 6px':''}">
       <div style="width:28px;height:28px;border-radius:50%;background:var(--bbg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--b);flex-shrink:0">${escapeHtml(e.name.charAt(0))}</div>
@@ -1297,9 +1592,9 @@ function rSh(){
 
 function buildRow(e,days,tdk){
   const isMe=cUser&&String(e.id)===String(cUser.id);
-  let r=`<tr data-eid="${e.id}"${isMe?' style="background:#fffbea"':''}>
+  let r=`<tr data-eid="${escapeAttr(e.id)}"${isMe?' style="background:#fffbea"':''}>
     <td class="fx">${escapeHtml(e.name)}${isMe?' <span style="font-size:8px;color:var(--a)">▶</span>':''}</td>
-    <td class="fx2">${e.team}</td>`;
+    <td class="fx2">${escapeHtml(e.team)}</td>`;
   let vc=0,nc=0,otH=0;
   let prevM=-1;
   days.forEach(({y,m,d})=>{
@@ -1331,14 +1626,14 @@ function buildRow(e,days,tdk){
     // 月の変わり目にボーダー
     const bdrStyle=(m!==prevM&&prevM!==-1)?'border-left:2px solid var(--pr)':'';
     prevM=m;
-    const dndAttr=isA?`draggable="true" ondragstart="onDragStart(event,'${e.id}','${k}')" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${e.id}','${k}')"`:'' ;
+    const dndAttr=isA?`draggable="true" data-shift-drag="true"`:'' ;
     const scStyle=(s.type==='P'||(isPT(emp)&&s.type!=='OFF'&&s.type!=='VAC'))?'style="font-size:8px;min-width:50px;letter-spacing:-0.3px"':'';
     r+=`<td class="${tdCls}" style="${bdrStyle}">
-      <span class="${cls}" data-eid="${e.id}" data-dk="${k}"
+      <span class="${cls}" data-eid="${escapeAttr(e.id)}" data-dk="${escapeAttr(k)}"
         ${dndAttr}
-        onclick="onCell(event,'${e.id}','${k}')"
+        data-shift-action="cell"
         ${scStyle}
-      >${cellLabel}${s.type!=='OFF'&&s.type!=='VAC'&&s.ot>0?`<br><span style="font-size:7px">+${s.ot}H</span>`:''}</span></td>`;
+      >${escapeHtml(cellLabel)}${s.type!=='OFF'&&s.type!=='VAC'&&s.ot>0?`<br><span style="font-size:7px">+${escapeHtml(s.ot)}H</span>`:''}</span></td>`;
   });
   const otRnd=Math.round(otH*10)/10;
   const otCls=otRnd>OT_LIMIT?'style="color:var(--r);font-weight:700"':otRnd>OT_LIMIT*0.9?'style="color:var(--a);font-weight:600"':'';
@@ -1369,7 +1664,7 @@ function onCell(ev,eid,dk){
     const k=eid+'|'+dk;
     if(selCells.has(k))selCells.delete(k);else selCells.add(k);
     updBulkBar();
-    const sp=document.querySelector(`.sc[data-eid="${eid}"][data-dk="${dk}"]`);
+    const sp=Array.from(document.querySelectorAll('.sc[data-eid][data-dk]')).find(el => el.dataset.eid === eid && el.dataset.dk === dk);
     if(sp)sp.classList.toggle('sel',selCells.has(k));
     return;
   }
@@ -1407,14 +1702,14 @@ function applyBulk(){
 function onDragStart(ev,eid,dk){
   const s=(SHIFTS[eid]||{})[dk]||{type:'OFF',ot:0};
   dragSrc={eid,dk,type:s.type,ot:s.ot,start:s.start,end:s.end};
-  ev.currentTarget.classList.add('dragging');
+  ev.target.closest('[data-shift-drag]').classList.add('dragging');
   ev.dataTransfer.effectAllowed='move';
   ev.dataTransfer.setData('text/plain',eid+'|'+dk);
 }
-function onDragOver(ev){ev.preventDefault();ev.dataTransfer.dropEffect='move';ev.currentTarget.classList.add('drag-over');}
-function onDragLeave(ev){ev.currentTarget.classList.remove('drag-over');}
+function onDragOver(ev){ev.preventDefault();ev.dataTransfer.dropEffect='move';ev.target.closest('[data-shift-drag]').classList.add('drag-over');}
+function onDragLeave(ev){ev.target.closest('[data-shift-drag]').classList.remove('drag-over');}
 function onDrop(ev,toEid,toDk){
-  ev.preventDefault();ev.currentTarget.classList.remove('drag-over');
+  ev.preventDefault();ev.target.closest('[data-shift-drag]').classList.remove('drag-over');
   if(!dragSrc||!isA)return;
   const{eid:fE,dk:fD,type,ot,start,end}=dragSrc;
   if(fE===toEid&&fD===toDk){dragSrc=null;return;}
@@ -1475,7 +1770,7 @@ function updateOTPreview(){
 function openMod(eid,dk){
   edEid=eid;edDK=dk;
   const ev=visEmps();
-  document.getElementById('memp').innerHTML=ev.map(e=>`<option value="${e.id}"${e.id===eid?' selected':''}>${escapeHtml(e.name)}</option>`).join('');
+  document.getElementById('memp').innerHTML=ev.map(e=>`<option value="${escapeAttr(e.id)}"${e.id===eid?' selected':''}>${escapeHtml(e.name)}</option>`).join('');
   document.getElementById('memp').onchange=()=>{
     edEid=document.getElementById('memp').value;
     // 対象者変更時も時間エリアを再更新
@@ -1565,26 +1860,26 @@ function rEmp(){
   const ecatBadge={'無期雇用':'bg-g','有期雇用':'bg-a','派遣':'bg-p'};
   let html=emps.map(e=>{
     return`<tr>
-      <td style="color:var(--tx2);font-size:10px">${e.id}</td>
+      <td style="color:var(--tx2);font-size:10px">${escapeHtml(e.id)}</td>
       <td><strong>${escapeHtml(e.name)}</strong></td>
       <td>
-        <select onchange="chEmpDept('${e.id}',this.value)" style="font-size:11px;padding:2px 5px;border:1px solid var(--bd2);border-radius:4px;background:var(--sf)">
+        <select data-shift-change="chEmpDept" data-id="${escapeAttr(e.id)}" style="font-size:11px;padding:2px 5px;border:1px solid var(--bd2);border-radius:4px;background:var(--sf)">
           ${Object.keys(DEPT_STRUCT).map(d=>`<option${d===e.dept?' selected':''}>${escapeHtml(d)}</option>`).join('')}
         </select>
       </td>
       <td>
-        <select id="team-sel-${e.id}" onchange="chEmpTeam('${e.id}',this.value)" style="font-size:11px;padding:2px 5px;border:1px solid var(--bd2);border-radius:4px;background:var(--sf)">
+        <select id="team-sel-${escapeAttr(e.id)}" data-shift-change="chEmpTeam" data-id="${escapeAttr(e.id)}" style="font-size:11px;padding:2px 5px;border:1px solid var(--bd2);border-radius:4px;background:var(--sf)">
           ${(DEPT_STRUCT[e.dept]?.teams||[e.dept]).map(t=>`<option${t===e.team?' selected':''}>${escapeHtml(t)}</option>`).join('')}
         </select>
       </td>
-      <td><input type="number" value="${Number(e.years)||0}" min="0" step="0.5" onchange="chEmpYears('${e.id}',this.value)" style="width:50px"></td>
+      <td><input type="number" value="${Number(e.years)||0}" min="0" step="0.5" data-shift-change="chEmpYears" data-id="${escapeAttr(e.id)}" style="width:50px"></td>
       <td><span class="badge ${ecatBadge[e.ecat]||'bg-gray'}" style="font-size:9px">${escapeHtml(e.ecat)}</span></td>
-      <td><span class="badge ${etBadge[e.etype]||'bg-gray'}" style="font-size:9px">${e.etype}</span></td>
-      <td>${isPT(e)?`<span style="font-size:11px;font-weight:600;color:#166534;background:#f0fdf4;padding:2px 7px;border-radius:4px;border:1px solid #86efac">${e.ptStart||'09:00'}〜${e.ptEnd||'15:00'}</span>`:'<span style="color:var(--tx3);font-size:11px">—</span>'}</td>
+      <td><span class="badge ${etBadge[e.etype]||'bg-gray'}" style="font-size:9px">${escapeHtml(e.etype)}</span></td>
+      <td>${isPT(e)?`<span style="font-size:11px;font-weight:600;color:#166534;background:#f0fdf4;padding:2px 7px;border-radius:4px;border:1px solid #86efac">${escapeHtml(e.ptStart||'09:00')}〜${escapeHtml(e.ptEnd||'15:00')}</span>`:'<span style="color:var(--tx3);font-size:11px">—</span>'}</td>
       <td>
         <div style="display:flex;align-items:center;gap:4px">
           <input type="number" value="${getAL(e)}" min="0" step="0.5"
-            onchange="chEmpAL('${e.id}',this.value)"
+            data-shift-change="chEmpAL" data-id="${escapeAttr(e.id)}"
             style="width:46px;font-size:11px;border:1px solid var(--bd2);border-radius:4px;padding:2px 4px;background:var(--sf);color:var(--tx)"
             title="有給残日数を手入力で変更できます">
           <span style="font-size:9px;color:var(--tx3)">日</span>
@@ -1592,8 +1887,8 @@ function rEmp(){
         </div>
       </td>
       <td style="white-space:nowrap">
-        <button class="btn sm" onclick="openEditEmp('${e.id}')">編集</button>
-        <button class="btn danger sm" onclick="delEmp('${e.id}')">削除</button>
+        <button class="btn sm" data-shift-action="openEditEmp" data-id="${escapeAttr(e.id)}">編集</button>
+        <button class="btn danger sm" data-shift-action="delEmp" data-id="${escapeAttr(e.id)}">削除</button>
       </td>
     </tr>`;
   }).join('');
@@ -1618,7 +1913,7 @@ function delEmp(eid){if(!confirm('削除しますか？'))return;const i=EMPLOYE
 function updateEtypeOpts(){
   const cat=document.getElementById('e-ecat').value;
   const opts=ETYPE_MAP[cat]||['正社員'];
-  document.getElementById('e-etype').innerHTML=opts.map(o=>`<option>${o}</option>`).join('');
+  document.getElementById('e-etype').innerHTML=opts.map(o=>`<option>${escapeHtml(o)}</option>`).join('');
   togglePartTimeFields();
 }
 function togglePartTimeFields(){
@@ -1644,7 +1939,7 @@ function updatePTPreview(){
 function updateTeamOpts(){
   const dept=document.getElementById('e-dept').value;
   const teams=(DEPT_STRUCT[dept]?.teams)||[dept];
-  document.getElementById('e-team').innerHTML=teams.map(t=>`<option>${t}</option>`).join('');
+  document.getElementById('e-team').innerHTML=teams.map(t=>`<option>${escapeHtml(t)}</option>`).join('');
 }
 function openAddEmp(){
   editingEmpId=null;
@@ -1655,7 +1950,6 @@ function openAddEmp(){
   document.getElementById('e-ecat').value='無期雇用';updateEtypeOpts();
   document.getElementById('e-start').value='09:00';
   document.getElementById('e-end').value='15:00';
-  document.getElementById('e-pw').value='1234';
   togglePartTimeFields();
   document.getElementById('emod').classList.remove('hid');
 }
@@ -1672,7 +1966,6 @@ function openEditEmp(eid){
   // パート・アルバイト用デフォルト時間
   document.getElementById('e-start').value=e.ptStart||'09:00';
   document.getElementById('e-end').value=e.ptEnd||'15:00';
-  document.getElementById('e-pw').value=e.pw;
   togglePartTimeFields();
   document.getElementById('emod').classList.remove('hid');
 }
@@ -1687,12 +1980,11 @@ function saveEmp(){
   const etype=document.getElementById('e-etype').value;
   const ptStart=document.getElementById('e-start').value||'09:00';
   const ptEnd=document.getElementById('e-end').value||'15:00';
-  const pw=document.getElementById('e-pw').value||'1234';
   if(editingEmpId){
     const e=EMPLOYEES.find(x=>x.id===editingEmpId);
-    if(e){e.name=name;e.dept=dept;e.team=team;e.years=years;e.ecat=ecat;e.etype=etype;e.ptStart=ptStart;e.ptEnd=ptEnd;e.pw=pw;}
+    if(e){e.name=name;e.dept=dept;e.team=team;e.years=years;e.ecat=ecat;e.etype=etype;e.ptStart=ptStart;e.ptEnd=ptEnd;}
   }else{
-    const e=mkEmp(name,dept,team,years,ecat,etype,ptStart,ptEnd);e.pw=pw;
+    const e=mkEmp(name,dept,team,years,ecat,etype,ptStart,ptEnd);
     EMPLOYEES.push(e);SHIFTS[e.id]={};
   }
   closeEmod();rEmp();rSh();rDB();
@@ -1807,14 +2099,8 @@ async function submitVreq(){
   clearVreqForm();
   rVreq();updVreqBadge();rDB();
 
-  // ★LINEWORKS通知（申請時→管理者へ）
-  sendShiftNotify('apply', {
-    name:   emp.name,
-    type:   '有給申請（' + type + '）',
-    date:   from + (to && to !== from ? '〜' + to : ''),
-    detail: reason || '理由なし'
-  });
-  alert(`✅ 有給申請を提出しました（${req.id}）\n${isA?escapeHtml(emp.name)+'の':''}申請が完了しました。`);
+  alert(`✅ 有給申請を提出しました（${req.id}）
+${isA?escapeHtml(emp.name)+'の':''}申請が完了しました。` + '\n' + notificationSummary_(cres.notification).text);
 }
 
 // 管理者操作
@@ -1849,17 +2135,7 @@ async function approveReq(id){
   rVreq();updVreqBadge();rSh();rPL();rDB();rEmp();
   persistData();scheduleSave();
 
-  // ★LINEWORKS通知（承認時→申請者へ）
-  const empNotifyV = EMPLOYEES.find(x => x.id === req.eid);
-  if (empNotifyV && empNotifyV.lwUserId) {
-    sendShiftNotify('approved', {
-      type:     '有給申請（' + req.type + '）',
-      date:     req.from + (req.to && req.to !== req.from ? '〜' + req.to : ''),
-      approver: cUser ? cUser.name : '管理者',
-      lwUserId: empNotifyV.lwUserId
-    });
-  }
-  alert(`✅ ${req.id} を承認しました。シフトに反映されました。`);
+  alert(`✅ ${req.id} を承認しました。シフトに反映されました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function rejectReq(id){
   const req=VAC_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
@@ -1871,17 +2147,7 @@ async function rejectReq(id){
   Object.assign(req,dres.request);
   rVreq();updVreqBadge();rDB();
 
-  // ★LINEWORKS通知（却下時→申請者へ）
-  const empNotifyVR = EMPLOYEES.find(x => x.id === req.eid);
-  if (empNotifyVR && empNotifyVR.lwUserId) {
-    sendShiftNotify('rejected', {
-      type:     '有給申請（' + req.type + '）',
-      date:     req.from + (req.to && req.to !== req.from ? '〜' + req.to : ''),
-      reason:   note,
-      lwUserId: empNotifyVR.lwUserId
-    });
-  }
-  alert(`❌ ${req.id} を却下しました。`);
+  alert(`❌ ${req.id} を却下しました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function cancelReq(id){
   const req=VAC_REQUESTS.find(r=>r.id===id);if(!req)return;
@@ -1930,7 +2196,7 @@ function rVreq(){
     if(targetRow)targetRow.style.display='';
     if(targetSel){
       targetSel.innerHTML=EMPLOYEES.length>0
-        ?EMPLOYEES.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}（${escapeHtml(e.dept)}）</option>`).join('')
+        ?EMPLOYEES.map(e=>`<option value="${escapeAttr(e.id)}">${escapeHtml(e.name)}（${escapeHtml(e.dept)}）</option>`).join('')
         :'<option value="">※先に従業員を登録してください</option>';
     }
   }else{
@@ -1967,12 +2233,12 @@ function rVreqList(){
     const isPending=req.status==='pending';
     // 管理者ボタン
     const adminBtns=isA&&isPending?
-      `<button class="btn pri sm" onclick="approveReq('${req.id}')">✓ 承認</button>
-       <button class="btn danger sm" onclick="rejectReq('${req.id}')">✗ 却下</button>`:'';
+      `<button class="btn pri sm" data-shift-action="approveReq" data-id="${escapeAttr(req.id)}">✓ 承認</button>
+       <button class="btn danger sm" data-shift-action="rejectReq" data-id="${escapeAttr(req.id)}">✗ 却下</button>`:'';
     // 取消：申請中は誰でも、承認済は管理者のみ
     const canCancel=isPending||(req.status==='approved'&&isA);
     const cancelBtn=canCancel?
-      `<button class="btn sm" onclick="cancelReq('${req.id}')" style="color:var(--r)">取消</button>`:'';
+      `<button class="btn sm" data-shift-action="cancelReq" data-id="${escapeAttr(req.id)}" style="color:var(--r)">取消</button>`:'';
     // 申請者名（管理者は誰の申請か表示）
     const nameArea=isA?`<span class="req-name">${escapeHtml(req.name)}</span><span style="font-size:10px;color:var(--tx2);margin-left:4px">(${escapeHtml(req.dept)})</span>`:'';
     return`<div class="req-card">
@@ -1982,7 +2248,7 @@ function rVreqList(){
         <span>${typeIcon[req.type]||'📋'}</span>
         <span class="req-date">${escapeHtml(dateStr)}${escapeHtml(timeStr)}</span>
         <span class="req-days">${Number(req.days)||0}日</span>
-        <span class="status-badge ${stCls[req.status]}">${stMap[req.status]}</span>
+        <span class="status-badge ${escapeHtml(stCls[req.status])}">${escapeHtml(stMap[req.status])}</span>
       </div>
       <div class="req-body">
         申請種別: <strong>${escapeHtml(req.type)}</strong>　申請日: ${escapeHtml(appliedDt)}
@@ -2058,25 +2324,9 @@ async function submitOTReq(){
   clearOTReqForm();
   rOTReq();updAllBadges();rDB();
 
-  // ★LINEWORKS通知（申請時→管理者へ）
-  sendShiftNotify('apply', {
-    name:   emp.name,
-    type:   '残業申請',
-    date:   date,
-    detail: shift + '勤 ' + hours + 'H　理由: ' + reason
-  });
 
-  // ★LINEWORKS通知（承認時→申請者へ）
-  const empNotifyO = EMPLOYEES.find(x => x.id === req.eid);
-  if (empNotifyO && empNotifyO.lwUserId) {
-    sendShiftNotify('approved', {
-      type:     '残業申請（' + req.shift + '勤 ' + req.hours + 'H）',
-      date:     req.date,
-      approver: cUser ? cUser.name : '管理者',
-      lwUserId: empNotifyO.lwUserId
-    });
-  }
-  alert(`✅ 残業申請を提出しました（${req.id}）\n管理者の承認をお待ちください。`);
+  alert(`✅ 残業申請を提出しました（${req.id}）
+管理者の承認をお待ちください。` + '\n' + notificationSummary_(cres.notification).text);
 }
 async function approveOTReq(id){
   const req=OT_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
@@ -2093,7 +2343,7 @@ async function approveOTReq(id){
   SHIFTS[req.eid][k]={...cur,type:req.shift,ot:req.hours,reqId:req.id};
   rOTReq();updAllBadges();rSh();rOT();rDB();
   persistData();scheduleSave(); // ★追加
-  alert(`✅ ${req.id} を承認しました。シフトの残業時間に反映されました。`);
+  alert(`✅ ${req.id} を承認しました。シフトの残業時間に反映されました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function rejectOTReq(id){
   const req=OT_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
@@ -2105,18 +2355,8 @@ async function rejectOTReq(id){
   Object.assign(req,dres.request);
   rOTReq();updAllBadges();rDB();
 
-  // ★LINEWORKS通知（却下時→申請者へ）
-  const empNotifyOR = EMPLOYEES.find(x => x.id === req.eid);
-  if (empNotifyOR && empNotifyOR.lwUserId) {
-    sendShiftNotify('rejected', {
-      type:     '残業申請（' + req.shift + '勤 ' + req.hours + 'H）',
-      date:     req.date,
-      reason:   note,
-      lwUserId: empNotifyOR.lwUserId
-    });
-  }
   persistData();scheduleSave(); // ★追加
-  alert(`❌ ${req.id} を却下しました。`);
+  alert(`❌ ${req.id} を却下しました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function cancelOTReq(id){
   const req=OT_REQUESTS.find(r=>r.id===id);if(!req)return;
@@ -2150,7 +2390,7 @@ function rOTReq(){
     if(targetRow)targetRow.style.display='';
     if(targetSel){
       targetSel.innerHTML=EMPLOYEES.length>0
-        ?EMPLOYEES.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}（${escapeHtml(e.dept)}）</option>`).join('')
+        ?EMPLOYEES.map(e=>`<option value="${escapeAttr(e.id)}">${escapeHtml(e.name)}（${escapeHtml(e.dept)}）</option>`).join('')
         :'<option value="">※先に従業員を登録してください</option>';
     }
   }else{
@@ -2179,9 +2419,9 @@ function rOTReqList(){
     const isPending=req.status==='pending';
     const nameArea=isA?`<span class="req-name">${escapeHtml(req.name)}</span><span style="font-size:10px;color:var(--tx2);margin-left:4px">(${escapeHtml(req.dept)})</span>`:'';
     const adminBtns=isA&&isPending?
-      `<button class="btn pri sm" onclick="approveOTReq('${req.id}')">✓ 承認</button>
-       <button class="btn danger sm" onclick="rejectOTReq('${req.id}')">✗ 却下</button>`:'';
-    const cancelBtn=(isPending||(req.status==='approved'&&isA))?`<button class="btn sm" onclick="cancelOTReq('${req.id}')" style="color:var(--r)">取消</button>`:'';
+      `<button class="btn pri sm" data-shift-action="approveOTReq" data-id="${escapeAttr(req.id)}">✓ 承認</button>
+       <button class="btn danger sm" data-shift-action="rejectOTReq" data-id="${escapeAttr(req.id)}">✗ 却下</button>`:'';
+    const cancelBtn=(isPending||(req.status==='approved'&&isA))?`<button class="btn sm" data-shift-action="cancelOTReq" data-id="${escapeAttr(req.id)}" style="color:var(--r)">取消</button>`:'';
     return`<div class="req-card" style="border-left:4px solid ${isPending?'#f0c040':req.status==='approved'?'#6ee7b7':'#fca5a5'}">
       <div class="req-header">
         ${nameArea}
@@ -2190,7 +2430,7 @@ function rOTReqList(){
         <span class="req-date">${escapeHtml(dateStr)}</span>
         <span class="req-days" style="background:#fee2e2;color:var(--r)">${Number(req.hours)||0}H残業</span>
         <span class="req-days">${escapeHtml(req.shift)}勤</span>
-        <span class="status-badge ${stCls[req.status]}">${stMap[req.status]}</span>
+        <span class="status-badge ${escapeHtml(stCls[req.status])}">${escapeHtml(stMap[req.status])}</span>
       </div>
       <div class="req-body">申請日: ${escapeHtml(appliedDt)}${reviewDt?`　査定日: ${escapeHtml(reviewDt)}`:''}${req.reviewedBy?`　<span style="font-size:10px;color:var(--tx2)">担当: <strong style="color:var(--pr)">${escapeHtml(req.reviewedBy)}</strong></span>`:''}</div>
       ${req.reason?`<div class="req-reason">理由: ${escapeHtml(req.reason)}</div>`:''}
@@ -2274,14 +2514,8 @@ async function submitHReq(){
   clearHReqForm();
   rHReq();updAllBadges();rDB();
 
-  // ★LINEWORKS通知（申請時→管理者へ）
-  sendShiftNotify('apply', {
-    name:   emp.name,
-    type:   '休日出勤申請',
-    date:   date,
-    detail: start + '〜' + end + '　業務: ' + reason
-  });
-  alert(`✅ 休日出勤申請を提出しました（${req.id}）\n管理者の承認をお待ちください。`);
+  alert(`✅ 休日出勤申請を提出しました（${req.id}）
+管理者の承認をお待ちください。` + '\n' + notificationSummary_(cres.notification).text);
 }
 async function approveHReq(id){
   const req=H_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
@@ -2304,17 +2538,7 @@ async function approveHReq(id){
   rHReq();updAllBadges();rSh();rOT();rDB();
   persistData();scheduleSave();
 
-  // ★LINEWORKS通知（承認時→申請者へ）
-  const empNotifyH = EMPLOYEES.find(x => x.id === req.eid);
-  if (empNotifyH && empNotifyH.lwUserId) {
-    sendShiftNotify('approved', {
-      type:     '休日出勤申請（' + req.start + '〜' + req.end + '）',
-      date:     req.date,
-      approver: cUser ? cUser.name : '管理者',
-      lwUserId: empNotifyH.lwUserId
-    });
-  }
-  alert(`✅ ${req.id} を承認しました。シフトに「休出」として反映されました。${req.furikae?'\n振替休日('+req.furikae+')もシフトに反映されました。':''}`);
+  alert(`✅ ${req.id} を承認しました。シフトに「休出」として反映されました。${req.furikae?'\n振替休日('+req.furikae+')もシフトに反映されました。':''}` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function rejectHReq(id){
   const req=H_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
@@ -2327,23 +2551,14 @@ async function rejectHReq(id){
   rHReq();updAllBadges();rDB();
   persistData();scheduleSave();
 
-  // ★LINEWORKS通知（却下時→申請者へ）
-  const empNotifyHR = EMPLOYEES.find(x => x.id === req.eid);
-  if (empNotifyHR && empNotifyHR.lwUserId) {
-    sendShiftNotify('rejected', {
-      type:     '休日出勤申請',
-      date:     req.date,
-      reason:   note,
-      lwUserId: empNotifyHR.lwUserId
-    });
-  }
-  alert(`❌ ${req.id} を却下しました。`);
+  alert(`❌ ${req.id} を却下しました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 // 振替休日の後日設定
 async function editFurikae(id){
   const req=H_REQUESTS.find(r=>r.id===id);
   if(!req||req.status!=='approved'){alert('承認済みの申請にのみ設定できます');return;}
-  const val=prompt(`${escapeHtml(req.name)} の振替休日を入力してください\n例: 2026-05-10`,'');
+  const val=prompt(`${escapeHtml(req.name)} の振替休日を入力してください
+例: 2026-05-10`,'');
   if(val===null)return;
   if(!val.trim()){alert('日付を入力してください');return;}
   const dt=new Date(val.trim());
@@ -2396,7 +2611,7 @@ function rHReq(){
     if(targetRow)targetRow.style.display='';
     if(targetSel){
       targetSel.innerHTML=EMPLOYEES.length>0
-        ?EMPLOYEES.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}（${escapeHtml(e.dept)}）</option>`).join('')
+        ?EMPLOYEES.map(e=>`<option value="${escapeAttr(e.id)}">${escapeHtml(e.name)}（${escapeHtml(e.dept)}）</option>`).join('')
         :'<option value="">※先に従業員を登録してください</option>';
     }
   }else{
@@ -2424,15 +2639,15 @@ function rHReqList(){
     const isPending=req.status==='pending';
     const nameArea=isA?`<span class="req-name">${escapeHtml(req.name)}</span><span style="font-size:10px;color:var(--tx2);margin-left:4px">(${escapeHtml(req.dept)})</span>`:'';
     const adminBtns=isA&&isPending?
-      `<button class="btn pri sm" onclick="approveHReq('${req.id}')">✓ 承認</button>
-       <button class="btn danger sm" onclick="rejectHReq('${req.id}')">✗ 却下</button>`:'';
+      `<button class="btn pri sm" data-shift-action="approveHReq" data-id="${escapeAttr(req.id)}">✓ 承認</button>
+       <button class="btn danger sm" data-shift-action="rejectHReq" data-id="${escapeAttr(req.id)}">✗ 却下</button>`:'';
     // 取消：申請中は誰でも、承認済は管理者のみ
     const canCancel=isPending||(req.status==='approved'&&isA);
-    const cancelBtn=canCancel?`<button class="btn sm" onclick="cancelHReq('${req.id}')" style="color:var(--r)">取消</button>`:'';
+    const cancelBtn=canCancel?`<button class="btn sm" data-shift-action="cancelHReq" data-id="${escapeAttr(req.id)}" style="color:var(--r)">取消</button>`:'';
     // 振替休日の後日設定：承認済で未定の場合のみ表示（管理者・本人）
     const canEditFurikae=req.status==='approved'&&!req.furikae&&(isA||req.eid===cUser?.id);
     const furikaeEditBtn=canEditFurikae
-      ?`<button class="btn sm" onclick="editFurikae('${req.id}')" style="color:var(--b);border-color:var(--b)">📅 振替休日を設定</button>`
+      ?`<button class="btn sm" data-shift-action="editFurikae" data-id="${escapeAttr(req.id)}" style="color:var(--b);border-color:var(--b)">📅 振替休日を設定</button>`
       :'';
     return`<div class="req-card" style="border-left:4px solid ${isPending?'#f0c040':req.status==='approved'?'#6ee7b7':'#fca5a5'}">
       <div class="req-header">
@@ -2442,7 +2657,7 @@ function rHReqList(){
         <span class="req-date">${escapeHtml(req.date)}（${dow}）</span>
         <span class="req-days" style="background:#fef3c7;color:#92400e">${escapeHtml(req.start)}〜${escapeHtml(req.end)}</span>
         <span class="req-days">${Number(req.hours)||0}H</span>
-        <span class="status-badge ${stCls[req.status]}">${stMap[req.status]}</span>
+        <span class="status-badge ${escapeHtml(stCls[req.status])}">${escapeHtml(stMap[req.status])}</span>
       </div>
       <div class="req-body">申請日: ${escapeHtml(appliedDt)}${reviewDt?`　査定日: ${escapeHtml(reviewDt)}`:''}
         ${req.reviewedBy?`　<span style="font-size:10px;color:var(--tx2)">担当: <strong style="color:var(--pr)">${escapeHtml(req.reviewedBy)}</strong></span>`:''}
@@ -2478,7 +2693,7 @@ function rPL(){
     const tot=getAL(e),u=cntVac(e.id),rem=tot-u;
     const ob=tot>=10,d5=u>=5;if(ob&&!d5)ac++;
     const st=ob?(d5?'<span class="badge bg-g">✓達成</span>':`<span class="badge bg-r">未達(${5-u}日)</span>`):'<span class="badge bg-gray">対象外</span>';
-    tbl+=`<tr><td><strong>${escapeHtml(e.name)}</strong></td><td>${escapeHtml(e.dept)}</td><td>${e.years}年</td><td>${tot}日</td><td>${u}日</td><td><strong>${rem}日</strong></td><td>${ob?'5日':'—'}</td><td>${st}</td></tr>`;
+    tbl+=`<tr><td><strong>${escapeHtml(e.name)}</strong></td><td>${escapeHtml(e.dept)}</td><td>${escapeHtml(e.years)}年</td><td>${tot}日</td><td>${u}日</td><td><strong>${rem}日</strong></td><td>${ob?'5日':'—'}</td><td>${st}</td></tr>`;
   });
   document.getElementById('pltb').innerHTML=tbl||'<tr><td colspan="8" style="text-align:center;color:var(--tx2)">該当者なし</td></tr>';
   document.getElementById('pl-al').innerHTML=ac>0
@@ -2544,7 +2759,7 @@ function rOT(){
     return`<div class="ot-card" style="border-color:#86efac;background:#f0fdf4">
       <div class="ot-name">${escapeHtml(e.name)}</div>
       <div class="ot-h ok">${wh}H</div>
-      <div class="ot-det">${e.etype}（${e.ptStart||'09:00'}〜${e.ptEnd||'15:00'}）</div>
+      <div class="ot-det">${escapeHtml(e.etype)}（${escapeHtml(e.ptStart||'09:00')}〜${escapeHtml(e.ptEnd||'15:00')}）</div>
       <div class="ot-det" style="color:#166534">今月勤務時間</div>
     </div>`;
   }).join('');
@@ -2562,7 +2777,7 @@ function rOT(){
     return`<tr>
       <td><strong>${escapeHtml(e.name)}</strong></td>
       <td>${escapeHtml(e.dept)}</td>
-      <td>${ptEmp?`<span style="color:#166534;font-size:10px">${e.ptStart||'09:00'}〜${e.ptEnd||'15:00'}</span>`:'通常勤務'}</td>
+      <td>${ptEmp?`<span style="color:#166534;font-size:10px">${escapeHtml(e.ptStart||'09:00')}〜${escapeHtml(e.ptEnd||'15:00')}</span>`:'通常勤務'}</td>
       <td ${over?'style="color:var(--r);font-weight:700"':warn?'style="color:var(--a);font-weight:600"':''}>
         ${ptEmp?`<span style="color:#166534">${wh}H（勤務）</span>`:`${ot}H`}
       </td>
@@ -2653,7 +2868,7 @@ function rCal(){
     const tooltip=dow===6?'クリック: 土曜出勤日の切替':dow!==0?'クリック: 会社休日の切替':'';
     // 月が変わるセルに視覚マーク
     const newMStyle=isNewM?'border-top:2px solid var(--pr);':'';
-    html+=`<div class="${cls}" onclick="toggleCalDay(${y},${m},${d})" title="${tooltip}" style="${newMStyle}">
+    html+=`<div class="${cls}" data-csp-click="h88" data-csp-source-click="toggleCalDay(,,)" data-csp-args-click="${__moguCsp.encode([null,(y),(m),(d),null,null,null,null,null])}" title="${tooltip}" style="${newMStyle}">
       ${isNewM?`<span style="position:absolute;top:1px;right:1px;font-size:7px;color:var(--pr);font-weight:700">${m+1}月</span>`:''}
       ${d}${badge}
     </div>`;
@@ -2673,9 +2888,9 @@ function rCal(){
       const label=v==='sat-work'?'土曜出勤日':'会社独自休日';
       const bc=v==='sat-work'?'bg-g':'bg-r';
       return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)">
-        <span style="font-size:12px;font-weight:600;flex:1">${k}（${'日月火水木金土'[dt.getDay()]}）</span>
+        <span style="font-size:12px;font-weight:600;flex:1">${escapeHtml(k)}（${'日月火水木金土'[dt.getDay()]}）</span>
         <span class="badge ${bc}" style="font-size:10px">${escapeHtml(label)}</span>
-        ${isA?`<button class="btn danger sm" onclick="deleteCalDay('${k}')">削除</button>`:''}
+        ${isA?`<button class="btn danger sm" data-shift-action="deleteCalDay" data-id="${escapeAttr(k)}">削除</button>`:''}
       </div>`;
     }).join('');
   }
@@ -2701,14 +2916,14 @@ function rSt(){
     dhtml+=`<div style="margin-bottom:12px;padding:10px;border:1px solid var(--bd);border-radius:var(--rads);background:var(--sf2)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <strong style="font-size:12px">${escapeHtml(dept)}</strong>
-        <span class="badge bg-b" style="font-size:10px">定員${info.quota}名</span>
+        <span class="badge bg-b" style="font-size:10px">定員${escapeHtml(info.quota)}名</span>
         <span class="badge bg-g" style="font-size:10px">現在${EMPLOYEES.filter(e=>e.dept===dept).length}名</span>
       </div>
       <div style="display:flex;gap:6px;align-items:center;font-size:11px">
         <span style="color:var(--tx2)">チーム名:</span>
-        <input id="dteam-${escapeHtml(dept)}" value="${info.teams[0]}" style="padding:3px 7px;font-size:11px;border:1px solid var(--bd2);border-radius:4px;flex:1">
+        <input id="dteam-${escapeHtml(dept)}" value="${escapeHtml(info.teams[0])}" style="padding:3px 7px;font-size:11px;border:1px solid var(--bd2);border-radius:4px;flex:1">
         <span style="color:var(--tx2)">定員:</span>
-        <input id="dquota-${escapeHtml(dept)}" type="number" value="${info.quota}" style="width:50px;padding:3px 6px;font-size:11px;border:1px solid var(--bd2);border-radius:4px">
+        <input id="dquota-${escapeHtml(dept)}" type="number" value="${escapeHtml(info.quota)}" style="width:50px;padding:3px 6px;font-size:11px;border:1px solid var(--bd2);border-radius:4px">
       </div>
     </div>`;
   });
@@ -2721,7 +2936,7 @@ function saveDeptSettings(){
     if(ti)DEPT_STRUCT[dept].teams=[ti.value||dept];
     if(qi)DEPT_STRUCT[dept].quota=parseInt(qi.value)||0;
   });
-  alert('保存しました');rSt();rEmp();
+  alert('この画面に反映しました（サーバーには未保存）');rSt();rEmp();
 }
 
 // ══ localStorage 保存・復元 ══
@@ -2784,85 +2999,11 @@ function migrateCalKeys(calObj) {
 
 // 従業員データ・シフトデータ・カレンダー設定をlocalStorageに保存
 function persistData() {
-  try {
-    localStorage.setItem(LS_EMP,   JSON.stringify(EMPLOYEES));
-    localStorage.setItem(LS_SHIFT, JSON.stringify(SHIFTS));
-    localStorage.setItem(LS_CAL,   JSON.stringify(CAL_SPECIAL));
-    localStorage.setItem(LS_VER,   '2');
-    localStorage.setItem('kpk_vac_req', JSON.stringify(VAC_REQUESTS));
-    localStorage.setItem('kpk_ot_req',  JSON.stringify(OT_REQUESTS));
-    localStorage.setItem('kpk_h_req',   JSON.stringify(H_REQUESTS));
-    // ログインセッションを保持（リロード後も維持）
-    if (cUser) {
-      localStorage.setItem(LS_USER, JSON.stringify({ user: cUser, isA }));
-    }
-  } catch(e) { console.warn('保存エラー:', e); }
+  // Data already lives in memory; scheduleSave performs actual GAS persistence.
+  EMPLOYEES = EMPLOYEES.map(withoutEmployeePassword_);
 }
-
-// localStorageから復元（v1データは自動マイグレーション）
 function restoreData() {
-  try {
-    const ver = localStorage.getItem(LS_VER) || '1';
-    const needsMigration = ver === '1'; // v1データはマイグレーションが必要
-
-    const empJson   = localStorage.getItem(LS_EMP);
-    const shiftJson = localStorage.getItem(LS_SHIFT);
-    const calJson   = localStorage.getItem(LS_CAL);
-
-    if (empJson) {
-      const saved = JSON.parse(empJson);
-      if (saved && saved.length > 0) {
-        EMPLOYEES.length = 0;
-        saved.forEach(e => EMPLOYEES.push(e));
-      }
-    }
-    if (shiftJson) {
-      let saved = JSON.parse(shiftJson);
-      if (needsMigration) {
-        console.log('SHIFTSキーをv1→v2にマイグレーション中...');
-        saved = migrateShiftKeys(saved);
-      }
-      if (saved) Object.assign(SHIFTS, saved);
-    }
-    if (calJson) {
-      let saved = JSON.parse(calJson);
-      if (needsMigration) {
-        console.log('CAL_SPECIALキーをv1→v2にマイグレーション中...');
-        saved = migrateCalKeys(saved);
-      }
-      if (saved) Object.assign(CAL_SPECIAL, saved);
-    }
-
-    // 申請データの復元
-    try {
-      const vacJson2 = localStorage.getItem('kpk_vac_req');
-      const otJson2  = localStorage.getItem('kpk_ot_req');
-      const hJson2   = localStorage.getItem('kpk_h_req');
-      if (vacJson2) { const s=JSON.parse(vacJson2); VAC_REQUESTS.length=0; s.forEach(r=>VAC_REQUESTS.push(r)); }
-      if (otJson2)  { const s=JSON.parse(otJson2);  OT_REQUESTS.length=0;  s.forEach(r=>OT_REQUESTS.push(r)); }
-      if (hJson2)   { const s=JSON.parse(hJson2);   H_REQUESTS.length=0;   s.forEach(r=>H_REQUESTS.push(r)); }
-      // IDカウンターを復元
-if (VAC_REQUESTS.length) { const mx=Math.max(...VAC_REQUESTS.map(r=>parseInt(r.id?.replace('REQ',''))||0)); if(mx>=_rid)_rid=mx+1; }
-if (OT_REQUESTS.length)  { const mx=Math.max(...OT_REQUESTS.map(r=>parseInt(r.id?.replace('OTR',''))||0)); if(mx>=_orid)_orid=mx+1; }
-if (H_REQUESTS.length)   { const mx=Math.max(...H_REQUESTS.map(r=>parseInt(r.id?.replace('HWR',''))||0)); if(mx>=_hrid)_hrid=mx+1; }
-    } catch(e2) {}
-
-    // 申請データの復元
-    const vacJson = localStorage.getItem('kpk_vac_req');
-    const otJson  = localStorage.getItem('kpk_ot_req');
-    const hJson   = localStorage.getItem('kpk_h_req');
-    if (vacJson) { const s=JSON.parse(vacJson); VAC_REQUESTS.length=0; s.forEach(r=>VAC_REQUESTS.push(r)); }
-    if (otJson)  { const s=JSON.parse(otJson);  OT_REQUESTS.length=0;  s.forEach(r=>OT_REQUESTS.push(r)); }
-    if (hJson)   { const s=JSON.parse(hJson);   H_REQUESTS.length=0;   s.forEach(r=>H_REQUESTS.push(r)); }
-
-    // マイグレーション完了後はv2として再保存
-    if (needsMigration && (shiftJson || calJson)) {
-      localStorage.setItem(LS_VER, '2');
-      if (shiftJson) localStorage.setItem(LS_SHIFT, JSON.stringify(SHIFTS));
-      if (calJson)   localStorage.setItem(LS_CAL,   JSON.stringify(CAL_SPECIAL));
-      console.log('マイグレーション完了');
-    }
-  } catch(e) { console.warn('復元エラー:', e); }
+  // Never restore a previous user's business data from browser storage.
 }
 
 // ポータルから従業員を受け取った時はlocalStorageも更新
@@ -2885,7 +3026,6 @@ function syncFromPortalAndPersist(portalEmps) {
       etype:   e.etype  || (existing ? existing.etype : '正社員'),
       ptStart: existing ? existing.ptStart : '09:00',
       ptEnd:   existing ? existing.ptEnd   : '18:00',
-      pw:      existing ? existing.pw      : '1234',
       al:      e.nenkyuu !== undefined && e.nenkyuu !== '' ? Number(e.nenkyuu) : (existing ? existing.al : 10),
       lwUserId: e.lwUserId || (existing ? existing.lwUserId : ''),
     };
@@ -2946,6 +3086,13 @@ function validClaims_() {
 }
 
 function handleUnauthorized_() {
+  clearBrowserBusinessData_();
+  EMPLOYEES.length = 0;
+  Object.keys(SHIFTS).forEach(key => delete SHIFTS[key]);
+  CAL_SPECIAL = {};
+  VAC_REQUESTS.length = 0; OT_REQUESTS.length = 0; H_REQUESTS.length = 0;
+  _syncLog = [];
+  if (_saveTimer) clearTimeout(_saveTimer);
   try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
   AUTH_TOKEN = null; cUser = null; isA = false;
   try {
@@ -2964,8 +3111,10 @@ async function gasCall_(action, payload) {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action, token: AUTH_TOKEN, ...(payload || {}) })
     });
+    if (!res.ok) throw new Error('通信エラー');
     const json = await res.json();
     if (json && json.error === 'unauthorized') { handleUnauthorized_(); return null; }
+    if (!json || typeof json !== 'object') throw new Error('不正な応答');
     return json;
   } catch(e) { console.error('[gasCall_]', action, e); return null; }
 }
@@ -3068,11 +3217,11 @@ function addSyncLogEntry(action, ok) {
   const entry = { ts: new Date().toISOString(), user: getSyncUserName(), action: action + (ok ? ' ✓' : ' ✗'), device: getDeviceLabel() };
   _syncLog.unshift(entry);
   if (_syncLog.length > 50) _syncLog.length = 50;
-  try { localStorage.setItem(SYNC_LOG_KEY, JSON.stringify(_syncLog)); } catch(e) {}
+  try { pageMemoryStorage.setItem(SYNC_LOG_KEY, JSON.stringify(_syncLog)); } catch(e) {}
   updateSyncInfoBar(entry);
 }
 function restoreSyncLog() {
-  try { const s = localStorage.getItem(SYNC_LOG_KEY); if (s) { const p = JSON.parse(s); if (Array.isArray(p)) { _syncLog = p; if (p[0]) updateSyncInfoBar(p[0]); } } } catch(e) {}
+  try { const s = pageMemoryStorage.getItem(SYNC_LOG_KEY); if (s) { const p = JSON.parse(s); if (Array.isArray(p)) { _syncLog = p; if (p[0]) updateSyncInfoBar(p[0]); } } } catch(e) {}
 }
 function updateSyncInfoBar(entry) {
   if (!entry) return;
@@ -3096,7 +3245,8 @@ async function loadSyncLog() {
   try {
     const data = await gasCall_('getShiftLog', {});
     if (!data) { el.innerHTML = '<div style="font-size:11px;color:var(--r);text-align:center;padding:8px">認証エラー</div>'; return; }
-    if (!data.ok || !data.logs || !data.logs.length) { el.innerHTML = '<div style="font-size:11px;color:var(--tx3);text-align:center;padding:8px">ログなし</div>'; return; }
+    if (data.ok !== true || !Array.isArray(data.logs)) throw new Error('ログ取得失敗');
+    if (!data.logs.length) { el.innerHTML = '<div style="font-size:11px;color:var(--tx3);text-align:center;padding:8px">ログなし</div>'; return; }
     el.innerHTML = data.logs.slice(0, 50).map(r => {
       const ts = r.ts ? new Date(r.ts) : null;
       const fmtTs = ts ? `${ts.getMonth()+1}/${ts.getDate()} ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}` : (r.ts||'');
@@ -3108,7 +3258,7 @@ async function loadSyncLog() {
       return `<div class="sync-log-row"><span class="sync-log-ts">${escapeHtml(fmtTs)}</span><span class="sync-log-who">${who}</span><span style="font-size:9px;color:var(--tx3)">${dev}</span><span class="sync-log-act">${okIcon} ${act}</span></div>`;
     }).join('');
     if (data.logs[0]) updateSyncInfoBar({ ts: data.logs[0].ts, user: data.logs[0].user, device: data.logs[0].device });
-  } catch(e) { el.innerHTML = `<div style="font-size:11px;color:var(--r);text-align:center;padding:8px">読込エラー: ${e.message}</div>`; }
+  } catch(e) { el.innerHTML = `<div style="font-size:11px;color:var(--r);text-align:center;padding:8px">読込エラー: ${escapeHtml(e.message)}</div>`; }
 }
 
 async function saveToSheet() {
@@ -3122,7 +3272,7 @@ async function saveToSheet() {
     const results = await Promise.all([
       saveShiftKey('shifts',     shiftsJson),
       saveShiftKey('calSpecial', JSON.stringify(CAL_SPECIAL)),
-      saveShiftKey('employees',  JSON.stringify(EMPLOYEES)),
+      saveShiftKey('employees',  JSON.stringify(EMPLOYEES.map(withoutEmployeePassword_))),
     ]);
     const allOk = results.every(r => r);
     showSyncBadge(allOk ? 'saved' : 'error');
@@ -3157,7 +3307,7 @@ async function loadFromSheet() {
     if (shifts) { Object.keys(SHIFTS).forEach(k=>delete SHIFTS[k]); Object.assign(SHIFTS, shifts); }
 
     // ★申請はブロブ(d.vacReqs等)から読まない。listRequests（サーバー権威）で取得する。
-    await refreshRequests_();
+    if (!await refreshRequests_()) throw new Error('申請の取得に失敗しました');
 
     const calSpecial = safeParseObj(d.calSpecial, 'calSpecial');
     if (calSpecial) { Object.keys(CAL_SPECIAL).forEach(k=>delete CAL_SPECIAL[k]); Object.assign(CAL_SPECIAL, calSpecial); }
@@ -3166,10 +3316,10 @@ async function loadFromSheet() {
     // ポータルから従業員データを受け取っていた場合はそちらを優先
     // シフトGASにemployeesが保存されていない場合のみ上書き
     if (emps && emps.length && EMPLOYEES.length === 0) {
-      EMPLOYEES.length=0; emps.forEach(e=>EMPLOYEES.push(e));
+      EMPLOYEES.length=0; emps.forEach(e=>EMPLOYEES.push(withoutEmployeePassword_(e)));
     } else if (emps && emps.length && !window._portalEmpsReceived) {
       // ポータルから受け取っていない場合はGASのデータを使用
-      EMPLOYEES.length=0; emps.forEach(e=>EMPLOYEES.push(e));
+      EMPLOYEES.length=0; emps.forEach(e=>EMPLOYEES.push(withoutEmployeePassword_(e)));
     }
     persistData();
     showSyncBadge('loaded');
@@ -3228,22 +3378,34 @@ function showSyncBadge(status) {
 //   旧 ?sso=（reverse+atob・ts5分）方式と、?emps=/?shift_gas_url= 受け渡しは廃止。
 //   従業員データは loadShiftData（トークン必須）経由で取得する。
 
-// ══ LINEWORKS通知送信（シフトGAS経由・トークン必須POST）══
-//   ★通知の実送信(シフトGAS→通知GAS)はサーバー側。通知GAS自体の無認証は
-//     通知マスタ第2部で対応。ここではトリガーの匿名GETを廃止しトークン必須化した。
-function sendShiftNotify(eventType, data) {
-  if (!AUTH_TOKEN) return;
-  gasCall_('notifyShift', {
-    eventType: eventType,
-    name:     data.name     || '',
-    type:     data.type     || '',
-    date:     data.date     || '',
-    detail:   data.detail   || '',
-    approver: data.approver || '',
-    reason:   data.reason   || '',
-    lwUserId: data.lwUserId || ''
-  });
+
+function notificationSummary_(notification) {
+  const unknown = { text: '通知結果は未確認です。未送信とは断定できません。管理者に確認してください。', type: 'warn' };
+  if (!notification || typeof notification !== 'object' || Array.isArray(notification)) return unknown;
+  if (notification.deliveryUnknown === true) return {
+    text: '通知の配信結果は不明です（deliveryUnknown）。送信0件とは断定できません。重複防止のため再送前に管理者へ確認してください。',
+    type: 'warn'
+  };
+  const count = value => Number.isSafeInteger(value) && value >= 0;
+  const sent = notification.sent, failed = notification.failed, skipped = notification.skipped === undefined ? 0 : notification.skipped;
+  if (notification.ok === false || (count(failed) && failed > 0)) return {
+    text: '通知に失敗しました。' + (count(sent) && count(failed) && count(skipped)
+      ? 'LINE WORKS API受理' + sent + '件・失敗' + failed + '件・スキップ' + skipped + '件。'
+      : '配信件数は未確認です。') + '業務データの再保存は不要です。',
+    type: 'warn'
+  };
+  if (notification.ok !== true || !count(sent) || !count(failed) || !count(skipped) ||
+      (notification.dryRun !== undefined && typeof notification.dryRun !== 'boolean') ||
+      (notification.deliveryUnknown !== undefined && typeof notification.deliveryUnknown !== 'boolean')) return unknown;
+  if (notification.dryRun === true) return {
+    text: sent === 0 ? '通知はdry-runです。実送信なし・スキップ' + skipped + '件。'
+      : '通知はdry-runを含みます。LINE WORKS API受理' + sent + '件・スキップ' + skipped + '件（既読未確認）。',
+    type: 'warn'
+  };
+  if (sent === 0) return { text: skipped > 0 ? '通知はスキップ' + skipped + '件・API受理0件です。' : '通知対象0件のため送信していません。', type: 'warn' };
+  return { text: 'LINE WORKS API受理' + sent + '件・スキップ' + skipped + '件（既読未確認）。', type: skipped > 0 ? 'warn' : 'success' };
 }
+
 </script>
 </body>
 </html>
