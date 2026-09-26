@@ -3344,7 +3344,7 @@ async function manualSyncSheet() {
 }
 
 // ══ 自動同期タイマー（1時間ごと）══
-var _autoSyncTimer = null; // ★テスト用パッチ 2026-09-26: let→var（宣言前呼び出しのTDZ回避。initFromToken即時実行でstartAutoSyncが宣言前に走る為）。恒久修正は田中v3.3で候補ソース＋CANDIDATE_HASHES更新。
+let _autoSyncTimer = null;
 function startAutoSync() {
   if (_autoSyncTimer) clearInterval(_autoSyncTimer);
   _autoSyncTimer = setInterval(async () => {
