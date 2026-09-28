@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-jS6kjxJMlewWliSTB/uN2m5BhjeDw7T0GZ6z2T/KsVY='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-ILJHwKyna4/E8hMsEjlc11UrvlowLvly2kBY7Lo5a3Q='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { manualSyncSheet()
@@ -1259,6 +1259,11 @@ let _eid = 1;
 // 代理申請の対象候補＝ポータル正本名簿(TOKEN_CONTROL_SS_ID)のactive従業員（管理者のみ取得）。
 // createRequest_ はポータル名簿の一意active IDのみ許可するため、代理対象はこの名簿から出す（シフト独自ダミーは対象にしない）。
 let ROSTER = [];
+// 代理申請の対象を解決：まずシフト従業員(EMPLOYEES＝年休等の詳細を持つ)、無ければポータル名簿(ROSTER＝id/name/dept)。
+// これで代理対象がポータル名簿由来IDでも emp が見つかり、req.eid をサーバー(shiftRosterOwner_)が正本照合できる。
+function resolveTarget_(id){
+  return EMPLOYEES.find(x=>x&&x.id===id) || ROSTER.find(x=>x&&x.id===id) || null;
+}
 async function loadRoster_(){
   if(!isA) return;
   try{
@@ -2055,7 +2060,7 @@ function calcVreqPreview(){
   const el=document.getElementById('vreq-remain-preview');
   if(!from||!cUser){if(el)el.innerHTML='';return;}
   const targetId=isA?(document.getElementById('vreq-target')?.value||''):cUser.id;
-  const emp=EMPLOYEES.find(x=>x.id===targetId);
+  const emp=resolveTarget_(targetId);
   if(!emp){if(el)el.innerHTML='';return;}
   const tot=getAL(emp),used=cntVac(emp.id),rem=tot-used;
   let days=0;
@@ -2086,7 +2091,7 @@ async function submitVreq(){
   const targetId=isA
     ?(document.getElementById('vreq-target')?.value||'')
     :cUser.id;
-  const emp = isA ? EMPLOYEES.find(x=>x.id===targetId) : getEmpOrCurrent(targetId);
+  const emp = isA ? resolveTarget_(targetId) : getEmpOrCurrent(targetId);
   if(!emp){alert(isA?'申請対象者を選択してください（先に従業員を登録してください）':'従業員情報が見つかりません');return;}
   const type=document.getElementById('vreq-type').value;
   const from=document.getElementById('vreq-from').value;
@@ -2300,7 +2305,7 @@ function calcOTReqPreview(){
   const dow='日月火水木金土'[dt.getDay()];
   if(prev)prev.textContent=`（${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日・${dow}）`;
   const tgtId=isA?(document.getElementById('otreq-target')?.value||''):cUser.id;
-  const emp=EMPLOYEES.find(x=>x.id===tgtId);
+  const emp=resolveTarget_(tgtId);
   if(!emp||!mPrev)return;
   const curOT=calcPeriodOT(emp.id,dt.getFullYear(),dt.getMonth());
   const newOT=Math.round((curOT+hours)*10)/10;
@@ -2318,7 +2323,7 @@ function clearOTReqForm(){
 async function submitOTReq(){
   if(!cUser)return;
   const targetId=isA?(document.getElementById('otreq-target')?.value||''):cUser.id;
-  const emp = isA ? EMPLOYEES.find(x=>x.id===targetId) : getEmpOrCurrent(targetId);
+  const emp = isA ? resolveTarget_(targetId) : getEmpOrCurrent(targetId);
   if(!emp){alert(isA?'申請対象者を選択してください':'従業員情報が見つかりません');return;}
   const date=document.getElementById('otreq-date').value;
   if(!date){alert('対象日を入力してください');return;}
@@ -2505,7 +2510,7 @@ function clearHReqForm(){
 async function submitHReq(){
   if(!cUser)return;
   const targetId=isA?(document.getElementById('hreq-target')?.value||''):cUser.id;
-  const emp = isA ? EMPLOYEES.find(x=>x.id===targetId) : getEmpOrCurrent(targetId);
+  const emp = isA ? resolveTarget_(targetId) : getEmpOrCurrent(targetId);
   if(!emp){alert(isA?'申請対象者を選択してください':'従業員情報が見つかりません');return;}
   const date=document.getElementById('hreq-date').value;
   if(!date){alert('出勤日を入力してください');return;}
