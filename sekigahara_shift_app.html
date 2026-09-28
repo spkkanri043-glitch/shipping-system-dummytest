@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-ILJHwKyna4/E8hMsEjlc11UrvlowLvly2kBY7Lo5a3Q='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-DZi1fajcZHz9HUA151zMducgB9oKqNrC9wQlJW2ku/w='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { manualSyncSheet()
@@ -1259,6 +1259,9 @@ let _eid = 1;
 // 代理申請の対象候補＝ポータル正本名簿(TOKEN_CONTROL_SS_ID)のactive従業員（管理者のみ取得）。
 // createRequest_ はポータル名簿の一意active IDのみ許可するため、代理対象はこの名簿から出す（シフト独自ダミーは対象にしない）。
 let ROSTER = [];
+// 認証付きの初回読込(loadShiftData＋listRequests)が完全に成功するまで false。
+// false の間はサーバーへの保存(saveToSheet/scheduleSave)を行わない＝未読込の端末内データでシートを上書きしない。
+let SHIFT_DATA_READY = false;
 // 代理申請の対象を解決：まずシフト従業員(EMPLOYEES＝年休等の詳細を持つ)、無ければポータル名簿(ROSTER＝id/name/dept)。
 // これで代理対象がポータル名簿由来IDでも emp が見つかり、req.eid をサーバー(shiftRosterOwner_)が正本照合できる。
 function resolveTarget_(id){
@@ -3182,6 +3185,8 @@ seedShifts();
 // 実行される前に定義しておく（宣言前参照のTDZ例外を防ぐ。例外時は後続の初回読込予約も中止される）。
 // ※ let→var では、後段(旧3347行)の再代入 =null が稼働中タイマー参照を消すため不可。宣言をここへ移動する。
 let _autoSyncTimer = null;
+// 初回読込の多重実行防止（ensureInitialLoad_ 用。同じ理由で initFromToken より前に宣言）
+let _initialLoading = false;
 (function initFromToken() {
   try {
     const c = validClaims_();
@@ -3199,13 +3204,10 @@ let _autoSyncTimer = null;
       try { getEmpOrCurrent(c.sub); persistData(); } catch(e) {}
     }
     launch();
-    // GASから最新データを静かに取得
-    setTimeout(async () => {
-      try {
-        await loadFromSheet();
-        rSh(); rDB(); rEmp(); rPL(); rVreq(); rOTReq(); rHReq(); rOT();
-      } catch(e) {}
-    }, 400);
+    // GASから最新データを取得。成功するまで保存は保留（ensureInitialLoad_ 参照）。
+    // バナーは即表示し、読込自体はスクリプト全体の評価後に開始する（後方の宣言をTDZで参照しないため）。
+    showDataNotReadyBanner_(false);
+    setTimeout(ensureInitialLoad_, 0);
   } catch(e) {
     console.warn('[initFromToken] エラー:', e);
     document.body.classList.remove('app-loading');
@@ -3214,9 +3216,65 @@ let _autoSyncTimer = null;
 
 // スプレッドシートに全データを保存
 let _saveTimer = null;
+let _saving = false;
 function scheduleSave() {
+  // 初回読込前は自動保存を予約しない（未読込データでシートを上書きしない）
+  if (!SHIFT_DATA_READY) { showDataNotReadyBanner_(false); return; }
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(saveToSheet, 2000);
+}
+// 未送信の変更（保存予約中・保存中）があるか。自動同期で端末の未保存変更を上書きしないために使う。
+function hasPendingSave_() { return !!_saveTimer || _saving; }
+
+// ══ 初回読込ゲート ══
+// 認証付き初回読込が成功するまで「読み込み中」を表示し、保存を保留する。失敗時は再試行ボタンを出す。
+function showDataNotReadyBanner_(failed) {
+  let el = document.getElementById('data-gate-banner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'data-gate-banner';
+    el.setAttribute('role', 'status');
+    el.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;padding:10px 16px;font-size:13px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -2px 8px rgba(0,0,0,.15)';
+    document.body.appendChild(el);
+  }
+  el.textContent = '';
+  const msg = document.createElement('span');
+  if (failed) {
+    el.style.background = '#fce8e8'; el.style.color = '#b53030';
+    msg.textContent = '⚠ データの読み込みに失敗しました。保存は無効になっています（変更はシートに保存されません）。';
+    el.appendChild(msg);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = '再試行';
+    btn.style.cssText = 'padding:4px 14px;border:1px solid #b53030;border-radius:6px;background:#fff;color:#b53030;cursor:pointer;font-size:13px';
+    btn.addEventListener('click', () => { ensureInitialLoad_(); });
+    el.appendChild(btn);
+  } else {
+    el.style.background = '#e5effe'; el.style.color = '#1655b0';
+    msg.textContent = '🔄 データを読み込み中です。完了するまで編集しないでください（保存は保留され、読込完了時にシートの内容で置き換わります）。';
+    el.appendChild(msg);
+  }
+  el.style.display = 'flex';
+}
+function hideDataGate_() {
+  const el = document.getElementById('data-gate-banner');
+  if (el) el.style.display = 'none';
+}
+async function ensureInitialLoad_() {
+  if (SHIFT_DATA_READY) { hideDataGate_(); return true; }
+  if (_initialLoading) return false;
+  _initialLoading = true;
+  showDataNotReadyBanner_(false);
+  let ok = false;
+  try { ok = await loadFromSheet(); } catch(e) { ok = false; }
+  _initialLoading = false;
+  if (ok) {
+    hideDataGate_();
+    try { rSh(); rDB(); rEmp(); rPL(); rVreq(); rOTReq(); rHReq(); rOT(); } catch(e) {}
+  } else {
+    showDataNotReadyBanner_(true);
+  }
+  return ok;
 }
 
 async function saveShiftKey(key, val) {
@@ -3292,6 +3350,16 @@ async function loadSyncLog() {
 
 async function saveToSheet() {
   if (!GAS_URL_SHIFT) { console.warn('[saveToSheet] GAS_URL_SHIFT未設定'); return; }
+  _saveTimer = null;
+  // 認証付き初回読込が成功するまでは保存しない（未読込の端末データでシートを上書きしない）
+  if (!SHIFT_DATA_READY) {
+    console.warn('[saveToSheet] 初回読込前のため保存を保留');
+    showDataNotReadyBanner_(false);
+    return;
+  }
+  // 保存中に次の保存が来たら、終了後に改めて予約する（同時保存で古い内容が後着しないように）
+  if (_saving) { scheduleSave(); return; }
+  _saving = true;
   try {
     showSyncBadge('saving');
     const shiftsJson = JSON.stringify(SHIFTS);
@@ -3313,6 +3381,8 @@ async function saveToSheet() {
     showSyncBadge('error');
     addSyncLogEntry('保存', false);
     pushLogToGas('保存', false);
+  } finally {
+    _saving = false;
   }
 }
 
@@ -3332,16 +3402,31 @@ async function loadFromSheet() {
       catch(e) { console.error('[loadFromSheet] パースエラー', label, e); return null; }
     }
 
+    // 先に全キーを解析・検証し、申請取得まで成功してから一括で適用する（部分適用を防ぐ）
+    const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
     const shifts = safeParseObj(d.shifts, 'shifts');
-    if (shifts) { Object.keys(SHIFTS).forEach(k=>delete SHIFTS[k]); Object.assign(SHIFTS, shifts); }
+    const calSpecial = safeParseObj(d.calSpecial, 'calSpecial');
+    const emps = safeParseObj(d.employees, 'employees');
+    if ((shifts !== null && !isObj(shifts)) ||
+        (calSpecial !== null && !isObj(calSpecial)) ||
+        (emps !== null && !Array.isArray(emps))) {
+      throw new Error('読込データの形式が不正です');
+    }
 
     // ★申請はブロブ(d.vacReqs等)から読まない。listRequests（サーバー権威）で取得する。
     if (!await refreshRequests_()) throw new Error('申請の取得に失敗しました');
 
-    const calSpecial = safeParseObj(d.calSpecial, 'calSpecial');
+    // 待機中(await)に端末側で保存予約が入った場合は、未保存の変更を上書きしないよう
+    // シフト表ブロブの適用を見送る（申請はサーバー権威なので上で反映済み）。
+    if (SHIFT_DATA_READY && hasPendingSave_()) {
+      console.warn('[loadFromSheet] 未保存の変更があるためシフト表の上書きを見送り');
+      showSyncBadge('loaded');
+      return true;
+    }
+
+    if (shifts) { Object.keys(SHIFTS).forEach(k=>delete SHIFTS[k]); Object.assign(SHIFTS, shifts); }
     if (calSpecial) { Object.keys(CAL_SPECIAL).forEach(k=>delete CAL_SPECIAL[k]); Object.assign(CAL_SPECIAL, calSpecial); }
 
-    const emps = safeParseObj(d.employees, 'employees');
     // ポータルから従業員データを受け取っていた場合はそちらを優先
     // シフトGASにemployeesが保存されていない場合のみ上書き
     if (emps && emps.length && EMPLOYEES.length === 0) {
@@ -3351,6 +3436,7 @@ async function loadFromSheet() {
       EMPLOYEES.length=0; emps.forEach(e=>EMPLOYEES.push(withoutEmployeePassword_(e)));
     }
     persistData();
+    SHIFT_DATA_READY = true;
     showSyncBadge('loaded');
     addSyncLogEntry('読込', true);
     pushLogToGas('読込', true);
@@ -3366,6 +3452,10 @@ async function loadFromSheet() {
 // 手動同期（トップバーの🔄ボタン）
 async function manualSyncSheet() {
   if (!GAS_URL_SHIFT) { alert('ポータルから開いてください（GAS URLが未設定）'); return; }
+  // 初回読込が未完了なら、ゲート経由で読み直す（成功で保存解禁）
+  if (!SHIFT_DATA_READY) { await ensureInitialLoad_(); return; }
+  // 未保存の変更があれば先に保存してから読み直す（端末の変更を読込で消さない）
+  if (hasPendingSave_()) { clearTimeout(_saveTimer); await saveToSheet(); }
   const ok = await loadFromSheet();
   rSh(); rDB(); rEmp(); rPL(); rVreq(); rOTReq(); rHReq(); rOT();
   // 設定ページが表示中ならログも更新
@@ -3378,6 +3468,9 @@ function startAutoSync() {
   if (_autoSyncTimer) clearInterval(_autoSyncTimer);
   _autoSyncTimer = setInterval(async () => {
     if (!GAS_URL_SHIFT || !cUser) return;
+    // 初回読込が未完了なら再試行のみ。未保存の変更がある間は上書きしないよう今回は見送る。
+    if (!SHIFT_DATA_READY) { await ensureInitialLoad_(); return; }
+    if (hasPendingSave_()) { console.log('[自動同期] 未保存の変更があるため見送り'); return; }
     console.log('[自動同期] 開始', new Date().toLocaleTimeString());
     const ok = await loadFromSheet();
     if (ok) { rSh(); rDB(); rEmp(); rPL(); rVreq(); rOTReq(); rHReq(); rOT(); }
