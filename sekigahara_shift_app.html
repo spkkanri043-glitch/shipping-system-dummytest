@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-9ClgwPkP1w7pyJXewM9S8u+E53dv/oA5ko7BHfHkfHY='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-D2sJg1fQPnqvcYXBB9Qh0jA+jx46Ww3t756TcuD7vt8='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { manualSyncSheet()
@@ -1260,8 +1260,17 @@ function withoutEmployeePassword_(employee) {
   const { pw, password, ...publicEmployee } = employee;
   return publicEmployee;
 }
+function nextEmpId_(){
+  // 既存のEMPLOYEES・SHIFTSと衝突しないIDを採番する。
+  // ※_eid は再読込で1に戻るため、番号だけに頼ると既存IDを再利用して
+  //   SHIFTS[id] を空で上書き＝既存シフト消去の事故が起きる（実データを走査して回避）。
+  let id;
+  do { id='emp'+String(_eid++).padStart(3,'0'); }
+  while (EMPLOYEES.some(x=>x&&x.id===id) || (SHIFTS && Object.prototype.hasOwnProperty.call(SHIFTS,id)));
+  return id;
+}
 function mkEmp(name,dept,team,years,ecat,etype,ptStart,ptEnd){
-  const id='emp'+String(_eid++).padStart(3,'0');
+  const id=nextEmpId_();
   return{id,name,dept,team,years,ecat,etype,
     ptStart:ptStart||'09:00',ptEnd:ptEnd||'15:00'};
 }
@@ -1908,7 +1917,7 @@ function chEmpAL(eid,val){
   persistData();scheduleSave();
   rEmp(); // 自動/手動バッジ再描画
 }
-function delEmp(eid){if(!confirm('削除しますか？'))return;const i=EMPLOYEES.findIndex(x=>x.id===eid);if(i>=0){EMPLOYEES.splice(i,1);rEmp();rSh();rDB();}}
+function delEmp(eid){if(!confirm('削除しますか？'))return;const i=EMPLOYEES.findIndex(x=>x.id===eid);if(i>=0){EMPLOYEES.splice(i,1);rEmp();rSh();rDB();rVreq();rOTReq();rHReq();}} // 削除後も申請対象欄を更新
 
 function updateEtypeOpts(){
   const cat=document.getElementById('e-ecat').value;
@@ -1985,9 +1994,9 @@ function saveEmp(){
     if(e){e.name=name;e.dept=dept;e.team=team;e.years=years;e.ecat=ecat;e.etype=etype;e.ptStart=ptStart;e.ptEnd=ptEnd;}
   }else{
     const e=mkEmp(name,dept,team,years,ecat,etype,ptStart,ptEnd);
-    EMPLOYEES.push(e);SHIFTS[e.id]={};
+    EMPLOYEES.push(e);if(!SHIFTS[e.id])SHIFTS[e.id]={}; // 既存SHIFTSは消さない（新規IDのみ初期化）
   }
-  closeEmod();rEmp();rSh();rDB();
+  closeEmod();rEmp();rSh();rDB();rVreq();rOTReq();rHReq(); // 申請対象欄も更新（rVreq/rOTReq/rHReq）
   persistData(); // localStorageに保存
   scheduleSave(); // GASへ自動保存
 }
@@ -3153,6 +3162,10 @@ seedShifts();
 
 // ログインは署名トークンに一本化。#sso で入る、またはリロード時は
 // sessionStorage のトークンで復元する。有効なトークンが無ければログイン画面。
+// 自動同期タイマーのハンドルは、これを使う startAutoSync が initFromToken→launch から
+// 実行される前に定義しておく（宣言前参照のTDZ例外を防ぐ。例外時は後続の初回読込予約も中止される）。
+// ※ let→var では、後段(旧3347行)の再代入 =null が稼働中タイマー参照を消すため不可。宣言をここへ移動する。
+let _autoSyncTimer = null;
 (function initFromToken() {
   try {
     const c = validClaims_();
@@ -3344,7 +3357,7 @@ async function manualSyncSheet() {
 }
 
 // ══ 自動同期タイマー（1時間ごと）══
-let _autoSyncTimer = null;
+// ※ _autoSyncTimer の宣言は initFromToken の実行前へ移動済み（TDZ回避）。ここでは再宣言しない。
 function startAutoSync() {
   if (_autoSyncTimer) clearInterval(_autoSyncTimer);
   _autoSyncTimer = setInterval(async () => {
