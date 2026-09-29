@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-DZi1fajcZHz9HUA151zMducgB9oKqNrC9wQlJW2ku/w='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-iKFbsI8wu9/1KCE9tE0uYvU/3LmtzghdpYnyCd07TJs='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { manualSyncSheet()
@@ -3206,8 +3206,9 @@ let _initialLoading = false;
     launch();
     // GASから最新データを取得。成功するまで保存は保留（ensureInitialLoad_ 参照）。
     // バナーは即表示し、読込自体はスクリプト全体の評価後に開始する（後方の宣言をTDZで参照しないため）。
+    // 名簿取得(launch→loadRoster_)と同時送信にならないよう、従来どおり400ms後に開始する。
     showDataNotReadyBanner_(false);
-    setTimeout(ensureInitialLoad_, 0);
+    setTimeout(ensureInitialLoad_, 400);
   } catch(e) {
     console.warn('[initFromToken] エラー:', e);
     document.body.classList.remove('app-loading');
@@ -3265,8 +3266,15 @@ async function ensureInitialLoad_() {
   if (_initialLoading) return false;
   _initialLoading = true;
   showDataNotReadyBanner_(false);
+  // GAS応答の転送先(googleusercontent)が一時的に404/CORSになることがあるため、読取のみの初回読込は数回自動再試行する
+  const retryDelays = [0, 1500, 3000];
   let ok = false;
-  try { ok = await loadFromSheet(); } catch(e) { ok = false; }
+  for (let i = 0; i < retryDelays.length && !ok; i++) {
+    if (retryDelays[i]) await new Promise(r => setTimeout(r, retryDelays[i]));
+    if (!AUTH_TOKEN) break; // 認証切れ（ログイン画面へ戻った）なら再試行しない
+    try { ok = await loadFromSheet(); } catch(e) { ok = false; }
+    if (!ok) console.warn('[ensureInitialLoad_] 初回読込失敗 ' + (i + 1) + '/' + retryDelays.length + ' 回目');
+  }
   _initialLoading = false;
   if (ok) {
     hideDataGate_();
@@ -3392,7 +3400,10 @@ async function loadFromSheet() {
   try {
     showSyncBadge('loading');
     const result = await gasCall_('loadShiftData', {});
-    if (!result || !result.ok || !result.data) { showSyncBadge('error'); return false; }
+    if (!result || !result.ok || !result.data) {
+      console.warn('[loadFromSheet] loadShiftData 失敗', result && result.message ? result.message : '(応答なし)');
+      showSyncBadge('error'); return false;
+    }
     const d = result.data;
     console.log('[loadFromSheet] 取得キー:', Object.keys(d));
 
@@ -3442,6 +3453,7 @@ async function loadFromSheet() {
     pushLogToGas('読込', true);
     return true;
   } catch(e) {
+    console.warn('[loadFromSheet] 失敗:', e && e.message ? e.message : e);
     showSyncBadge('error');
     addSyncLogEntry('読込', false);
     pushLogToGas('読込', false);
