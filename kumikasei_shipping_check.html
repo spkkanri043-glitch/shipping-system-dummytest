@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LwAB1KGZm4MBbvtd0iaabxhFAhWu2JDn7rYkURuYirE=' 'sha256-5fehigJbVDT+ENKNLzv8b2LA+Z6274sis5gqUL6DIV8='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LwAB1KGZm4MBbvtd0iaabxhFAhWu2JDn7rYkURuYirE=' 'sha256-5VxMa6xsUsi5IQKiZ7QdcOgmKZH85AOsx1f1FI4wWRA='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { closeTab()
@@ -903,18 +903,27 @@ async function loadDriveFileList() {
     driveBatchProgress_.clear();
     data.files.forEach(f => driveBatchProgress_.set(f.id, {state:f.batchState,logEntries:f.logEntries || []}));
     // ★F03：Drive由来の name/label/updated はテキスト化。onclick へ name/id を埋め込まず data-*＋委譲。
-    listEl.innerHTML = data.files.map(f => {
-      const labelColor = f.folder === 'pending' ? '#b56e00' : '#3a7bdc';
-      return `<div class="drive-file-row" data-id="${escapeHtml(f.id)}" data-name="${escapeHtml(f.name)}" style="padding:10px 12px;border-bottom:1px solid #f0f0ea;cursor:pointer">
-        <div style="font-size:13px;font-weight:600;word-break:break-all">${escapeHtml(f.name)}</div>
-        <div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center">
-          <span style="color:${labelColor};font-weight:600">${escapeHtml(f.label)}</span>
-          <span style="color:#888">${escapeHtml(f.updated)}</span>
-        </div>
+    // カナモリ版に合わせ「件数＋選択して読込」ボタン＋行ごとの選択欄。台帳方式のため選択は1件のみ（ラジオ）。
+    const header = `<div style="padding:8px 12px;border-bottom:2px solid #e5e5e0;display:flex;justify-content:space-between;align-items:center;background:#f9f9f7">
+        <span style="font-size:11px;color:#888">${data.files.length}件（1件選択）</span>
+        <button type="button" id="drive-load-selected-btn" style="padding:6px 16px;background:#1e8a55;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">選択して読込</button>
       </div>`;
+    listEl.innerHTML = header + data.files.map(f => {
+      const labelColor = f.folder === 'pending' ? '#b56e00' : '#3a7bdc';
+      return `<label class="drive-file-row" style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="radio" name="drive-file-pick" value="${escapeHtml(f.id)}" data-name="${escapeHtml(f.name)}" style="width:18px;height:18px;flex-shrink:0;accent-color:${labelColor}">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;word-break:break-all">${escapeHtml(f.name)}</div>
+          <div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center">
+            <span style="color:${labelColor};font-weight:600">${escapeHtml(f.label)}</span>
+            <span style="color:#888">${escapeHtml(f.updated)}</span>
+          </div>
+        </div>
+      </label>`;
     }).join('');
-    listEl.onclick = function(ev){ const row = ev.target.closest && ev.target.closest('.drive-file-row'); if(row) loadSelectedDriveFile(row.getAttribute('data-id'), row.getAttribute('data-name')); };
-    showCsvFb(data.files.length + '件見つかりました。読み込むファイルをタップしてください', 'ok');
+    listEl.onclick = null;
+    document.getElementById('drive-load-selected-btn').addEventListener('click', loadCheckedDriveFile_);
+    showCsvFb(data.files.length + '件見つかりました。読み込むファイルを選んで「選択して読込」を押してください', 'ok');
   } catch (err) {
     showCsvFb('エラー: ' + err.message, 'err');
   }
@@ -922,6 +931,11 @@ async function loadDriveFileList() {
 
 async function loadSelectedDriveFile(fileId,fileName) {
   return loadCanonicalKumi_(fileName.replace(/\.csv$/i,''));
+}
+async function loadCheckedDriveFile_() {
+  const picked = document.querySelector('#drive-file-list input[name="drive-file-pick"]:checked');
+  if (!picked) { showCsvFb('読み込むファイルを1件選択してください', 'err'); return; }
+  return loadSelectedDriveFile(picked.value, picked.getAttribute('data-name'));
 }
 
 // ============================================================
