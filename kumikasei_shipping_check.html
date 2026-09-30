@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LwAB1KGZm4MBbvtd0iaabxhFAhWu2JDn7rYkURuYirE=' 'sha256-08A/4qA/0buPn0mCq9vRgwNDCIqA5KGd3uVkRojRr90='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LwAB1KGZm4MBbvtd0iaabxhFAhWu2JDn7rYkURuYirE=' 'sha256-5fehigJbVDT+ENKNLzv8b2LA+Z6274sis5gqUL6DIV8='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { closeTab()
@@ -191,8 +191,6 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3a7bdc}
 </head>
 <body>
 
-  const before = Number(row['出荷数']);
-  if (!Number.isSafeInteger(internalQR.capacity) || internalQR.capacity <= 0 || internalQR.capacity > before) return {ok:false,reason:'収容数が不正、または残数を超えています'};
 <!-- ログイン画面 -->
 <div id="login-screen">
   <div class="login-logo">
@@ -488,6 +486,9 @@ function matchAndDecrement(internalQR, lotNo) {
   }
 
   const row = candidates[0]; // FIFO: CSV内で先に出てくる行を優先
+  // v3.2で<body>直後へ誤配置されていた2行をここ（消込処理内）へ移設（2026-09-30）
+  const before = Number(row['出荷数']);
+  if (!Number.isSafeInteger(internalQR.capacity) || internalQR.capacity <= 0 || internalQR.capacity > before) return {ok:false,reason:'収容数が不正、または残数を超えています'};
 
   // ロットNoの先頭部分が、同じ行の1箱目と一致するか確認する（他品番のQR小の誤読み取り対策）
   const prefixMatch = lotNo.match(LOT_PREFIX_PATTERN);
