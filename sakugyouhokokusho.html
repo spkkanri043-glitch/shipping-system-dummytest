@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-C885zCYG32x+HFiwJEiP0yxEpqWaSHIK8iQabr3nHpU=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-ZlX7I8zjgE7iw3PCsxI56Zn3OuA4VqM1tx0YBNNOFRw=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -1403,27 +1403,55 @@ function addPhoto() {
   document.getElementById('photo-input').click();
 }
 
-function onPhotoSelected(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (photos.length >= 3) { showToast('写真は最大3枚までです', 'warn'); return; }
-  if (!['image/jpeg','image/png'].includes(file.type) || !file.size || file.size > PRIVATE_PHOTO_MAX_BYTES) {
-    showToast('JPEG/PNGの8MB以下の写真を選択してください', 'warn'); return;
-  }
+// スマホで撮った写真は、JPEG末尾の付加データ（動く写真等）や位置情報(EXIF)を含み、
+// サーバーの厳格な画像検査で拒否されることがある。送信前にブラウザ内で描き直して
+// 素のJPEG（長辺最大2048px）にする。付加データ・位置情報は除去される（サーバー検査は緩めない）。
+const PHOTO_REENCODE_MAX_SIDE = 2048;
+const PHOTO_INPUT_MAX_BYTES   = 30 * 1024 * 1024; // 描き直し前の元ファイルの上限
+function reencodePhoto_(file) {
+  return new Promise(function (resolve, reject) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = function () {
+      try {
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) throw new Error('size');
+        const scale = Math.min(1, PHOTO_REENCODE_MAX_SIDE / Math.max(w, h));
+        w = Math.max(1, Math.round(w * scale)); h = Math.max(1, Math.round(h * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); // PNGの透過部分を白に
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      } catch (err) { reject(err); }
+      finally { URL.revokeObjectURL(url); }
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('decode')); };
+    img.src = url;
+  });
+}
 
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    if (photos.length >= 3) return;
-    try { privatePhotoBytes_(privatePhotoFromDraft_(ev.target.result)); }
-    catch (error) { showToast('画像データを確認できませんでした', 'error'); return; }
-    photos.push(ev.target.result); // Base64データ
-    renderPhotos();
-    // 3枚になったらボタンを無効化
-    document.getElementById('btn-photo').disabled = photos.length >= 3;
-  };
-  reader.readAsDataURL(file);
+async function onPhotoSelected(e) {
+  const file = e.target.files[0];
   // 同じファイルを再選択できるようリセット
   e.target.value = '';
+  if (!file) return;
+  if (photos.length >= 3) { showToast('写真は最大3枚までです', 'warn'); return; }
+  if (!['image/jpeg','image/png'].includes(file.type) || !file.size || file.size > PHOTO_INPUT_MAX_BYTES) {
+    showToast('JPEG/PNGの写真を選択してください', 'warn'); return;
+  }
+
+  let dataUrl;
+  try {
+    dataUrl = await reencodePhoto_(file);
+    privatePhotoBytes_(privatePhotoFromDraft_(dataUrl));
+  } catch (error) { showToast('画像データを確認できませんでした', 'error'); return; }
+  if (photos.length >= 3) return;
+  photos.push(dataUrl); // Base64データ（描き直し後のJPEG）
+  renderPhotos();
+  // 3枚になったらボタンを無効化
+  document.getElementById('btn-photo').disabled = photos.length >= 3;
 }
 
 function removePhoto(idx) {
