@@ -1,7 +1,243 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-74hAWsTLYhDorBTeTC7Xbao74z7lt4pvUT+a1VqTtNg=' 'sha256-OramOJSLjR/nnuU1OQqxaf2BgXAqWC14zCpJ8/QkGhg='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
+<script>/* MOGU_CSP_RUNTIME_V1 */
+const __moguCsp = (() => {
+  const handlers = {"h0": function(event, _p) { onLangChange()
+},
+"h1": function(event, _p) { toggleLabelTranslation()
+},
+"h2": function(event, _p) { goPortal()
+},
+"h3": function(event, _p) { newForm()
+},
+"h4": function(event, _p) { openHistory()
+},
+"h5": function(event, _p) { openPartSelect()
+},
+"h6": function(event, _p) { openMasterModal()
+},
+"h7": function(event, _p) { printForm()
+},
+"h8": function(event, _p) { saveRecord()
+},
+"h9": function(event, _p) { addPnPair()
+},
+"h10": function(event, _p) { upOn(this)
+},
+"h11": function(event, _p) { upOn(this)
+},
+"h12": function(event, _p) { upOn(this)
+},
+"h13": function(event, _p) { upOn(this)
+},
+"h14": function(event, _p) { addNoteRow()
+},
+"h15": function(event, _p) { addChocoRow()
+},
+"h16": function(event, _p) { pickPhotoFile(false)
+},
+"h17": function(event, _p) { addPhoto()
+},
+"h18": function(event, _p) { onPhotoFile(this,false)
+},
+"h19": function(event, _p) { stamp('mgr',this.checked)
+},
+"h20": function(event, _p) { stamp('sup',this.checked)
+},
+"h21": function(event, _p) { stamp('agg',this.checked)
+},
+"h22": function(event, _p) { closeM('partSelectModal')
+},
+"h23": function(event, _p) { renderPartSelect()
+},
+"h24": function(event, _p) { closeM('partSelectModal')
+},
+"h25": function(event, _p) { closeM('masterModal')
+},
+"h26": function(event, _p) { addMstPn()
+},
+"h27": function(event, _p) { fetchFromProductMaster()
+},
+"h28": function(event, _p) { addMstNoteRow()
+},
+"h29": function(event, _p) { openProdEdit()
+},
+"h30": function(event, _p) { pickPhotoFile(true)
+},
+"h31": function(event, _p) { addMstPhoto()
+},
+"h32": function(event, _p) { onPhotoFile(this,true)
+},
+"h33": function(event, _p) { savePartMaster()
+},
+"h34": function(event, _p) { closeM('masterModal')
+},
+"h35": function(event, _p) { closeM('histModal')
+},
+"h36": function(event, _p) { renderHistTabs()
+},
+"h37": function(event, _p) { renderHistTabs()
+},
+"h38": function(event, _p) { renderHistTabs()
+},
+"h39": function(event, _p) { clearHistFilters()
+},
+"h40": function(event, _p) { closeM('histModal')
+},
+"h41": function(event, _p) { closeM('prodEditModal')
+},
+"h42": function(event, _p) { addProdEditRow()
+},
+"h43": function(event, _p) { closeM('prodEditModal')
+},
+"h44": function(event, _p) { applyProdEdit()
+},
+"h45": function(event, _p) { delPn(Number(_p[0]))
+},
+"h46": function(event, _p) { PN_PAIRS[Number(_p[2])].no=this.value
+},
+"h47": function(event, _p) { PN_PAIRS[Number(_p[4])].req=this.value
+},
+"h48": function(event, _p) { delMstPn(Number(_p[0]))
+},
+"h49": function(event, _p) { onMstPnInput(Number(_p[2]), this)
+},
+"h50": function(event, _p) { onMstPnKey(Number(_p[3]), this, event)
+},
+"h51": function(event, _p) { onMstPnInput(Number(_p[4]), this)
+},
+"h52": function(event, _p) { setTimeout(()=>hideMstSuggest(Number(_p[5])), 150)
+},
+"h53": function(event, _p) { addCondRow((String(_p[2])),(String(_p[3])),Number(_p[4]))
+},
+"h54": function(event, _p) { onUnitChange((String(_p[0])),Number(_p[1]),Number(_p[2]),(String(_p[3])),this.value)
+},
+"h55": function(event, _p) { if (_p[0] === "M_COND_SECS") { M_COND_SECS[Number(_p[1])].rows[Number(_p[2])].n=this.value } else if (_p[0] === "COND_SECS") { COND_SECS[Number(_p[1])].rows[Number(_p[2])].n=this.value } else { throw new Error("Invalid compiled handler alternative"); }
+},
+"h56": function(event, _p) { upOn(this)
+},
+"h57": function(event, _p) { moveRow((String(_p[19])),(String(_p[20])),Number(_p[21]),Number(_p[22]),-1)
+},
+"h58": function(event, _p) { moveRow((String(_p[23])),(String(_p[24])),Number(_p[25]),Number(_p[26]),1)
+},
+"h59": function(event, _p) { delRow((String(_p[27])),(String(_p[28])),Number(_p[29]),Number(_p[30]),this)
+},
+"h60": function(event, _p) { if (_p[0] === "condBody") { moveRow('condBody',(String(_p[1])),Number(_p[2]),Number(_p[3]),Number(_p[4])) } else if (_p[0] === "m-condBody") { moveRow('m-condBody',(String(_p[1])),Number(_p[2]),Number(_p[3]),Number(_p[4])) } else { throw new Error("Invalid compiled handler alternative"); }
+},
+"h61": function(event, _p) { if (_p[0] === "condBody") { delRow('condBody',(String(_p[1])),Number(_p[2]),Number(_p[3]),this) } else if (_p[0] === "m-condBody") { delRow('m-condBody',(String(_p[1])),Number(_p[2]),Number(_p[3]),this) } else { throw new Error("Invalid compiled handler alternative"); }
+},
+"h62": function(event, _p) { toggleChip(Number(_p[3]),this.checked)
+},
+"h63": function(event, _p) { upOn(this)
+},
+"h64": function(event, _p) { upOn(this)
+},
+"h65": function(event, _p) { translateCell(this)
+},
+"h66": function(event, _p) { movePE(this,-1)
+},
+"h67": function(event, _p) { movePE(this,1)
+},
+"h68": function(event, _p) { this.parentElement.remove()
+},
+"h69": function(event, _p) { PHOTOS[Number(_p[1])].name=this.value; refreshPhotoView()
+},
+"h70": function(event, _p) { onPhotoNameChange(Number(_p[2]), false)
+},
+"h71": function(event, _p) { PHOTOS[Number(_p[4])].url=this.value;delete PHOTOS[Number(_p[5])].binding;delete PHOTOS[Number(_p[6])].fileId
+},
+"h72": function(event, _p) { refreshPhotoView()
+},
+"h73": function(event, _p) { delPhoto(Number(_p[7]))
+},
+"h74": function(event, _p) { M_PHOTOS[Number(_p[1])].name=this.value; refreshMstPhotoView()
+},
+"h75": function(event, _p) { onPhotoNameChange(Number(_p[2]), true)
+},
+"h76": function(event, _p) { M_PHOTOS[Number(_p[4])].url=this.value;delete M_PHOTOS[Number(_p[5])].binding;delete M_PHOTOS[Number(_p[6])].fileId
+},
+"h77": function(event, _p) { refreshMstPhotoView()
+},
+"h78": function(event, _p) { delMstPhoto(Number(_p[7]))
+},
+"h79": function(event, _p) { M_NOTES[Number(_p[1])].c=this.value
+},
+"h80": function(event, _p) { M_NOTES[Number(_p[3])].s=this.value
+},
+"h81": function(event, _p) { delMstNoteRow(Number(_p[4]))
+},
+"h82": function(event, _p) { translateCell(this)
+},
+"h83": function(event, _p) { upOn(this)
+},
+"h84": function(event, _p) { translateCell(this)
+},
+"h85": function(event, _p) { onM5Change(Number(_p[3]),this)
+},
+"h86": function(event, _p) { onM5ActionInput(Number(_p[6]),this)
+},
+"h87": function(event, _p) { translateCell(this)
+},
+"h88": function(event, _p) { unlockRecord()
+},
+"h89": function(event, _p) { setPsTab('all')
+},
+"h90": function(event, _p) { usePartMaster(Number(_p[6]))
+},
+"h91": function(event, _p) { setMstTab('all')
+},
+"h92": function(event, _p) { loadMasterToModal(Number(_p[4]))
+},
+"h93": function(event, _p) { translateCell(this)
+}};
+  const events = ["change","click","input","keydown","focus","blur"];
+  const bound = new WeakMap();
+  function bind(el) {
+    if (!el || el.nodeType !== 1) return;
+    let state = bound.get(el); if (!state) { state = new Map(); bound.set(el, state); }
+    for (const type of events) {
+      const id = el.getAttribute('data-csp-' + type);
+      if (!id || state.get(type) === id) continue;
+      if (!Object.prototype.hasOwnProperty.call(handlers, id)) continue;
+      const fn = function(event) {
+        const value = this.getAttribute('data-csp-args-' + type);
+        const params = value ? JSON.parse(decodeURIComponent(value)) : [];
+        return handlers[id].call(this, event, params);
+      };
+      // Native event-handler properties preserve this/currentTarget, cancellation,
+      // async return behavior and later application assignments to .onclick etc.
+      el['on' + type] = fn;
+      state.set(type, id);
+    }
+  }
+  function scan(root) {
+    bind(root);
+    if (root.querySelectorAll) for (const el of root.querySelectorAll('*')) bind(el);
+  }
+  for (const type of events) document.addEventListener(type, event => {
+    for (const el of event.composedPath()) bind(el);
+  }, true);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') bind(record.target);
+      else for (const node of record.addedNodes) scan(node);
+    }
+  }).observe(document, {subtree:true, childList:true, attributes:true,
+    attributeFilter: events.map(type => 'data-csp-' + type)});
+  document.addEventListener('DOMContentLoaded', () => scan(document));
+  const encode = values => encodeURIComponent(JSON.stringify(values)).replace(/'/g, '%27');
+  function assign(el,type,id,values) {
+    el.setAttribute('data-csp-' + type,id);
+    el.setAttribute('data-csp-args-' + type,encode(values));
+    bind(el);
+  }
+  return Object.freeze({ encode, scan, assign });
+})();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>成形記録書</title>
 <style>
@@ -58,7 +294,7 @@ body{font-family:'Meiryo','MS Gothic',sans-serif;font-size:12px;background:var(-
 .dsec{margin-bottom:12px;}
 .dsh{background:var(--sec);border:1px solid var(--bd);border-radius:4px 4px 0 0;padding:5px 10px;font-weight:bold;font-size:11px;color:var(--blue);display:flex;align-items:center;justify-content:space-between;}
 .add-r-btn{background:var(--blue2);color:#fff;border:none;border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit;}
-.dt{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;}
+.dt{width:100%;border-collapse:collapse;font-size:11px;}
 .dt th{background:var(--head);border:1px solid var(--bd);padding:4px 6px;text-align:center;color:var(--blue);font-weight:bold;white-space:nowrap;}
 .dt td{border:1px solid var(--bd);padding:2px 4px;text-align:center;vertical-align:middle;}
 .dt td.L{background:var(--sec);text-align:left;}
@@ -175,15 +411,8 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 .ps-use-btn:hover{filter:brightness(1.1);}
 
 /* ── サイン確定ロック ── */
-/* 入力部品だけを止める。カード全体を止めると表の横スクロールまで効かなくなるため */
-#main-wrap.locked .card input,
-#main-wrap.locked .card select,
-#main-wrap.locked .card textarea,
-#main-wrap.locked .card label,
-#main-wrap.locked .card button:not(.tr-btn){ pointer-events:none; }
+#main-wrap.locked .card, #main-wrap.locked .two{ pointer-events:none; }
 #main-wrap.locked .card{ opacity:.97; }
-/* 横スクロールできることが分かるように */
-#main-wrap.locked .dsec{ scrollbar-width:thin; }
 #lockBanner{ background:#fdecea; border:1px solid var(--r); color:#922; border-radius:6px; padding:8px 12px; margin-bottom:10px; display:none; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px; }
 
 /* ── 品番サジェスト ── */
@@ -262,7 +491,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
   /* ── テーブルはみ出し対策：横スクロール枠にする ── */
   /* 成形条件（.dsec内の .dt） */
   .dsec{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .dsec .dt{ min-width:820px; }
+  .dsec .dt{ min-width:560px; }
 
   /* 製品確認・5M・チョコ停・注意事項・安全確認（.st） */
   .card .cb{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -328,97 +557,6 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 .ph-cam-btn:disabled{ opacity:.5; cursor:wait; }
 .ph-tools{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top:4px; }
 @media print{ .ph-cam-btn, .ph-tools{ display:none !important; } }
-
-/* ── 成形条件テーブル：マスター設定／記入欄の視覚分離 ── */
-.dt th.g-band-m{ background:var(--blue2); color:#fff; font-size:10px; letter-spacing:1px; border:1px solid var(--blue2); font-weight:bold; }
-.dt th.g-band-i{ background:var(--g); color:#fff; font-size:10px; letter-spacing:1px; border:1px solid var(--g); font-weight:bold; }
-.dt th.g-band-x{ background:var(--head); border:1px solid var(--bd); }
-.dt th.g-mst{ background:#d3ddec; color:#24476f; }
-.dt th.g-inp{ background:#cfe6d8; color:#166a3b; }
-.dt td.g-mst{ background:#f2f5fa; }
-.dt td.g-inp{ background:#fff; }
-.dt .divL{ border-left:3px solid var(--blue2)!important; }
-/* マスター設定の確定値：入力枠を消して"見るだけ"に */
-.dt input.fixv, .dt input.fixv[readonly]{ background:transparent!important; border:none!important; color:#42536b!important; font-weight:bold; cursor:default; padding:3px 5px; }
-.dt input.fixv.mng, .dt input.fixv.mng[readonly]{ color:var(--acc)!important; font-size:10px; }
-/* 記入欄：はっきり枠で囲う */
-.dt input.ent{ width:100%; border:1px solid #9fbfae; border-radius:3px; background:#fff; font-size:11px; font-family:inherit; padding:3px 5px; text-align:right; }
-.dt input.ent:focus{ outline:2px solid var(--g); border-color:var(--g); background:#fff; }
-.dt input.ent.blank{ background:#fff8e6; border:1px dashed var(--o); }
-.dt input.ent.blank::placeholder{ color:#d79a4a; font-size:10px; }
-/* 当日追加した行 */
-.dt tr.addrow td{ background:#fffdf5; }
-.dt tr.addrow input.ent{ border-color:#d9b877; }
-.dt tr.addrow input.tx{ background:#fff; border:1px solid #d9b877; border-radius:3px; }
-.rowtag{ display:inline-block; font-size:9px; background:var(--o); color:#fff; border-radius:3px; padding:0 5px; margin-left:3px; vertical-align:1px; white-space:nowrap; }
-/* 削除できない行のゴミ箱 */
-.db.locked{ color:#c9d2de; cursor:not-allowed; }
-.db.locked:hover{ color:#aab6c4; }
-@media print{
-  .dt input.ent{ border:1px solid #888!important; background:#fff!important; }
-  .dt input.ent.blank{ background:#fff!important; border:1px solid #888!important; }
-  .dt th.g-band-m, .dt th.g-band-i{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .rowtag{ display:none!important; }
-}
-
-/* ── 記録の削除（論理削除） ── */
-.hrec-deleted{ background:#f7f8fa; border-color:#d5dbe4; opacity:.85; }
-.hrec-deleted:hover{ background:#eef1f5; border-color:#c2cad6; }
-.hrec-deleted .hrec-req{ color:var(--tx3); text-decoration:line-through; }
-.hrec-del-badge{ display:inline-block; font-size:9px; background:#8894a6; color:#fff; border-radius:3px; padding:1px 6px; font-weight:bold; }
-.hrec-btn{ flex-shrink:0; border-radius:4px; font-size:10.5px; padding:3px 9px; cursor:pointer; font-family:inherit; font-weight:bold; white-space:nowrap; background:var(--wh); }
-.hrec-btn.del{ border:1px solid var(--r); color:var(--r); }
-.hrec-btn.del:hover{ background:#fff5f5; }
-.hrec-btn.rst{ border:1px solid var(--g); color:#1e7a45; }
-.hrec-btn.rst:hover{ background:#f2fbf5; }
-#delBanner{ background:#f2f4f7; border:1px solid #c2cad6; color:#5a6a85; border-radius:6px; padding:8px 12px; margin-bottom:10px; display:none; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px; }
-@media print{ #delBanner{ display:none !important; } .hrec-btn{ display:none !important; } }
-
-/* ── 閲覧モード（通知リンクから開いたとき） ── */
-#viewBanner{ background:#eaf2fb; border:1px solid var(--blue2); color:#1d3f70; border-radius:6px; padding:9px 13px; margin-bottom:10px; display:none; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px; }
-#viewBanner .vb-sub{ font-size:10.5px; color:var(--tx2); }
-@media print{ #viewBanner{ display:none !important; } }
-
-/* ── 閲覧モード × 狭い画面：成形条件を縦積みにして横スクロールを無くす ── */
-@media(max-width:700px){
-  #main-wrap.view-only .dsec{ overflow-x:visible; }
-  #main-wrap.view-only .dsec .dt{ min-width:0; display:block; table-layout:auto; }
-  #main-wrap.view-only .dsec .dt colgroup,
-  #main-wrap.view-only .dsec .dt thead{ display:none; }
-  #main-wrap.view-only .dsec .dt tbody{ display:block; }
-  #main-wrap.view-only .dsec .dt tr{
-    display:grid; grid-template-columns:1fr 1fr; gap:1px 8px;
-    border:1px solid var(--bd); border-left:3px solid var(--blue2); border-radius:5px;
-    padding:6px 9px; margin-bottom:6px; background:var(--wh);
-  }
-  #main-wrap.view-only .dsec .dt td{
-    border:none!important; padding:2px 0; display:flex; align-items:center; gap:5px;
-    text-align:left; min-width:0; background:transparent!important;
-  }
-  #main-wrap.view-only .dsec .dt td::before{ content:attr(data-c); font-size:9.5px; color:var(--tx3); flex:0 0 auto; }
-  #main-wrap.view-only .dsec .dt td[data-u]:not([data-u=""])::after{ content:attr(data-u); font-size:10px; color:var(--acc); font-weight:bold; flex:0 0 auto; }
-  #main-wrap.view-only .dsec .dt td input{ flex:0 1 auto; width:78px; min-width:0; text-align:left!important; padding:2px 4px; }
-  #main-wrap.view-only .dsec .dt td.c-r input{ width:52px; text-align:left!important; }
-  #main-wrap.view-only .dsec .dt td.c-b1 input,
-  #main-wrap.view-only .dsec .dt td.c-b2 input{ width:58px; }
-  #main-wrap.view-only .dsec .dt td.c-name{ grid-column:1; grid-row:1; font-weight:bold; flex-wrap:wrap; }
-  #main-wrap.view-only .dsec .dt td.c-name input{ flex:1 1 auto; width:auto; }
-  #main-wrap.view-only .dsec .dt td.c-name::before{ display:none; }
-  #main-wrap.view-only .dsec .dt td.c-name input{ font-weight:bold; font-size:12.5px; color:var(--blue)!important; }
-  #main-wrap.view-only .dsec .dt td.c-r{ grid-column:2; grid-row:1; justify-content:flex-end; }
-  #main-wrap.view-only .dsec .dt td.c-b1{ grid-column:1; }
-  #main-wrap.view-only .dsec .dt td.c-b2{ grid-column:2; }
-  #main-wrap.view-only .dsec .dt td.c-v1{ grid-column:1; }
-  #main-wrap.view-only .dsec .dt td.c-v2{ grid-column:2; }
-  #main-wrap.view-only .dsec .dt td.c-ok{ grid-column:1/-1; }
-  #main-wrap.view-only .dsec .dt td.c-u1,
-  #main-wrap.view-only .dsec .dt td.c-u2,
-  #main-wrap.view-only .dsec .dt td.c-no2,
-  #main-wrap.view-only .dsec .dt td.c-act{ display:none; }
-  #main-wrap.view-only .dsh .add-r-btn{ display:none; }
-  /* 製品確認なども画面内に収める */
-  #main-wrap.view-only .card .cb > .st{ min-width:0; }
-}
 </style>
 </head>
 <body>
@@ -427,10 +565,10 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 <div class="topbar">
   <div class="tb-L">
     <div class="tb-title">📋 成形記録書</div>
-    <div class="tb-sub">関ヶ原プラ工業株式会社 <span style="opacity:.55;">v2026-10-02a</span></div>
+    <div class="tb-sub">関ヶ原プラ工業株式会社</div>
   </div>
   <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-    <select id="lang-select" onchange="onLangChange()">
+    <select id="lang-select" data-csp-change="h0" data-csp-source-change="onLangChange()">
       <option value="ja">🌐 日本語</option>
       <option value="en" selected>🌐 English</option>
       <option value="zh-CN">🌐 中文</option>
@@ -438,17 +576,17 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
       <option value="pt">🌐 Português</option>
       <option value="id">🌐 Indonesia</option>
     </select>
-    <button id="btn-tl-toggle" onclick="toggleLabelTranslation()">🌐 項目名 訳OFF</button>
+    <button id="btn-tl-toggle" data-csp-click="h1" data-csp-source-click="toggleLabelTranslation()">🌐 項目名 訳OFF</button>
     <span class="user-badge" id="user-badge">...</span>
   </div>
   <div class="tb-btns">
-    <button class="btn" onclick="goPortal()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);">✕ 閉じる</button>
-    <button class="btn btn-new"  onclick="newForm()">🆕 新規</button>
-    <button class="btn btn-hist" onclick="openHistory()">📂 履歴</button>
-    <button class="btn btn-mst"  onclick="openPartSelect()">📦 品番選択</button>
-    <button class="btn btn-mst"  onclick="openMasterModal()" style="background:#1a6896;">⚙️ マスター</button>
-    <button class="btn" onclick="printForm()" style="background:#8e44ad;color:#fff;">🖨️ 印刷</button>
-    <button class="btn btn-save" onclick="saveRecord()">💾 保存</button>
+    <button class="btn" data-csp-click="h2" data-csp-source-click="goPortal()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);">✕ 閉じる</button>
+    <button class="btn btn-new"  data-csp-click="h3" data-csp-source-click="newForm()">🆕 新規</button>
+    <button class="btn btn-hist" data-csp-click="h4" data-csp-source-click="openHistory()">📂 履歴</button>
+    <button class="btn btn-mst"  data-csp-click="h5" data-csp-source-click="openPartSelect()">📦 品番選択</button>
+    <button class="btn btn-mst"  data-csp-click="h6" data-csp-source-click="openMasterModal()" style="background:#1a6896;">⚙️ マスター</button>
+    <button class="btn" data-csp-click="h7" data-csp-source-click="printForm()" style="background:#8e44ad;color:#fff;">🖨️ 印刷</button>
+    <button class="btn btn-save" data-csp-click="h8" data-csp-source-click="saveRecord()">💾 保存</button>
   </div>
 </div>
 
@@ -466,12 +604,6 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 
   <!-- 確定ロックバナー（JSで内容生成） -->
   <div id="lockBanner"></div>
-
-  <!-- 削除済みバナー（JSで内容生成） -->
-  <div id="delBanner"></div>
-
-  <!-- 閲覧モードバナー（通知リンクから開いたとき） -->
-  <div id="viewBanner"></div>
 
   <!-- 基本情報 -->
   <div class="card">
@@ -491,7 +623,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
           <label style="font-size:10px;color:var(--tx2);font-weight:bold;">⭐ 成形依頼番号</label>
         </div>
         <div id="pnPairs"></div>
-        <button class="pn-add-btn" onclick="addPnPair()">＋ 品番追加</button>
+        <button class="pn-add-btn" data-csp-click="h9" data-csp-source-click="addPnPair()">＋ 品番追加</button>
       </div>
       <!-- 行2 -->
       <div class="fg fg4" style="margin-bottom:6px;">
@@ -536,10 +668,10 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
       <div class="ch">🔒 金型交換後 安全確認</div>
       <div class="cb">
         <table class="st"><tbody>
-          <tr><td class="L">クランプ 操作側<div class="tl-sub" data-tl="クランプ 操作側"></div></td>   <td><select class="on" data-k="safe_cop"  onchange="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td></tr>
-          <tr><td class="L">クランプ 反操作側<div class="tl-sub" data-tl="クランプ 反操作側"></div></td> <td><select class="on" data-k="safe_cnop" onchange="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td></tr>
-          <tr><td class="L">E/J後退確認線<div class="tl-sub" data-tl="E/J後退確認線"></div></td>     <td><select class="on" data-k="safe_ej"   onchange="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td></tr>
-          <tr><td class="L">ロケートリング<div class="tl-sub" data-tl="ロケートリング"></div></td>    <td><select class="on" data-k="safe_lr"   onchange="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td></tr>
+          <tr><td class="L">クランプ 操作側<div class="tl-sub" data-tl="クランプ 操作側"></div></td>   <td><select class="on" data-k="safe_cop"  data-csp-change="h10" data-csp-source-change="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td></tr>
+          <tr><td class="L">クランプ 反操作側<div class="tl-sub" data-tl="クランプ 反操作側"></div></td> <td><select class="on" data-k="safe_cnop" data-csp-change="h11" data-csp-source-change="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td></tr>
+          <tr><td class="L">E/J後退確認線<div class="tl-sub" data-tl="E/J後退確認線"></div></td>     <td><select class="on" data-k="safe_ej"   data-csp-change="h12" data-csp-source-change="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td></tr>
+          <tr><td class="L">ロケートリング<div class="tl-sub" data-tl="ロケートリング"></div></td>    <td><select class="on" data-k="safe_lr"   data-csp-change="h13" data-csp-source-change="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td></tr>
         </tbody></table>
       </div>
     </div>
@@ -550,7 +682,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
           <thead><tr><th>内容</th><th>基準値</th><th>判定</th></tr></thead>
           <tbody id="notesTb"></tbody>
         </table>
-        <button onclick="addNoteRow()" style="margin-top:6px;padding:3px 10px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;">＋ 行追加</button>
+        <button data-csp-click="h14" data-csp-source-click="addNoteRow()" style="margin-top:6px;padding:3px 10px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;">＋ 行追加</button>
       </div>
     </div>
   </div>
@@ -573,7 +705,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
           <thead><tr><th>停止内容</th><th style="width:120px;">日付</th><th style="width:95px;">時間</th><th style="width:70px;">捨てショット</th><th style="width:80px;">担当</th></tr></thead>
           <tbody id="chocoTb"></tbody>
         </table>
-        <button onclick="addChocoRow()" style="margin-top:6px;padding:3px 10px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;">＋ 行追加</button>
+        <button data-csp-click="h15" data-csp-source-click="addChocoRow()" style="margin-top:6px;padding:3px 10px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;">＋ 行追加</button>
       </div>
     </div>
   </div>
@@ -598,11 +730,11 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
       <div class="ph-sub">Googleドライブの共有リンクを貼り付けてください（「リンクを知っている全員」に共有が必要です）</div>
       <div id="photoEdit"></div>
       <div class="ph-tools">
-        <button class="ph-cam-btn" id="camBtn" onclick="pickPhotoFile(false)">📷 撮影・写真を選ぶ</button>
-        <button class="ph-add-btn" onclick="addPhoto()" style="padding:4px 12px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;font-family:inherit;">＋ URLで追加</button>
+        <button class="ph-cam-btn" id="camBtn" data-csp-click="h16" data-csp-source-click="pickPhotoFile(false)">📷 撮影・写真を選ぶ</button>
+        <button class="ph-add-btn" data-csp-click="h17" data-csp-source-click="addPhoto()" style="padding:4px 12px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;font-family:inherit;">＋ URLで追加</button>
         <span id="camStatus" style="font-size:10px;color:var(--tx3);"></span>
       </div>
-      <input type="file" id="photoFile" accept="image/*" capture="environment" style="display:none;" onchange="onPhotoFile(this,false)">
+      <input type="file" id="photoFile" accept="image/*" capture="environment" style="display:none;" data-csp-change="h18" data-csp-source-change="onPhotoFile(this,false)">
       <div id="photoView"></div>
     </div>
   </div>
@@ -619,9 +751,9 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
     <div class="cb">
       <div class="sg">
         <div class="sb"><div class="sl">成形スタート者</div><div class="sn" id="s-start">-</div><div class="ss" id="ss-start"></div></div>
-        <div class="sb"><div class="sl">確認（管理者）</div><div class="sn" id="s-mgr">-</div><div class="sc"><label><input type="checkbox" id="cb-mgr" onchange="stamp('mgr',this.checked)"> 確認済み</label></div><div class="ss" id="ss-mgr"></div></div>
-        <div class="sb"><div class="sl">確認（監督者）</div><div class="sn" id="s-sup">-</div><div class="sc"><label><input type="checkbox" id="cb-sup" onchange="stamp('sup',this.checked)"> 確認済み</label></div><div class="ss" id="ss-sup"></div></div>
-        <div class="sb"><div class="sl">集計確認</div><div class="sn" id="s-agg">-</div><div class="sc"><label><input type="checkbox" id="cb-agg" onchange="stamp('agg',this.checked)"> 確認済み</label></div><div class="ss" id="ss-agg"></div></div>
+        <div class="sb"><div class="sl">確認（管理者）</div><div class="sn" id="s-mgr">-</div><div class="sc"><label><input type="checkbox" id="cb-mgr" data-csp-change="h19" data-csp-source-change="stamp('mgr',this.checked)"> 確認済み</label></div><div class="ss" id="ss-mgr"></div></div>
+        <div class="sb"><div class="sl">確認（監督者）</div><div class="sn" id="s-sup">-</div><div class="sc"><label><input type="checkbox" id="cb-sup" data-csp-change="h20" data-csp-source-change="stamp('sup',this.checked)"> 確認済み</label></div><div class="ss" id="ss-sup"></div></div>
+        <div class="sb"><div class="sl">集計確認</div><div class="sn" id="s-agg">-</div><div class="sc"><label><input type="checkbox" id="cb-agg" data-csp-change="h21" data-csp-source-change="stamp('agg',this.checked)"> 確認済み</label></div><div class="ss" id="ss-agg"></div></div>
       </div>
       <div style="font-size:10px;color:var(--tx3);margin-top:6px;">※確認済みにチェックするとログイン中の名前が自動入力されます</div>
     </div>
@@ -632,22 +764,22 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 <!-- ═══ 品番選択モーダル ═══ -->
 <div class="mo" id="partSelectModal">
   <div class="md" style="max-width:560px;">
-    <div class="mh">📦 品番を選んで記録書を作成<button class="mc-btn" onclick="closeM('partSelectModal')">✕</button></div>
+    <div class="mh">📦 品番を選んで記録書を作成<button class="mc-btn" data-csp-click="h22" data-csp-source-click="closeM('partSelectModal')">✕</button></div>
     <div class="mb">
       <input type="text" id="psSearch" placeholder="品番・製品名で検索..."
-        oninput="renderPartSelect()"
+        data-csp-input="h23" data-csp-source-input="renderPartSelect()"
         style="width:100%;padding:8px 12px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-family:inherit;margin-bottom:12px;">
       <div id="psTabs" style="display:flex;overflow-x:auto;gap:0;border-bottom:2px solid var(--bd);margin-bottom:10px;scrollbar-width:none;"></div>
       <div id="psList"></div>
     </div>
-    <div class="mf"><button class="btn btn-new" onclick="closeM('partSelectModal')">閉じる</button></div>
+    <div class="mf"><button class="btn btn-new" data-csp-click="h24" data-csp-source-click="closeM('partSelectModal')">閉じる</button></div>
   </div>
 </div>
 
 <!-- ═══ マスター管理モーダル ═══ -->
 <div class="mo" id="masterModal">
   <div class="md" style="max-width:1100px;">
-    <div class="mh">⚙️ 品番マスター登録<button class="mc-btn" onclick="closeM('masterModal')">✕</button></div>
+    <div class="mh">⚙️ 品番マスター登録<button class="mc-btn" data-csp-click="h25" data-csp-source-click="closeM('masterModal')">✕</button></div>
     <div class="mb">
       <div class="mst-banner">⚠️ マスター管理モード：成形依頼番号の入力は不要です。ここで登録した設定が日々の記録書のテンプレートになります。</div>
 
@@ -676,8 +808,8 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
             <div style="font-size:10px;color:var(--tx3);margin-bottom:3px;">品番を入力すると製品マスタから製品名・取引先を自動取得できます</div>
             <div id="m-pnArea" style="margin-top:4px;"></div>
             <div style="display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap;">
-              <button class="pn-add-btn" onclick="addMstPn()">＋ 品番追加</button>
-              <button onclick="fetchFromProductMaster()" style="padding:4px 12px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;font-family:inherit;">
+              <button class="pn-add-btn" data-csp-click="h26" data-csp-source-click="addMstPn()">＋ 品番追加</button>
+              <button data-csp-click="h27" data-csp-source-click="fetchFromProductMaster()" style="padding:4px 12px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;font-family:inherit;">
                 🔍 製品マスタから自動入力
               </button>
               <span id="m-fetch-status" style="font-size:10px;color:var(--tx3);"></span>
@@ -740,7 +872,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
             <thead><tr><th>内容</th><th style="width:170px;">基準値</th><th style="width:34px;"></th></tr></thead>
             <tbody id="m-notesTb"></tbody>
           </table>
-          <button onclick="addMstNoteRow()" style="margin-top:6px;padding:3px 10px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;font-family:inherit;">＋ 行追加</button>
+          <button data-csp-click="h28" data-csp-source-click="addMstNoteRow()" style="margin-top:6px;padding:3px 10px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;font-family:inherit;">＋ 行追加</button>
         </div>
       </div>
 
@@ -748,7 +880,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
       <div class="card" style="margin-bottom:10px;">
         <div class="ch">
           ✅ 製品確認項目
-          <button onclick="openProdEdit()" style="margin-left:auto;padding:2px 9px;font-size:10px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:3px;cursor:pointer;">✏️ 項目編集</button>
+          <button data-csp-click="h29" data-csp-source-click="openProdEdit()" style="margin-left:auto;padding:2px 9px;font-size:10px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:3px;cursor:pointer;">✏️ 項目編集</button>
         </div>
         <div class="cb">
           <table class="st">
@@ -765,36 +897,36 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
           <div class="ph-sub">Googleドライブの共有リンクを貼り付けてください（「リンクを知っている全員」に共有が必要です）</div>
           <div id="m-photoEdit"></div>
           <div class="ph-tools">
-            <button class="ph-cam-btn" id="mCamBtn" onclick="pickPhotoFile(true)">📷 撮影・写真を選ぶ</button>
-            <button onclick="addMstPhoto()" style="padding:4px 12px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;font-family:inherit;">＋ URLで追加</button>
+            <button class="ph-cam-btn" id="mCamBtn" data-csp-click="h30" data-csp-source-click="pickPhotoFile(true)">📷 撮影・写真を選ぶ</button>
+            <button data-csp-click="h31" data-csp-source-click="addMstPhoto()" style="padding:4px 12px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;font-family:inherit;">＋ URLで追加</button>
             <span id="mCamStatus" style="font-size:10px;color:var(--tx3);"></span>
           </div>
-          <input type="file" id="mPhotoFile" accept="image/*" capture="environment" style="display:none;" onchange="onPhotoFile(this,true)">
+          <input type="file" id="mPhotoFile" accept="image/*" capture="environment" style="display:none;" data-csp-change="h32" data-csp-source-change="onPhotoFile(this,true)">
           <div id="m-photoView"></div>
         </div>
       </div>
 
-      <button class="btn btn-save" onclick="savePartMaster()" style="width:100%;padding:10px;font-size:13px;">💾 品番マスターを保存</button>
+      <button class="btn btn-save" data-csp-click="h33" data-csp-source-click="savePartMaster()" style="width:100%;padding:10px;font-size:13px;">💾 品番マスターを保存</button>
     </div>
-    <div class="mf"><button class="btn btn-new" onclick="closeM('masterModal')">閉じる</button></div>
+    <div class="mf"><button class="btn btn-new" data-csp-click="h34" data-csp-source-click="closeM('masterModal')">閉じる</button></div>
   </div>
 </div>
 
 <!-- ═══ 履歴モーダル（取引先タブ付き） ═══ -->
 <div class="mo" id="histModal">
   <div class="md" style="max-width:860px;">
-    <div class="mh">📂 成形記録 履歴<button class="mc-btn" onclick="closeM('histModal')">✕</button></div>
+    <div class="mh">📂 成形記録 履歴<button class="mc-btn" data-csp-click="h35" data-csp-source-click="closeM('histModal')">✕</button></div>
     <div class="mb" style="padding:0;">
 
       <!-- 検索・フィルターエリア -->
       <div style="padding:12px 16px 0;">
         <input type="text" id="histSearch" placeholder="品番・製品名・依頼番号・材料名・号機で検索..."
-          oninput="renderHistTabs()"
+          data-csp-input="h36" data-csp-source-input="renderHistTabs()"
           style="width:100%;padding:8px 12px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-family:inherit;margin-bottom:8px;">
         <!-- フィルターチップ -->
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;align-items:center;">
           <span style="font-size:10px;color:var(--tx3);white-space:nowrap;">絞り込み:</span>
-          <select id="histFilterSign" onchange="renderHistTabs()"
+          <select id="histFilterSign" data-csp-change="h37" data-csp-source-change="renderHistTabs()"
             style="font-size:11px;padding:3px 7px;border:1px solid var(--bd);border-radius:12px;background:var(--wh);font-family:inherit;cursor:pointer;">
             <option value="">確認サイン: すべて</option>
             <option value="mgr">管理者確認済み</option>
@@ -802,32 +934,14 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
             <option value="agg">集計確認済み</option>
             <option value="none">未確認（サインなし）</option>
           </select>
-          <select id="histFilterClient" onchange="renderHistTabs()"
+          <select id="histFilterClient" data-csp-change="h38" data-csp-source-change="renderHistTabs()"
             style="font-size:11px;padding:3px 7px;border:1px solid var(--bd);border-radius:12px;background:var(--wh);font-family:inherit;cursor:pointer;">
             <option value="">取引先: すべて</option>
           </select>
-          <select id="histFilterMachine" onchange="renderHistTabs()"
-            style="font-size:11px;padding:3px 7px;border:1px solid var(--bd);border-radius:12px;background:var(--wh);font-family:inherit;cursor:pointer;">
-            <option value="">号機: すべて</option>
-          </select>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;align-items:center;">
-          <span style="font-size:10px;color:var(--tx3);white-space:nowrap;">記入日:</span>
-          <span style="display:inline-flex;align-items:center;gap:4px;background:var(--sec);border:1px solid var(--bd);border-radius:14px;padding:2px 8px;">
-            <input type="date" id="histFrom" onchange="renderHistTabs()"
-              style="font-size:11px;padding:2px 5px;border:1px solid var(--bd);border-radius:10px;background:var(--wh);font-family:inherit;">
-            <span style="font-size:10px;color:var(--blue);font-weight:bold;">～</span>
-            <input type="date" id="histTo" onchange="renderHistTabs()"
-              style="font-size:11px;padding:2px 5px;border:1px solid var(--bd);border-radius:10px;background:var(--wh);font-family:inherit;">
-          </span>
-          <button onclick="clearHistFilters()"
+          <button data-csp-click="h39" data-csp-source-click="clearHistFilters()"
             style="font-size:10px;padding:3px 9px;border:1px solid var(--bd);border-radius:12px;background:var(--wh);cursor:pointer;color:var(--tx2);">
             🗑 フィルター解除
           </button>
-          <label id="histDelWrap" style="display:none;align-items:center;gap:4px;font-size:10.5px;color:var(--tx2);cursor:pointer;border:1px solid var(--bd);border-radius:12px;padding:2px 10px;background:var(--wh);">
-            <input type="checkbox" id="histShowDeleted" onchange="onToggleDeleted()" style="cursor:pointer;">
-            🗑 削除済みを表示
-          </label>
         </div>
       </div>
 
@@ -840,7 +954,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
     </div>
     <div class="mf">
       <span style="font-size:10px;color:var(--tx3);" id="histCount"></span>
-      <button class="btn btn-new" onclick="closeM('histModal')">閉じる</button>
+      <button class="btn btn-new" data-csp-click="h40" data-csp-source-click="closeM('histModal')">閉じる</button>
     </div>
   </div>
 </div>
@@ -848,15 +962,15 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 <!-- ═══ 製品確認 編集モーダル ═══ -->
 <div class="mo" id="prodEditModal">
   <div class="md" style="max-width:520px;">
-    <div class="mh">✏️ 製品確認項目の編集<button class="mc-btn" onclick="closeM('prodEditModal')">✕</button></div>
+    <div class="mh">✏️ 製品確認項目の編集<button class="mc-btn" data-csp-click="h41" data-csp-source-click="closeM('prodEditModal')">✕</button></div>
     <div class="mb">
       <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;">↑↓で順序変更、🗑で削除できます。</div>
       <div id="prodEditList"></div>
-      <button onclick="addProdEditRow()" style="margin-top:8px;padding:4px 12px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;">＋ 項目追加</button>
+      <button data-csp-click="h42" data-csp-source-click="addProdEditRow()" style="margin-top:8px;padding:4px 12px;font-size:11px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;">＋ 項目追加</button>
     </div>
     <div class="mf">
-      <button class="btn btn-new" onclick="closeM('prodEditModal')">キャンセル</button>
-      <button class="btn btn-save" onclick="applyProdEdit()">適用</button>
+      <button class="btn btn-new" data-csp-click="h43" data-csp-source-click="closeM('prodEditModal')">キャンセル</button>
+      <button class="btn btn-save" data-csp-click="h44" data-csp-source-click="applyProdEdit()">適用</button>
     </div>
   </div>
 </div>
@@ -867,31 +981,51 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 // ══════════════════════════════════════════════
 // CONFIG & USER
 // ══════════════════════════════════════════════
-const GAS_URL = (() => {
-  const p = new URLSearchParams(window.location.search);
-  return p.get('seikei_gas_url') || p.get('seikeiKirokuGas') || p.get('gasUrl') || '';
-})();
+// セキュリティ改修：接続先は固定（?seikei_gas_url= 等の差し替えを撤去）。
+const GAS_URL         = 'https://script.google.com/macros/s/AKfycbwq2iPvBY26qD7zdCFI5nKu87ZKde55cXZg4phNRLKBgGfrBWrG5xbNY4aahAXVNTB4/exec';
+const PRODUCT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec'; // 製品マスタ（現状は匿名読取）
 
-// 製品マスタGAS URL（ポータルから product_url パラメータで渡される）
-const PRODUCT_GAS_URL = (() => {
-  const p = new URLSearchParams(window.location.search);
-  return p.get('product_url') || '';
+// ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
+const AUTH_TOKEN_KEY = 'kpk_seikei_token';
+let AUTH_TOKEN = (function() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/[#&]sso=([^&]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, t);
+      history.replaceState(null, '', location.pathname + location.search);
+      return t;
+    }
+    return sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  } catch(e) { return ''; }
 })();
+function handleUnauthorized_() {
+  clearSeikeiPrivatePhotos_();
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
+  AUTH_TOKEN = '';
+  try { showToast && showToast('認証が無効です。ポータルから入り直してください'); } catch(e) {}
+}
 
-let CU = null; // currentUser
+let CU = { id:'guest', name:'未認証', role:'staff', loginId:'guest' };
 let STARTER = null; // 記録書の最初の作成者（上書きしない）
 
-(function initUser() {
+async function initUser() {
+  // The token is opaque. Only the authenticated server supplies identity/role.
   try {
-    const t = new URLSearchParams(window.location.search).get('sso');
-    if (t) CU = JSON.parse(decodeURIComponent(escape(atob(t.split('').reverse().join('')))));
-  } catch(e) {}
-  if (!CU) CU = {id:'guest', name:'ゲスト', role:'staff', loginId:'guest'};
+    const user = await gasCall_('whoami', {});
+    if (!user || user.ok !== true || typeof user.id !== 'string' || !user.id ||
+        !['staff','leader','admin','master'].includes(user.role)) throw new Error('unauthorized');
+    CU = { id:user.id, name:String(user.name || user.id), role:user.role, loginId:user.id };
+  } catch (e) {
+    CU = { id:'guest', name:'未認証', role:'staff', loginId:'guest' };
+    toast('利用者を確認できません。ポータルから入り直してください', 'err');
+  }
   document.getElementById('user-badge').textContent = CU.name + '（' + CU.role + '）';
   // operator欄は新規作成時のみ設定（fillFormで上書きされる）
   document.getElementById('s-start').textContent = CU.name;
   document.getElementById('ss-start').textContent = CU.name + ' ✔';
-})();
+}
 
 // ══════════════════════════════════════════════
 // STATE
@@ -905,22 +1039,41 @@ let M_NOTES = [];       // 製品特有の注意事項（マスター編集用�
 let M_PHOTOS = [];      // 参考写真（マスター編集用）[{name,url}]
 let PHOTOS = [];        // この記録の写真（日々）[{name,url}]
 let REF_PHOTOS = [];    // マスター由来の参考写真（日々・閲覧のみ）
+const LOCAL_PHOTO_DRAFTS = new Map();
 let COND_SECS = [];     // 成形条件セクション（日々）
 let M_COND_SECS = [];   // 成形条件セクション（マスター編集用）
 let M_PNS = [''];       // マスター品番リスト
 let M_SEC_CACHE = {};   // マスター編集：チップで外したセクションの退避（key → セクション）
 const SIGNS = {mgr:null, sup:null, agg:null};
+const MEMORY_CACHE = new Map();
+let UNSAVED_DRAFT = null;
+let SAVE_BUSY = false;
+// Remove only this app's legacy business caches; tokens remain session-scoped.
+['seikei_part_masters', 'seikei_records'].forEach(key => {
+  try { localStorage.removeItem(key); } catch (e) {}
+});
+
+document.addEventListener('click', event => {
+  const target = event.target.closest && event.target.closest('[data-ps-tab],[data-mst-tab],[data-delete-master]');
+  if (!target) return;
+  if (target.hasAttribute('data-ps-tab')) setPsTab(target.getAttribute('data-ps-tab'));
+  else if (target.hasAttribute('data-mst-tab')) setMstTab(target.getAttribute('data-mst-tab'));
+  else delMaster(target.getAttribute('data-delete-master'));
+});
+document.addEventListener('mousedown', event => {
+  const target = event.target.closest && event.target.closest('[data-pick-no]');
+  if (!target) return;
+  const index = Number(target.getAttribute('data-pick-index'));
+  if (!Number.isInteger(index) || index < 0 || index >= M_PNS.length) return;
+  event.preventDefault();
+  pickMstPn(index, target.getAttribute('data-pick-no'));
+});
 
 // 品番+依頼番号ペア [{no:'', req:''}]
 let PN_PAIRS = [{no:'', req:''}];
 let LOCKED = false;   // 確定（集計確認サイン済み）ロック状態
 let MST_TAB = 'all';  // マスター一覧の取引先タブ
 let PS_TAB = 'all';   // 品番選択の取引先タブ
-let HIST_SHOW_DELETED = false;  // 履歴で削除済みも表示するか
-// 通知リンクから開いたときの閲覧モード
-const RID_PARAM  = new URLSearchParams(window.location.search).get('rid') || '';
-const VIEW_ONLY  = (new URLSearchParams(window.location.search).get('from') || '') === 'notify';
-let CUR_DEL = null;             // 開いている記録の削除情報（保存時に引き継ぐ）
   let LAST_SNAPSHOT = {};   // 前回保存時の data-k 値スナップショット（差分比較用）
 let CHANGE_LOG = [];      // 変更履歴 [{ts, byName, byId, field, before, after, reason}]
 
@@ -970,7 +1123,8 @@ const UNIT_OPTIONS = ['', 'S', 'min⁻¹', 'mm', 'mm/s', 'ton', 'kN', 'Mpa', 'kg
 // ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+  await initUser();
   document.getElementById('recordDate').value = today();
   STARTER = {name: CU.name, id: CU.id, loginId: CU.loginId};
   document.getElementById('operator').value = CU.name;
@@ -982,13 +1136,8 @@ window.addEventListener('DOMContentLoaded', () => {
   renderNotes(3); renderChocos(1); renderM5();
   PHOTOS = []; REF_PHOTOS = [];
   renderPhotos(); renderRefPhotos();
-  CUR_DEL = null; applyDelBanner();
   setStatus('新規作成モード', 'ok');
   PARTS = JSON.parse(ls('seikei_part_masters') || '[]');
-
-  // 通知リンクから開いた場合
-  applyViewOnly();
-  if (RID_PARAM) openRecordById(RID_PARAM);
 });
 
 // ══════════════════════════════════════════════
@@ -1001,9 +1150,9 @@ function renderPnPairs() {
     const row = document.createElement('div');
     row.className = 'pn-pair';
     row.innerHTML = `
-      <input type="text" value="${esc(pair.no)}"  placeholder="品番${PN_PAIRS.length>1?' '+(i+1):''}"  oninput="PN_PAIRS[${i}].no=this.value">
-      <input type="text" value="${esc(pair.req)}" placeholder="成形依頼番号（10桁）" maxlength="10" oninput="PN_PAIRS[${i}].req=this.value">
-      ${PN_PAIRS.length>1 ? `<button class="pn-del" onclick="delPn(${i})">✕</button>` : ''}`;
+      <input type="text" value="${esc(pair.no)}"  placeholder="品番${PN_PAIRS.length>1?' '+(i+1):''}"  data-csp-input="h46" data-csp-source-input="PN_PAIRS[].no=this.value" data-csp-args-input="${__moguCsp.encode([null,null,(i),null,null,null])}">
+      <input type="text" value="${esc(pair.req)}" placeholder="成形依頼番号（10桁）" maxlength="10" data-csp-input="h47" data-csp-source-input="PN_PAIRS[].req=this.value" data-csp-args-input="${__moguCsp.encode([null,null,null,null,(i),null])}">
+      ${PN_PAIRS.length>1 ? `<button class="pn-del" data-csp-click="h45" data-csp-source-click="delPn()" data-csp-args-click="${__moguCsp.encode([(i)])}">✕</button>` : ''}`;
     div.appendChild(row);
   });
 }
@@ -1024,13 +1173,13 @@ function renderMstPns() {
     row.innerHTML = `
       <div class="pn-suggest-wrap">
         <input type="text" value="${esc(v)}" placeholder="品番${M_PNS.length>1?' '+(i+1):''}（入力すると候補表示）" autocomplete="off"
-          oninput="onMstPnInput(${i}, this)"
-          onkeydown="onMstPnKey(${i}, this, event)"
-          onfocus="onMstPnInput(${i}, this)"
-          onblur="setTimeout(()=>hideMstSuggest(${i}), 150)">
+          data-csp-input="h49" data-csp-source-input="onMstPnInput(, this)" data-csp-args-input="${__moguCsp.encode([null,null,(i),null,null,null,null,null])}"
+          data-csp-keydown="h50" data-csp-source-keydown="onMstPnKey(, this, event)" data-csp-args-keydown="${__moguCsp.encode([null,null,null,(i),null,null,null,null])}"
+          data-csp-focus="h51" data-csp-source-focus="onMstPnInput(, this)" data-csp-args-focus="${__moguCsp.encode([null,null,null,null,(i),null,null,null])}"
+          data-csp-blur="h52" data-csp-source-blur="setTimeout(()=&gt;hideMstSuggest(), 150)" data-csp-args-blur="${__moguCsp.encode([null,null,null,null,null,(i),null,null])}">
         <div class="pn-suggest" id="pn-sg-${i}"></div>
       </div>
-      ${M_PNS.length>1 ? `<button class="pn-del" onclick="delMstPn(${i})">✕</button>` : ''}`;
+      ${M_PNS.length>1 ? `<button class="pn-del" data-csp-click="h48" data-csp-source-click="delMstPn()" data-csp-args-click="${__moguCsp.encode([(i)])}">✕</button>` : ''}`;
     div.appendChild(row);
   });
 }
@@ -1082,7 +1231,7 @@ async function onMstPnInput(i, inp) {
     .slice(0, 20);
 
   if (!matches.length) {
-    box.innerHTML = '<div class="pn-sg-empty">該当する品番がありません</div>';
+    box.innerHTML = '<div class="pn-sg-empty">公開一覧内で未検出（最大20,000件）</div>';
     box.classList.add('show');
     return;
   }
@@ -1090,7 +1239,7 @@ async function onMstPnInput(i, inp) {
   PN_SG_ACTIVE[i] = -1;
   box.innerHTML = matches.map((m, mi) =>
     `<div class="pn-sg-item" data-mi="${mi}"
-       onmousedown="pickMstPn(${i}, '${esc(m.no).replace(/'/g,"\\'")}')">
+       data-pick-index="${i}" data-pick-no="${esc(m.no)}">
        <div class="pn-sg-no">${esc(m.no)}</div>
        ${m.name ? `<div class="pn-sg-name">${esc(m.name)}</div>` : ''}
      </div>`
@@ -1109,7 +1258,7 @@ function onMstPnKey(i, inp, ev) {
   if (ev.key === 'ArrowDown') { ev.preventDefault(); idx = (idx + 1) % items.length; }
   else if (ev.key === 'ArrowUp') { ev.preventDefault(); idx = (idx - 1 + items.length) % items.length; }
   else if (ev.key === 'Enter') {
-    if (idx >= 0 && items[idx]) { ev.preventDefault(); items[idx].dispatchEvent(new MouseEvent('mousedown')); }
+    if (idx >= 0 && items[idx]) { ev.preventDefault(); items[idx].dispatchEvent(new MouseEvent('mousedown', {bubbles:true})); }
     return;
   }
   else if (ev.key === 'Escape') { hideMstSuggest(i); return; }
@@ -1162,38 +1311,17 @@ function renderCondSecs(targetId, secs, masterMode, saved) {
     wrap.innerHTML = `
       <div class="dsh">
         <span>${esc(sec.label)}<span class="tl-sub" data-tl="${esc(sec.label)}"></span></span>
-        <button class="add-r-btn" onclick="addCondRow('${targetId}','${prefix}',${si})">＋ 行追加</button>
+        <button class="add-r-btn" data-csp-click="h53" data-csp-source-click="addCondRow('','',)" data-csp-args-click="${__moguCsp.encode([null,null,(targetId),(prefix),(si),null,null,null,null])}">＋ 行追加</button>
       </div>
       <table class="dt">
-        <colgroup>
-          <col style="width:130px">
-          <col style="width:15%">
-          <col style="width:72px">
-          <col style="width:15%">
-          <col style="width:72px">
-          <col style="width:64px">
-          <col>
-          <col>
-          ${isTA ? '<col style="width:64px">' : ''}
-          <col style="width:56px">
-        </colgroup>
-        <thead>
-          ${masterMode ? '' : `<tr>
-            <th class="g-band-x"></th>
-            <th class="g-band-m" colspan="5">マスター設定（変更不可）</th>
-            <th class="g-band-i" colspan="2">記入欄（ここに入力）</th>
-            ${isTA ? '<th class="g-band-x"></th>' : ''}
-            <th class="g-band-x"></th>
-          </tr>`}
-          <tr>
-          <th>項目名</th>
-          <th class="${masterMode?'':'g-mst'}">基準値①</th><th class="${masterMode?'':'g-mst'}">単位</th>
-          ${sec.u2 ? `<th class="${masterMode?'':'g-mst'}">基準値②</th><th class="${masterMode?'':'g-mst'}">単位</th>` : `<th class="${masterMode?'':'g-mst'}" colspan="2"></th>`}
-          <th class="${masterMode?'':'g-mst'}">管理値</th>
-          <th class="${masterMode?'':'g-inp divL'}">記入欄①</th>
-          <th class="${masterMode?'':'g-inp'}">記入欄②</th>
-          ${isTA ? '<th>OK/NG</th>' : ''}
-          <th></th>
+        <thead><tr>
+          <th style="width:130px">項目名</th>
+          <th>基準値①</th><th style="width:72px">単位</th>
+          ${sec.u2 ? `<th>基準値②</th><th style="width:72px">単位</th>` : '<th colspan="2" style="width:80px"></th>'}
+          <th style="width:70px">管理値</th>
+          <th>記入欄</th>
+          ${isTA ? '<th style="width:70px">OK/NG</th>' : ''}
+          <th style="width:54px"></th>
         </tr></thead>
         <tbody id="${prefix}tb-${si}"></tbody>
       </table>`;
@@ -1201,15 +1329,12 @@ function renderCondSecs(targetId, secs, masterMode, saved) {
     sec.rows.forEach((row, ri) => addCondRowEl(targetId, prefix, si, ri, row, masterMode, saved));
   });
   refreshLabelTl();
-  refreshEntBlank();
 }
 
 function addCondRow(targetId, prefix, si) {
   const secs = prefix==='c' ? COND_SECS : M_COND_SECS;
-  // 日々の記録で追加した行は adhoc 印を付ける（基準値なども入力できる／削除できる）
-  const newRow = (prefix==='c') ? {n:'', adhoc:true} : {n:''};
-  secs[si].rows.push(newRow);
-  addCondRowEl(targetId, prefix, si, secs[si].rows.length-1, newRow, prefix==='m', null);
+  secs[si].rows.push({n:''});
+  addCondRowEl(targetId, prefix, si, secs[si].rows.length-1, {n:''}, prefix==='m', null);
 }
 
 function addCondRowEl(targetId, prefix, si, ri, row, masterMode, saved) {
@@ -1225,55 +1350,39 @@ function addCondRowEl(targetId, prefix, si, ri, row, masterMode, saved) {
   const b1v  = sv.b1 !== undefined ? sv.b1 : (row.b1 !== undefined ? row.b1 : '');
   const b2v  = sv.b2 !== undefined ? sv.b2 : (row.b2 !== undefined ? row.b2 : '');
 
-  // マスター編集中、または「当日追加した行」は基準値・単位・管理値・項目名を編集できる
-  const editable = masterMode || !!row.adhoc;
-  // 基準値が入っている行は削除できない（描画時点の判定：見た目用）
-  const hasBase  = String(b1v).trim() !== '' || String(b2v).trim() !== '';
-
   const tr = document.createElement('tr');
   tr.id = `${prefix}tr-${si}-${ri}`;
-  if (!masterMode && row.adhoc) tr.className = 'addrow';
 
-  const mstCls  = masterMode ? '' : ' g-mst';
-  const inpCls  = masterMode ? '' : ' g-inp';
-  const inpClsL = masterMode ? '' : ' g-inp divL';
-  // 基準値②を使わないセクションでは、縦積み時に②の欄を隠す
-  const has2 = !!(sec.u2 || u2 || String(b2v).trim());
+  const nameRo = masterMode ? '' : 'readonly';
+  const rangeClass = masterMode ? 'master-range' : '';
 
-  // 単位セル：編集できるときはプルダウン、それ以外は固定表示
   const unitCell = (curVal, which) => {
-    if (editable) {
+    if (masterMode) {
       const opts = UNIT_OPTIONS.slice();
       if (curVal && !opts.includes(curVal)) opts.unshift(curVal);
       const options = opts.map(u =>
         `<option value="${esc(u)}" ${u===curVal?'selected':''}>${u===''?'-':esc(u)}</option>`
       ).join('');
-      return `<select class="unit-sel" onchange="onUnitChange('${prefix}',${si},${ri},'${which}',this.value)">${options}</select>`;
+      return `<select class="unit-sel" data-csp-change="h54" data-csp-source-change="onUnitChange('',,,'',this.value)" data-csp-args-change="${__moguCsp.encode([(prefix),(si),(ri),(which),null])}">${options}</select>`;
     }
     return `<span class="rc">${esc(curVal)}</span>`;
   };
 
-  // 基準値セル：編集不可のときは入力枠を消した"見るだけ"の表示にする（data-kは保持）
-  const baseCell = (val, key) =>
-    `<input type="text" inputmode="decimal" value="${esc(val)}" data-k="${key}"
-      class="${editable?'':'fixv'}" ${editable?'':'readonly'} style="text-align:right;">`;
-
   tr.innerHTML = `
-    <td class="c-name"><input type="text" class="tx" value="${esc(row.n||'')}" ${editable?'':'readonly'}
-      ${editable ? `oninput="${prefix==='m'?'M_COND_SECS':'COND_SECS'}[${si}].rows[${ri}].n=this.value"` : ''}
-      ${editable ? '' : 'title="項目名はマスター管理から変更してください"'}>${(!masterMode && row.adhoc) ? '<span class="rowtag">当日追加</span>' : ''}<div class="tl-sub" data-tl="${esc(row.n||'')}"></div></td>
-    <td class="c-b1${mstCls}" data-c="基準値①" data-u="${esc(u1)}">${baseCell(b1v, k+'_b1')}</td>
-    <td class="c-u1${mstCls}">${unitCell(u1, 'u1')}</td>
-    <td class="c-b2${has2?'':' c-no2'}${mstCls}" data-c="基準値②" data-u="${esc(u2)}">${baseCell(b2v, k+'_b2')}</td>
-    <td class="c-u2${has2?'':' c-no2'}${mstCls}">${unitCell(u2, 'u2')}</td>
-    <td class="c-r${mstCls}" data-c="管理値"><input type="text" value="${sv.r !== undefined ? sv.r : r}" data-k="${k}_r" class="${editable?'master-range':'fixv mng'}" ${editable?'':'readonly'} style="text-align:center;font-size:10px;font-weight:bold;"></td>
-    <td class="c-v1${inpClsL}" data-c="記入欄①"><input type="text" inputmode="decimal" class="ent" placeholder="未記入" value="${esc(sv.v !== undefined ? sv.v : (row.v !== undefined ? row.v : ''))}" data-k="${k}_v" oninput="mkEnt(this)"></td>
-    <td class="c-v2${inpCls}" data-c="記入欄②"><input type="text" inputmode="decimal" class="ent" placeholder="未記入" value="${esc(sv.v2 !== undefined ? sv.v2 : (row.v2 !== undefined ? row.v2 : ''))}" data-k="${k}_v2" oninput="mkEnt(this)"></td>
-    ${isTA ? `<td class="c-ok" data-c="OK/NG"><select class="on" data-k="${k}_ok" onchange="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td>` : ''}
-    <td class="c-act" style="white-space:nowrap;">
-      <button class="mv" onclick="moveRow('${targetId}','${prefix}',${si},${ri},-1)">▲</button>
-      <button class="mv" onclick="moveRow('${targetId}','${prefix}',${si},${ri},1)">▼</button>
-      <button class="db${(!masterMode && hasBase) ? ' locked' : ''}" onclick="delRow('${targetId}','${prefix}',${si},${ri},this)" title="${(!masterMode && hasBase) ? '基準値のある行は削除できません' : 'この行を削除'}">🗑</button>
+    <td style="width:130px;min-width:130px;"><input type="text" class="tx" value="${esc(row.n||'')}" ${nameRo}
+      ${masterMode ? `data-csp-input="h55" data-csp-source-input="[].rows[].n=this.value" data-csp-args-input="${__moguCsp.encode([(prefix==='m'?'M_COND_SECS':'COND_SECS'),(si),(ri)])}"` : ''}
+      ${!masterMode ? 'title="項目名はマスター管理から変更してください"' : ''}><div class="tl-sub" data-tl="${esc(row.n||'')}"></div></td>
+    <td><input type="text" inputmode="decimal" value="${esc(b1v)}" data-k="${k}_b1" style="text-align:right;"></td>
+    <td>${unitCell(u1, 'u1')}</td>
+    <td><input type="text" inputmode="decimal" value="${esc(b2v)}" data-k="${k}_b2" style="text-align:right;"></td>
+    <td>${unitCell(u2, 'u2')}</td>
+    <td><input type="text" value="${esc(sv.r !== undefined ? sv.r : r)}" data-k="${k}_r" class="${rangeClass}" ${masterMode?'':'readonly'} style="text-align:center;font-size:10px;color:${masterMode?'var(--tx)':'var(--acc)'};font-weight:bold;"></td>
+    <td><input type="text" inputmode="decimal" value="${esc(sv.v !== undefined ? sv.v : (row.v !== undefined ? row.v : ''))}" data-k="${k}_v" style="text-align:right;"></td>
+    ${isTA ? `<td><select class="on" data-k="${k}_ok" data-csp-change="h56" data-csp-source-change="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td>` : ''}
+    <td style="white-space:nowrap;">
+      <button class="mv" data-csp-click="h57" data-csp-source-click="moveRow('','',,,-1)" data-csp-args-click="${__moguCsp.encode([null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,(targetId),(prefix),(si),(ri),null,null,null,null,null,null,null,null])}">▲</button>
+      <button class="mv" data-csp-click="h58" data-csp-source-click="moveRow('','',,,1)" data-csp-args-click="${__moguCsp.encode([null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,(targetId),(prefix),(si),(ri),null,null,null,null])}">▼</button>
+      <button class="db" data-csp-click="h59" data-csp-source-click="delRow('','',,,this)" data-csp-args-click="${__moguCsp.encode([null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,(targetId),(prefix),(si),(ri)])}">🗑</button>
     </td>`;
   tb.appendChild(tr);
 
@@ -1281,75 +1390,27 @@ function addCondRowEl(targetId, prefix, si, ri, row, masterMode, saved) {
     const s = tr.querySelector(`[data-k="${k}_ok"]`);
     if (s) { s.value=sv.ok||row.ok||''; upOn(s); }
   }
-  tr.querySelectorAll('input.ent').forEach(mkEnt);
   refreshLabelTl();
 }
 
-// 単位プルダウンの変更を行データに反映
 function onUnitChange(prefix, si, ri, which, value) {
   const secs = prefix==='c' ? COND_SECS : M_COND_SECS;
   if (!secs[si] || !secs[si].rows[ri]) return;
   secs[si].rows[ri][which] = value;
 }
 
-// 記入欄の未記入マーク
-function mkEnt(el) {
-  if (!el) return;
-  if (String(el.value||'').trim()) el.classList.remove('blank');
-  else el.classList.add('blank');
-}
-function refreshEntBlank() {
-  document.querySelectorAll('input.ent').forEach(mkEnt);
-}
-
-// 画面の入力値を行データへ書き戻す（再描画で消えないように）
-function commitCondInputs(prefix) {
-  const secs = prefix==='c' ? COND_SECS : M_COND_SECS;
-  secs.forEach((sec, si) => {
-    sec.rows.forEach((row, ri) => {
-      const k = `${prefix}_${si}_${ri}`;
-      const val = (suf) => {
-        const el = document.querySelector(`[data-k="${k}_${suf}"]`);
-        return el ? el.value : undefined;
-      };
-      const tr = document.getElementById(`${prefix}tr-${si}-${ri}`);
-      if (tr) { const n = tr.querySelector('input.tx'); if (n) row.n = n.value; }
-      const b1 = val('b1'); if (b1 !== undefined) row.b1 = b1;
-      const b2 = val('b2'); if (b2 !== undefined) row.b2 = b2;
-      const rr = val('r');  if (rr !== undefined) row.r  = rr;
-      const vv = val('v');  if (vv !== undefined) row.v  = vv;
-      const v2 = val('v2'); if (v2 !== undefined) row.v2 = v2;
-      const ok = val('ok'); if (ok !== undefined) row.ok = ok;
-    });
-  });
-}
-
 function moveRow(targetId, prefix, si, ri, dir) {
   const secs = prefix==='c' ? COND_SECS : M_COND_SECS;
   const newRi = ri + dir;
   if (newRi<0 || newRi>=secs[si].rows.length) return;
-  commitCondInputs(prefix);
+  const saved = collectCondData(prefix);
   [secs[si].rows[ri], secs[si].rows[newRi]] = [secs[si].rows[newRi], secs[si].rows[ri]];
   const master = prefix==='m';
-  renderCondSecs(targetId, secs, master, null);
+  renderCondSecs(targetId, secs, master, saved);
 }
 
 function delRow(targetId, prefix, si, ri, btn) {
   const secs = prefix==='c' ? COND_SECS : M_COND_SECS;
-
-  // 日々の記録：基準値が入っている行は削除できない
-  if (prefix === 'c') {
-    const gv2 = (suf) => {
-      const el = document.querySelector(`[data-k="c_${si}_${ri}_${suf}"]`);
-      return el ? String(el.value||'').trim() : '';
-    };
-    if (gv2('b1') || gv2('b2')) {
-      toast('基準値のある行は削除できません（基準値を空にすると削除できます）', 'warn');
-      return;
-    }
-  }
-
-  commitCondInputs(prefix);
   secs[si].rows.splice(ri,1);
   document.getElementById(`${prefix}tb-${si}`).removeChild(btn.closest('tr'));
   reindexTb(prefix, si);
@@ -1364,10 +1425,10 @@ function reindexTb(prefix, si) {
     });
     ['▲','▼'].forEach((ch,ii) => {
       const b = tr.querySelectorAll('.mv')[ii];
-      if (b) b.setAttribute('onclick', `moveRow('${prefix==='c'?'condBody':'m-condBody'}','${prefix}',${si},${newRi},${ii===0?-1:1})`);
+      if (b) __moguCsp.assign(b,"click","h60",[(prefix==='c'?'condBody':'m-condBody'),(prefix),(si),(newRi),(ii===0?-1:1)]);
     });
     const db = tr.querySelector('.db');
-    if (db) db.setAttribute('onclick', `delRow('${prefix==='c'?'condBody':'m-condBody'}','${prefix}',${si},${newRi},this)`);
+    if (db) __moguCsp.assign(db,"click","h61",[(prefix==='c'?'condBody':'m-condBody'),(prefix),(si),(newRi)]);
   });
 }
 
@@ -1385,7 +1446,7 @@ function renderMstChips() {
   div.innerHTML = DEF_SECS.map((s,i) => {
     const on = M_COND_SECS.some(ms => ms.key === s.key);
     return `<label class="chip ${on?'on':''}" id="chip-${i}">
-      <input type="checkbox" ${on?'checked':''} onchange="toggleChip(${i},this.checked)">
+      <input type="checkbox" ${on?'checked':''} data-csp-change="h62" data-csp-source-change="toggleChip(,this.checked)" data-csp-args-change="${__moguCsp.encode([null,null,null,(i),null])}">
       ${esc(s.label)}
     </label>`;
   }).join('');
@@ -1409,7 +1470,6 @@ function commitMstCondInputs() {
       const b2 = val('b2'); if (b2 !== undefined) row.b2 = b2;
       const rr = val('r');  if (rr !== undefined) row.r  = rr;
       const vv = val('v');  if (vv !== undefined) row.v  = vv;
-      const v2 = val('v2'); if (v2 !== undefined) row.v2 = v2;
       const ok = val('ok'); if (ok !== undefined) row.ok = ok;
     });
   });
@@ -1470,15 +1530,15 @@ function renderPC(tbId, items, masterMode) {
       tr.innerHTML = `
         <td class="L">${esc(item.c)}<div class="tl-sub" data-tl="${esc(item.c)}"></div></td>
         <td style="font-size:10px;">${esc(item.s)}<div class="tl-sub" data-tl="${esc(item.s)}"></div></td>
-        <td><select class="on" data-k="pc${i}f_${tbId}" onchange="upOn(this)"><option value="">-</option><option>○</option><option>✕</option></select></td>
-        <td><select class="on" data-k="pc${i}l_${tbId}" onchange="upOn(this)"><option value="">-</option><option>○</option><option>✕</option></select></td>`;
+        <td><select class="on" data-k="pc${i}f_${tbId}" data-csp-change="h63" data-csp-source-change="upOn(this)"><option value="">-</option><option>○</option><option>✕</option></select></td>
+        <td><select class="on" data-k="pc${i}l_${tbId}" data-csp-change="h64" data-csp-source-change="upOn(this)"><option value="">-</option><option>○</option><option>✕</option></select></td>`;
     } else {
       tr.innerHTML = `
         <td class="L">${esc(item.c)}<div class="tl-sub" data-tl="${esc(item.c)}"></div></td>
         <td colspan="3">
           <div class="tr-wrap">
             <input type="text" class="tx" data-k="pc${i}m_${tbId}" style="width:100%;border:none;font-size:11px;font-family:inherit;padding:2px;">
-            <button class="tr-btn" onclick="translateCell(this)" title="翻訳">🌐</button>
+            <button class="tr-btn" data-csp-click="h65" data-csp-source-click="translateCell(this)" title="翻訳">🌐</button>
           </div>
           <div class="translate-box"></div>
         </td>`;
@@ -1500,8 +1560,8 @@ function addPERow(list, item) {
   const div = document.createElement('div'); div.className='pe-row';
   div.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:1px;">
-      <button class="pm" onclick="movePE(this,-1)">▲</button>
-      <button class="pm" onclick="movePE(this,1)">▼</button>
+      <button class="pm" data-csp-click="h66" data-csp-source-click="movePE(this,-1)">▲</button>
+      <button class="pm" data-csp-click="h67" data-csp-source-click="movePE(this,1)">▼</button>
     </div>
     <input type="text" value="${esc(item.c)}" placeholder="項目名" style="flex:2;padding:4px 6px;border:1px solid var(--bd);border-radius:3px;font-size:11px;font-family:inherit;">
     <input type="text" value="${esc(item.s||'')}" placeholder="管理値" style="flex:2;padding:4px 6px;border:1px solid var(--bd);border-radius:3px;font-size:11px;font-family:inherit;">
@@ -1510,7 +1570,7 @@ function addPERow(list, item) {
       <option value="weight" ${item.t==='weight'?'selected':''}>重量(g)</option>
       <option value="memo"   ${item.t==='memo'  ?'selected':''}>メモ</option>
     </select>
-    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--r);font-size:14px;cursor:pointer;">🗑</button>`;
+    <button data-csp-click="h68" data-csp-source-click="this.parentElement.remove()" style="background:none;border:none;color:var(--r);font-size:14px;cursor:pointer;">🗑</button>`;
   list.appendChild(div);
 }
 function movePE(btn, dir) {
@@ -1539,30 +1599,12 @@ function applyProdEdit() {
 // ══════════════════════════════════════════════
 // 写真展開（Googleドライブ）
 // ══════════════════════════════════════════════
-// 共有リンク等から埋め込み用URLへ変換（/preview 形式に統一）
-function driveEmbedUrl(url) {
-  const u = String(url || '').trim();
-  if (!u) return '';
-  if (u.includes('drive.google.com')) {
-    if (u.includes('/preview')) return u;
-    const m = u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
-           || u.match(/[?&]id=([a-zA-Z0-9_-]+)/)
-           || u.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
-  }
-  return u;   // 通常の画像URLはそのまま
-}
-
-// ── 写真の名前をドライブ側にも反映 ──
-// URLからドライブのファイルIDを取り出す
-function photoFileId(p) {
-  if (p && p.fileId) return p.fileId;
-  const u = String((p && p.url) || '');
-  if (!u.includes('drive.google.com')) return '';
-  const m = u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
-         || u.match(/[?&]id=([a-zA-Z0-9_-]+)/)
-         || u.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  return m ? m[1] : '';
+// ★F03：写真URLは「許可ホストの Drive ファイルID」から正規の /preview URL だけを生成する。
+//   includes 判定・任意URL素通し・javascript:/data: を排除。fileId 優先、無ければ URL を
+//   厳格パース（https かつ host が drive.google.com と完全一致）して id を取り出す。
+function clearSeikeiPrivatePhotos_() {
+  clearPrivatePhotoViews_();
+  LOCAL_PHOTO_DRAFTS.clear();
 }
 
 // 名前欄の確定時（フォーカスを外す・Enter）に呼ばれる
@@ -1571,8 +1613,7 @@ async function onPhotoNameChange(i, isMaster) {
   const p = list[i];
   if (!p) return;
 
-  const fileId = photoFileId(p);
-  if (!GAS_URL || !fileId) return;          // ドライブ以外／GAS未接続はアプリ内の名前だけ
+  if (!GAS_URL || !p.binding) return;
   if (!String(p.name || '').trim()) return; // 空名は変更しない
 
   const status = document.getElementById(isMaster ? 'mCamStatus' : 'camStatus');
@@ -1583,12 +1624,11 @@ async function onPhotoNameChange(i, isMaster) {
   try {
     const r = await gasPost({
       action: 'renamePhoto',
-      fileId: fileId,
+      binding: p.binding,
       name: p.name,
       partNo: partNo
     });
     if (!r || !r.ok) throw new Error((r && r.error) || '変更失敗');
-    p.fileId = fileId;
     setStat('✅ ドライブの名前も変更しました');
     setTimeout(() => setStat(''), 4000);
   } catch (e) {
@@ -1660,7 +1700,9 @@ async function onPhotoFile(inp, isMaster) {
 
     if (!r || !r.ok) throw new Error((r && r.error) || 'アップロード失敗');
 
-    const item = { name: defName, url: r.url, fileId: r.fileId || '' };
+    if (!/^[A-Za-z0-9_-]{10,200}$/.test(r.fileId || '')) throw new Error('写真の保存結果を確認できません');
+    LOCAL_PHOTO_DRAFTS.set(r.fileId, dataUrl);
+    const item = { name: defName, fileId: r.fileId };
     if (isMaster) { M_PHOTOS.push(item); renderMstPhotos(); }
     else          { PHOTOS.push(item);   renderPhotos(); }
 
@@ -1677,21 +1719,9 @@ async function onPhotoFile(inp, isMaster) {
 }
 
 // 写真1枚分の表示HTML（/preview はiframe、それ以外はimg）
-function photoItemHtml(p) {
-  const url = driveEmbedUrl(p && p.url);
-  if (!url) return '';
-  const name = (p && p.name) ? p.name : '写真';
-  const media = url.includes('/preview')
-    ? `<div class="ph-frame"><iframe src="${esc(url)}" frameborder="0" allowfullscreen style="border:none;width:100%;height:100%"></iframe></div>`
-    : `<a href="${esc(url)}" target="_blank"><img class="ph-img" src="${esc(url)}" alt="${esc(name)}" onerror="this.style.display='none'"></a>`;
-  return `<figure class="ph-item">${media}<figcaption class="ph-cap">${esc(name)}</figcaption></figure>`;
-}
-
-// 写真ギャラリー（複数枚）
-function photoGalleryHtml(list, emptyMsg) {
-  const items = (list || []).map(photoItemHtml).filter(Boolean).join('');
-  return items ? `<div class="ph-row">${items}</div>`
-               : `<div class="ph-row"><div class="ph-empty">📷 ${esc(emptyMsg || '写真なし')}</div></div>`;
+function seikeiPhotoItems_(list) {
+  return (list || []).map(p => ({name:p.name || '写真', binding:p.binding,
+    localDataUrl:p.binding ? undefined : LOCAL_PHOTO_DRAFTS.get(p.fileId)}));
 }
 
 // ── 日々の記録：写真の編集と表示 ──
@@ -1702,20 +1732,18 @@ function renderPhotos() {
   ed.innerHTML = PHOTOS.map((p, i) => `
     <div class="ph-edit">
       <input type="text" value="${esc(p.name||'')}" placeholder="写真の名前"
-        oninput="PHOTOS[${i}].name=this.value; refreshPhotoView()"
-        onchange="onPhotoNameChange(${i}, false)">
-      <input type="text" value="${esc(p.url||'')}" placeholder="Googleドライブの共有リンク"
-        oninput="PHOTOS[${i}].url=this.value" onchange="refreshPhotoView()">
-      <button class="db" onclick="delPhoto(${i})" title="削除">🗑</button>
+        data-csp-input="h69" data-csp-source-input="PHOTOS[].name=this.value; refreshPhotoView()" data-csp-args-input="${__moguCsp.encode([null,(i),null,null,null,null,null,null])}"
+        data-csp-change="h70" data-csp-source-change="onPhotoNameChange(, false)" data-csp-args-change="${__moguCsp.encode([null,null,(i),null,null,null,null,null])}">
+      <input type="text" value="${esc(p.url||'')}" placeholder="非公開Drive写真（保存済み写真は変更不要）"
+        data-csp-input="h71" data-csp-source-input="PHOTOS[].url=this.value;delete PHOTOS[].binding;delete PHOTOS[].fileId" data-csp-args-input="${__moguCsp.encode([null,null,null,null,(i),(i),(i),null])}" data-csp-change="h72" data-csp-source-change="refreshPhotoView()">
+      <button class="db" data-csp-click="h73" data-csp-source-click="delPhoto()" data-csp-args-click="${__moguCsp.encode([null,null,null,null,null,null,null,(i)])}" title="削除">🗑</button>
     </div>`).join('');
   refreshPhotoView();
 }
 
 function refreshPhotoView() {
   const vw = document.getElementById('photoView');
-  if (vw) vw.innerHTML = photoGalleryHtml(PHOTOS, 'この記録の写真はまだありません');
-  const cap = document.querySelectorAll('#photoView .ph-cap');
-  if (cap.length) refreshLabelTl();
+  return renderPrivatePhotos_(vw, seikeiPhotoItems_(PHOTOS));
 }
 
 function addPhoto() { PHOTOS.push({name:'', url:''}); renderPhotos(); }
@@ -1725,9 +1753,7 @@ function delPhoto(i) { PHOTOS.splice(i,1); renderPhotos(); }
 function renderRefPhotos() {
   const el = document.getElementById('refPhotoArea');
   if (!el) return;
-  if (!REF_PHOTOS || !REF_PHOTOS.length) { el.innerHTML = ''; return; }
-  el.innerHTML = '<div style="font-size:11px;font-weight:bold;color:var(--blue);margin-bottom:2px;">参考写真（マスター登録）</div>'
-    + photoGalleryHtml(REF_PHOTOS, '参考写真なし');
+  return renderPrivatePhotos_(el, seikeiPhotoItems_(REF_PHOTOS));
 }
 
 // ── マスター：参考写真の編集と表示 ──
@@ -1737,18 +1763,18 @@ function renderMstPhotos() {
   ed.innerHTML = M_PHOTOS.map((p, i) => `
     <div class="ph-edit">
       <input type="text" value="${esc(p.name||'')}" placeholder="写真の名前"
-        oninput="M_PHOTOS[${i}].name=this.value; refreshMstPhotoView()"
-        onchange="onPhotoNameChange(${i}, true)">
-      <input type="text" value="${esc(p.url||'')}" placeholder="Googleドライブの共有リンク"
-        oninput="M_PHOTOS[${i}].url=this.value" onchange="refreshMstPhotoView()">
-      <button class="db" onclick="delMstPhoto(${i})" title="削除">🗑</button>
+        data-csp-input="h74" data-csp-source-input="M_PHOTOS[].name=this.value; refreshMstPhotoView()" data-csp-args-input="${__moguCsp.encode([null,(i),null,null,null,null,null,null])}"
+        data-csp-change="h75" data-csp-source-change="onPhotoNameChange(, true)" data-csp-args-change="${__moguCsp.encode([null,null,(i),null,null,null,null,null])}">
+      <input type="text" value="${esc(p.url||'')}" placeholder="非公開Drive写真（保存済み写真は変更不要）"
+        data-csp-input="h76" data-csp-source-input="M_PHOTOS[].url=this.value;delete M_PHOTOS[].binding;delete M_PHOTOS[].fileId" data-csp-args-input="${__moguCsp.encode([null,null,null,null,(i),(i),(i),null])}" data-csp-change="h77" data-csp-source-change="refreshMstPhotoView()">
+      <button class="db" data-csp-click="h78" data-csp-source-click="delMstPhoto()" data-csp-args-click="${__moguCsp.encode([null,null,null,null,null,null,null,(i)])}" title="削除">🗑</button>
     </div>`).join('');
   refreshMstPhotoView();
 }
 
 function refreshMstPhotoView() {
   const vw = document.getElementById('m-photoView');
-  if (vw) vw.innerHTML = photoGalleryHtml(M_PHOTOS, '参考写真はまだありません');
+  return renderPrivatePhotos_(vw, seikeiPhotoItems_(M_PHOTOS));
 }
 
 function addMstPhoto() { M_PHOTOS.push({name:'', url:''}); renderMstPhotos(); }
@@ -1766,12 +1792,12 @@ function renderMstNotes() {
     tr.innerHTML = `
       <td><input type="text" class="tx" value="${esc(item.c||'')}" placeholder="注意事項の内容"
         style="width:100%;border:none;font-size:11px;font-family:inherit;padding:2px;"
-        oninput="M_NOTES[${i}].c=this.value"></td>
+        data-csp-input="h79" data-csp-source-input="M_NOTES[].c=this.value" data-csp-args-input="${__moguCsp.encode([null,(i),null,null,null])}"></td>
       <td><input type="text" value="${esc(item.s||'')}" placeholder="基準値"
         style="width:100%;border:none;font-size:11px;font-family:inherit;padding:2px;text-align:right;"
-        oninput="M_NOTES[${i}].s=this.value"></td>
+        data-csp-input="h80" data-csp-source-input="M_NOTES[].s=this.value" data-csp-args-input="${__moguCsp.encode([null,null,null,(i),null])}"></td>
       <td style="text-align:center;">
-        <button class="db" onclick="delMstNoteRow(${i})" title="削除">🗑</button>
+        <button class="db" data-csp-click="h81" data-csp-source-click="delMstNoteRow()" data-csp-args-click="${__moguCsp.encode([null,null,null,null,(i)])}" title="削除">🗑</button>
       </td>`;
   });
 }
@@ -1824,12 +1850,12 @@ function addNoteRow(i){
     <td>
       <div class="tr-wrap">
         <input type="text" class="tx" data-k="nt${ri}c" style="width:100%;border:none;font-size:11px;font-family:inherit;padding:2px;">
-        <button class="tr-btn" onclick="translateCell(this)" title="翻訳">🌐</button>
+        <button class="tr-btn" data-csp-click="h82" data-csp-source-click="translateCell(this)" title="翻訳">🌐</button>
       </div>
       <div class="translate-box"></div>
     </td>
     <td><input type="text" data-k="nt${ri}s" style="width:100%;border:none;font-size:11px;font-family:inherit;padding:2px;text-align:right;"></td>
-    <td><select class="on" data-k="nt${ri}ok" onchange="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td>`;
+    <td><select class="on" data-k="nt${ri}ok" data-csp-change="h83" data-csp-source-change="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td>`;
 }
 function renderChocos(n){const tb=document.getElementById('chocoTb');tb.innerHTML='';for(let i=0;i<n;i++)addChocoRow(i);}
 function addChocoRow(i){
@@ -1844,7 +1870,7 @@ function addChocoRow(i){
     <td>
       <div class="tr-wrap">
         <input type="text" data-k="ch${ri}c" style="width:100%;border:none;font-size:11px;font-family:inherit;text-align:center;" placeholder="停止内容">
-        <button class="tr-btn" onclick="translateCell(this)" title="翻訳">🌐</button>
+        <button class="tr-btn" data-csp-click="h84" data-csp-source-click="translateCell(this)" title="翻訳">🌐</button>
       </div>
       <div class="translate-box"></div>
     </td>
@@ -1863,7 +1889,7 @@ function renderM5(){
     const tr=tb.insertRow();
     tr.innerHTML=`
       <td class="L">${esc(item)}<div class="tl-sub" data-tl="${esc(item)}"></div></td>
-      <td><select data-k="m5_${i}yn" onchange="onM5Change(${i},this)"
+      <td><select data-k="m5_${i}yn" data-csp-change="h85" data-csp-source-change="onM5Change(,this)" data-csp-args-change="${__moguCsp.encode([null,null,null,(i),null,null,null])}"
         style="width:100%;font-size:11px;border:1px solid var(--bd);border-radius:3px;padding:2px;font-family:inherit;">
         <option>-</option><option>有</option><option>無</option>
       </select></td>
@@ -1872,8 +1898,8 @@ function renderM5(){
           <input type="text" class="tx" data-k="m5_${i}ac" id="m5ac${i}"
             style="width:100%;border:none;font-size:11px;font-family:inherit;padding:2px;"
             placeholder="対処方法を記入してください"
-            oninput="onM5ActionInput(${i},this)">
-          <button class="tr-btn" onclick="translateCell(this)" title="翻訳">🌐</button>
+            data-csp-input="h86" data-csp-source-input="onM5ActionInput(,this)" data-csp-args-input="${__moguCsp.encode([null,null,null,null,null,null,(i)])}">
+          <button class="tr-btn" data-csp-click="h87" data-csp-source-click="translateCell(this)" title="翻訳">🌐</button>
         </div>
         <div class="translate-box"></div>
       </td>`;
@@ -1912,126 +1938,58 @@ function onM5ActionInput(i, inp) {
 // ══════════════════════════════════════════════
 // サイン
 // ══════════════════════════════════════════════
-function stamp(role, checked) {
-  if (VIEW_ONLY) {
-    const cb = document.getElementById('cb-' + role);
-    if (cb) cb.checked = false;
-    toast('閲覧モードです。サインはポータルからログインして開いてください', 'warn');
+function syncSigns_(signs) {
+  ['mgr','sup','agg'].forEach(role => {
+    SIGNS[role] = signs && signs[role] ? deep(signs[role]) : null;
+    document.getElementById(`s-${role}`).textContent = SIGNS[role] ? SIGNS[role].name : '-';
+    document.getElementById(`ss-${role}`).textContent = SIGNS[role] ? SIGNS[role].name + ' ✔' : '';
+    document.getElementById(`cb-${role}`).checked = !!SIGNS[role];
+  });
+  applyLock(!!SIGNS.agg);
+}
+
+async function stamp(role, checked) {
+  if (!['mgr','sup','agg'].includes(role)) return;
+  document.getElementById(`cb-${role}`).checked = !!SIGNS[role];
+  if (!checked) { await unlockRecord(); return; }
+  if (SAVE_BUSY) { toast('保存処理中です', 'warn'); return; }
+  if (role === 'agg' && !confirm('管理者・監督者の確認済み記録を確定しますか？')) return;
+  // A reviewer must sign the persisted record, never unsaved form contents.
+  if (!RID || diffFromSnapshot().length) {
+    toast('先に担当者が変更内容を保存してから署名してください', 'warn');
     return;
   }
-  const labels={mgr:'管理者',sup:'監督者',agg:'集計確認'};
-  if (checked) {
-    if (role === 'agg') {
-      const ok = confirm('「集計確認」を行うと、この記録は確定されて編集できなくなります。\n（ロック解除は admin／マスター管理者のみ可能）\n\n確定して保存しますか？');
-      if (!ok) { document.getElementById('cb-agg').checked = false; return; }
-    }
-    const ts=new Date().toLocaleDateString('ja-JP')+' '+new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
-    SIGNS[role]={name:CU.name,id:CU.id,loginId:CU.loginId,ts};
-    document.getElementById(`s-${role}`).textContent=CU.name;
-    document.getElementById(`ss-${role}`).textContent=CU.name+' ✔';
-    toast(CU.name+'が「'+labels[role]+'」で確認しました','ok');
-
-    if (GAS_URL) {
-      const notifyData = {
-        action:      'sendSign',
-        role:        role,
-        signerName:  CU.name,
-        signerId:    CU.id,
-        partNo:      PN_PAIRS[0]?.no || '',
-        pnPairs:     PN_PAIRS,
-        reqNo:       PN_PAIRS[0]?.req || '',
-        productName: gv('productName'),
-        recordId:    RID || '',
-      };
-      gasPost(notifyData).catch(e => console.warn('サイン通知失敗:', e));
-    }
-
-    if (role === 'agg') { saveRecord(); }
-  } else {
-    SIGNS[role]=null;
-    document.getElementById(`s-${role}`).textContent='-';
-    document.getElementById(`ss-${role}`).textContent='';
-    toast('確認を解除しました','warn');
-  }
+  SAVE_BUSY = true;
+  try {
+    const r = await gasPost({action:'signRecord', recordId:RID, role});
+    if (!r || !r.ok) throw new Error((r && r.error) || '署名失敗');
+    syncSigns_(r.signs);
+    HIST = HIST.map(item => item.id === RID ? {...item, signs:deep(r.signs)} : item);
+    lsSet('seikei_records', HIST);
+    toast('署名を保存しました', 'ok');
+    try {
+      const notification = await gasPost({action:'sendSign', recordId:RID, role, event:'signRequest'});
+      if (!notification || !notification.ok) throw new Error('通知失敗');
+    } catch (e) { toast('署名は保存済みですが、通知に失敗しました', 'warn'); }
+  } catch (e) { toast('署名できませんでした: ' + e.message, 'err'); }
+  finally { SAVE_BUSY = false; }
 }
 
 // ══════════════════════════════════════════════
 // 確定ロック
 // ══════════════════════════════════════════════
-// ══════════════════════════════════════════════
-// 閲覧モード（LINE WORKS通知のリンクから開いたとき）
-//  記録は見られるが、記入・サイン・保存はできない
-// ══════════════════════════════════════════════
-function applyViewOnly() {
-  if (!VIEW_ONLY) return;
-
-  const wrap = document.getElementById('main-wrap');
-  if (wrap) { wrap.classList.add('locked'); wrap.classList.add('view-only'); }
-
-  // 保存ボタンを止める
-  const saveBtn = document.querySelector('.btn-save');
-  if (saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = '.45'; saveBtn.style.cursor = 'not-allowed'; }
-
-  // 書き換え系のボタンは隠す（新規・マスター登録）
-  document.querySelectorAll('.tb-btns .btn').forEach(b => {
-    const oc = b.getAttribute('onclick') || '';
-    if (oc.indexOf('newForm') === 0 || oc.indexOf('openMasterModal') === 0) b.style.display = 'none';
-  });
-
-  const b = document.getElementById('viewBanner');
-  if (b) {
-    b.style.display = 'flex';
-    b.innerHTML = '👁 <span style="font-weight:bold;">閲覧モード</span>'
-      + '<span class="vb-sub">通知のリンクから開いたため、記入・サイン・保存はできません。'
-      + '記入やサインを行う場合は、ポータルからログインして開いてください。</span>';
-  }
-}
-
-// 通知リンクで指定された記録を開く
-async function openRecordById(id) {
-  setStatus('<span class="spinner"></span>記録を読み込み中...', 'loading');
-  try {
-    HIST = JSON.parse(ls('seikei_records') || '[]');
-    if (GAS_URL) {
-      try {
-        const r = await gasGet('listSeikei&limit=300');
-        if (r.ok && r.records) {
-          const ids = r.records.map(x => String(x.id));
-          HIST = [...r.records, ...HIST.filter(x => !ids.includes(String(x.id)))];
-        }
-      } catch(e) {}
-      try {
-        const p = await gasGet('listParts');
-        if (p.ok && p.parts) PARTS = p.parts;
-      } catch(e) {}
-    }
-    const rec = HIST.find(x => String(x.id) === String(id));
-    if (!rec) {
-      setStatus('⚠️ 指定された記録が見つかりません', 'warn');
-      toast('記録が見つかりません（ID: ' + id + '）', 'err');
-      return;
-    }
-    fillForm(rec);
-    applyViewOnly();   // fillForm が applyLock を呼ぶので、そのあとに掛け直す
-  } catch(e) {
-    setStatus('⚠️ 記録の読み込みに失敗しました', 'warn');
-    toast('読み込みに失敗しました: ' + e.message, 'err');
-  }
-}
-
 function isUnlockRole(){ return !!CU && (CU.role === 'admin' || CU.role === 'master'); }
 
 function applyLock(locked){
   LOCKED = locked;
   const wrap = document.getElementById('main-wrap');
-  wrap.classList.toggle('locked', locked || VIEW_ONLY);
+  wrap.classList.toggle('locked', locked);
 
   const saveBtn = document.querySelector('.btn-save');
   if (saveBtn){
-    const off = locked || VIEW_ONLY;
-    saveBtn.disabled = off;
-    saveBtn.style.opacity = off ? '.45' : '';
-    saveBtn.style.cursor  = off ? 'not-allowed' : '';
+    saveBtn.disabled = locked;
+    saveBtn.style.opacity = locked ? '.45' : '';
+    saveBtn.style.cursor  = locked ? 'not-allowed' : '';
   }
 
   const banner = document.getElementById('lockBanner');
@@ -2043,7 +2001,7 @@ function applyLock(locked){
         '🔒 <span style="font-weight:bold;">この記録は確定済みです（集計確認サイン済み）</span>'
       + '<span style="color:var(--tx2);font-size:10px;">編集にはロック解除が必要です。印刷・閲覧は可能です。</span>'
       + (canUnlock
-          ? '<button onclick="unlockRecord()" style="margin-left:auto;padding:5px 14px;font-size:11px;font-weight:bold;border:none;border-radius:4px;background:var(--acc);color:#fff;cursor:pointer;">🔓 ロック解除</button>'
+          ? "<button data-csp-click=\"h88\" data-csp-source-click=\"unlockRecord()\" style=\"margin-left:auto;padding:5px 14px;font-size:11px;font-weight:bold;border:none;border-radius:4px;background:var(--acc);color:#fff;cursor:pointer;\">🔓 ロック解除</button>"
           : '<span style="margin-left:auto;font-size:10px;color:var(--tx2);">※解除は admin／マスター管理者のみ</span>');
   } else {
     banner.style.display = 'none';
@@ -2051,24 +2009,40 @@ function applyLock(locked){
   }
 }
 
-function unlockRecord(){
+async function unlockRecord(){
   if (!isUnlockRole()){ toast('ロック解除の権限がありません', 'err'); return; }
-  if (!confirm('ロックを解除して編集可能にします。\n「集計確認」サインは取り消され、修正後に再度確認が必要になります。\n\nよろしいですか？')) return;
-  SIGNS.agg = null;
-  document.getElementById('s-agg').textContent  = '-';
-  document.getElementById('ss-agg').textContent = '';
-  document.getElementById('cb-agg').checked = false;
-  applyLock(false);
-  toast('🔓 ロックを解除しました。修正後に保存してください。', 'warn');
+  if (!RID || SAVE_BUSY) return;
+  if (!confirm('すべての確認署名を取り消して編集可能にします。修正後は再確認が必要です。よろしいですか？')) return;
+  SAVE_BUSY = true;
+  try {
+    const r = await gasPost({action:'signRecord', recordId:RID, role:'agg', clear:true});
+    if (!r || !r.ok) throw new Error((r && r.error) || '解除失敗');
+    syncSigns_(r.signs);
+    HIST = HIST.map(item => item.id === RID ? {...item, signs:deep(r.signs)} : item);
+    lsSet('seikei_records', HIST);
+    toast('署名を解除しました。修正後に保存してください。', 'warn');
+  } catch (e) { toast('署名を解除できませんでした: ' + e.message, 'err'); }
+  finally { SAVE_BUSY = false; }
 }
 
 // ══════════════════════════════════════════════
 // ポータルへ戻る（このタブを閉じる）
 // ══════════════════════════════════════════════
+function safePortalUrl_(raw) {
+  if (typeof raw !== 'string' || !raw) return '';
+  if (raw === 'https://spkkanri043-glitch.github.io/shipping-system-dummytest/portal_index.html') return raw;
+  let url; try { url = new URL(raw); } catch (e) { return ''; }
+  if (url.protocol !== 'https:' || url.hostname !== 'script.google.com' || url.username || url.password || url.port) return '';
+  return url.href;
+}
+
 function goPortal() {
+  clearSeikeiPrivatePhotos_();
   window.close();
   setTimeout(() => {
-    alert('このタブを手動で閉じてください。\n（ポータルタブが隣にあります）');
+    const safe = safePortalUrl_(new URLSearchParams(window.location.search).get('portal_url'));
+    if (safe) window.location.href = safe;
+    else alert('このタブを手動で閉じてください。\n（ポータルタブが隣にあります）');
   }, 300);
 }
 
@@ -2079,9 +2053,11 @@ async function openPartSelect() {
   if (GAS_URL && PARTS.length === 0) {
     try {
       const r = await gasGet('listParts');
-      if (r.ok && r.parts) { PARTS = r.parts; lsSet('seikei_part_masters', PARTS); }
+      if (!r || !r.ok || !Array.isArray(r.parts)) throw new Error((r && r.error) || '取得失敗');
+      PARTS = r.parts; lsSet('seikei_part_masters', PARTS);
     } catch(e) {
-      PARTS = JSON.parse(ls('seikei_part_masters') || '[]');
+      toast('品番マスターを取得できませんでした: ' + e.message, 'err');
+      return;
     }
   } else if (PARTS.length === 0) {
     PARTS = JSON.parse(ls('seikei_part_masters') || '[]');
@@ -2104,7 +2080,7 @@ function renderPartSelect() {
   // 取引先タブ生成
   const tabsEl = document.getElementById('psTabs');
   if (tabsEl) {
-    const clientsMap = {};
+    const clientsMap = Object.create(null);
     base.forEach(p => {
       const c = String(p.client || '').trim() || '__none__';
       clientsMap[c] = (clientsMap[c] || 0) + 1;
@@ -2116,11 +2092,11 @@ function renderPartSelect() {
     });
     if (PS_TAB !== 'all' && !clientKeys.includes(PS_TAB)) PS_TAB = 'all';
 
-    let th = `<button class="htab${PS_TAB==='all'?' on':''}" onclick="setPsTab('all')">すべて <span class="hbadge">${base.length}</span></button>`;
+    let th = `<button class="htab${PS_TAB==='all'?' on':''}" data-csp-click="h89" data-csp-source-click="setPsTab('all')">すべて <span class="hbadge">${base.length}</span></button>`;
     clientKeys.forEach(c => {
       const label = c === '__none__' ? '未設定' : c;
       const icon  = c === '__none__' ? '' : '🏢 ';
-      th += `<button class="htab${PS_TAB===c?' on':''}" onclick="setPsTab('${esc(c).replace(/'/g,"\\'")}')">${icon}${esc(label)} <span class="hbadge">${clientsMap[c]}</span></button>`;
+      th += `<button class="htab${PS_TAB===c?' on':''}" data-ps-tab="${esc(c)}">${icon}${esc(label)} <span class="hbadge">${clientsMap[c]}</span></button>`;
     });
     tabsEl.innerHTML = th;
   }
@@ -2157,7 +2133,7 @@ function renderPartSelect() {
           ${count > 0 ? ' ／ 過去記録: <strong>'+count+'件</strong>' : ''}
         </div>
       </div>
-      <button class="ps-use-btn" onclick="usePartMaster(${idx})">この品番で作成</button>
+      <button class="ps-use-btn" data-csp-click="h90" data-csp-source-click="usePartMaster()" data-csp-args-click="${__moguCsp.encode([null,null,null,null,null,null,(idx)])}">この品番で作成</button>
     </div>`;
   }).join('');
 }
@@ -2171,6 +2147,8 @@ function usePartMaster(i) {
   const m = PARTS[i];
   if (!m) { toast('マスターが見つかりません', 'err'); return; }
   RID = null;
+  UNSAVED_DRAFT = null;
+  LAST_SNAPSHOT = {};
   STARTER = { name: CU.name, id: CU.id, loginId: CU.loginId };
   document.getElementById('operator').value = CU.name;
   PN_PAIRS = (m.nos || [m.no || '']).map(no => ({no, req:''}));
@@ -2197,7 +2175,6 @@ function usePartMaster(i) {
     renderPC('pcTb', PC_ITEMS, false);
   }
   renderNotesFrom(m.notes);
-  CUR_DEL = null; applyDelBanner();
   REF_PHOTOS = (m.photos && m.photos.length) ? deep(m.photos) : [];
   PHOTOS = [];
   renderRefPhotos(); renderPhotos();
@@ -2240,15 +2217,17 @@ async function fetchProductMasterAll() {
     return null;
   }
   try {
-    for (const action of ['list', 'getProducts', 'listProducts']) {
-      try {
-        const r = await fetch(PRODUCT_GAS_URL + '?action=' + action);
-        const d = await r.json();
-        const products = d.products || d.data || d.items;
-        if (d.ok && products) { PRODUCT_CACHE = products; return products; }
-      } catch(e) {}
-    }
-    return null;
+    const r = await fetch(PRODUCT_GAS_URL + '?action=getProducts', {credentials:'omit'});
+    if (!r.ok) throw new Error('HTTP error');
+    const d = await r.json();
+    if (!d || d.ok !== true || !Array.isArray(d.data) || d.data.length > 20000 ||
+        d.data.some(item => !item || typeof item !== 'object' || Array.isArray(item) ||
+          typeof item['品番'] !== 'string')) throw new Error('invalid public product list');
+    PRODUCT_CACHE = d.data.map(item => ({
+      '品番':item['品番'], '製品名':String(item['製品名'] || ''),
+      '基本取引先':String(item['基本取引先'] || ''), '箱入数':item['箱入数']
+    }));
+    return PRODUCT_CACHE;
   } catch(e) {
     console.warn('製品マスタ取得失敗:', e);
     return null;
@@ -2284,8 +2263,8 @@ async function fetchFromProductMaster() {
   });
 
   if (!found.length) {
-    statusEl.textContent = '⚠️ 該当品番が見つかりません';
-    toast('製品マスタに該当品番が見つかりませんでした', 'warn');
+    statusEl.textContent = '⚠️ 公開一覧内で該当品番を検出できませんでした';
+    toast('公開一覧内で未検出です（一覧は最大20,000件）', 'warn');
     return;
   }
 
@@ -2341,8 +2320,13 @@ async function loadMasters() {
   if (GAS_URL) {
     try {
       const r = await gasGet('listParts');
-      if (r.ok && r.parts) { PARTS=r.parts; lsSet('seikei_part_masters', PARTS); }
-    } catch(e) { PARTS=JSON.parse(ls('seikei_part_masters')||'[]'); }
+      if (!r || !r.ok || !Array.isArray(r.parts)) throw new Error((r && r.error) || '取得失敗');
+      PARTS=r.parts; lsSet('seikei_part_masters', PARTS);
+    } catch(e) {
+      el.textContent = '品番マスターを取得できませんでした';
+      toast('品番マスター取得失敗: ' + e.message, 'err');
+      return;
+    }
   } else {
     PARTS=JSON.parse(ls('seikei_part_masters')||'[]');
   }
@@ -2352,7 +2336,7 @@ async function loadMasters() {
 function renderMstList() {
   const tabsEl = document.getElementById('mst-tabs');
   if (tabsEl) {
-    const clientsMap = {};
+    const clientsMap = Object.create(null);
     PARTS.forEach(p => {
       const c = String(p.client || '').trim() || '__none__';
       clientsMap[c] = (clientsMap[c] || 0) + 1;
@@ -2365,11 +2349,11 @@ function renderMstList() {
 
     if (MST_TAB !== 'all' && !clientKeys.includes(MST_TAB)) MST_TAB = 'all';
 
-    let tabsHtml = `<button class="htab${MST_TAB==='all'?' on':''}" onclick="setMstTab('all')">すべて <span class="hbadge">${PARTS.length}</span></button>`;
+    let tabsHtml = `<button class="htab${MST_TAB==='all'?' on':''}" data-csp-click="h91" data-csp-source-click="setMstTab('all')">すべて <span class="hbadge">${PARTS.length}</span></button>`;
     clientKeys.forEach(c => {
       const label = c === '__none__' ? '未設定' : c;
       const icon  = c === '__none__' ? '' : '🏢 ';
-      tabsHtml += `<button class="htab${MST_TAB===c?' on':''}" onclick="setMstTab('${esc(c).replace(/'/g,"\\'")}')">${icon}${esc(label)} <span class="hbadge">${clientsMap[c]}</span></button>`;
+      tabsHtml += `<button class="htab${MST_TAB===c?' on':''}" data-mst-tab="${esc(c)}">${icon}${esc(label)} <span class="hbadge">${clientsMap[c]}</span></button>`;
     });
     tabsEl.innerHTML = tabsHtml;
   }
@@ -2386,8 +2370,8 @@ function renderMstList() {
         const realIdx = PARTS.indexOf(p);
         return `<div style="display:flex;align-items:center;gap:8px;padding:5px 6px;border-bottom:1px solid var(--bd);">
           <div style="flex:1;"><div style="font-weight:bold;font-size:12px;">${esc(p.nos&&p.nos.join?p.nos.join(' / '):p.no||'')}</div><div style="font-size:10px;color:var(--tx2);">${esc(p.name)}${p.mat?' ／ '+esc(p.mat):''}${p.client?' ／ 🏢 '+esc(p.client):''}</div></div>
-          <button onclick="loadMasterToModal(${realIdx})" style="padding:3px 8px;font-size:10px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;">読込</button>
-          <button onclick="delMaster('${esc(p.nos?p.nos[0]:p.no)}')" style="padding:3px 8px;font-size:10px;border:1px solid var(--r);border-radius:3px;background:#fff5f5;color:var(--r);cursor:pointer;">削除</button>
+          <button data-csp-click="h92" data-csp-source-click="loadMasterToModal()" data-csp-args-click="${__moguCsp.encode([null,null,null,null,(realIdx),null])}" style="padding:3px 8px;font-size:10px;border:1px solid var(--blue2);border-radius:3px;background:var(--sec);color:var(--blue);cursor:pointer;">読込</button>
+          <button data-delete-master="${esc(p.nos?p.nos[0]:p.no)}" style="padding:3px 8px;font-size:10px;border:1px solid var(--r);border-radius:3px;background:#fff5f5;color:var(--r);cursor:pointer;">削除</button>
         </div>`;
       }).join('')
     : '<div style="color:var(--tx3);font-size:11px;padding:6px;">このタブに該当する品番はありません</div>';
@@ -2482,34 +2466,38 @@ async function savePartMaster() {
     sections:deep(M_COND_SECS),
     prodCheck:deep(M_PC_ITEMS),
     notes:deep(M_NOTES.filter(n => (n.c||'').trim() || (n.s||'').trim())),
-    photos:deep(M_PHOTOS.filter(p => (p.url||'').trim())),
+    photos:deep(M_PHOTOS.filter(p => p.binding || p.fileId || (p.url||'').trim())),
   };
 
-  const idx=PARTS.findIndex(p=>(p.nos?p.nos[0]:p.no)===nos[0]);
-  if(idx>=0) PARTS[idx]=m; else PARTS.unshift(m);
-  lsSet('seikei_part_masters', PARTS);
-  renderMstList();
-
-  if(GAS_URL){
-    try{
+  try {
+      if (!GAS_URL) throw new Error('GAS未設定');
       const r=await gasPost({action:'savePart',data:m});
-      if(r.ok) toast('✅ 品番マスターを保存しました（スプレッドシート）','ok');
-      else throw new Error(r.error);
-    }catch(e){toast('⚠️ ローカルに保存しました（GAS未接続）','warn');}
-  }else{
-    toast('✅ 品番マスターを保存しました（ローカル）','ok');
+      if (!r || !r.ok) throw new Error((r && r.error) || '保存失敗');
+      if (!Array.isArray(r.photos)) throw new Error('保存済み写真を確認できません');
+      m.photos = r.photos;
+      M_PHOTOS = deep(r.photos);
+      renderMstPhotos();
+      const idx=PARTS.findIndex(p=>(p.nos?p.nos[0]:p.no)===nos[0]);
+      if(idx>=0) PARTS[idx]=m; else PARTS.unshift(m);
+      lsSet('seikei_part_masters', PARTS);
+      renderMstList();
+      toast('✅ 品番マスターを保存しました（スプレッドシート）','ok');
+  } catch (e) {
+    toast('保存できませんでした。入力はこの画面にのみ残っています: ' + e.message, 'err');
   }
 }
 
 async function delMaster(no) {
   if(!confirm('品番「'+no+'」のマスターを削除しますか？'))return;
-  PARTS=PARTS.filter(p=>(p.nos?p.nos[0]:p.no)!==no);
-  lsSet('seikei_part_masters',PARTS);
-  renderMstList();
-  if(GAS_URL){
-    try{await gasPost({action:'deletePart',partNo:no});}catch(e){}
-  }
-  toast('削除しました','ok');
+  try {
+    if (!GAS_URL) throw new Error('GAS未設定');
+    const r = await gasPost({action:'deletePart',partNo:no});
+    if (!r || !r.ok) throw new Error((r && r.error) || '削除失敗');
+    PARTS=PARTS.filter(p=>(p.nos?p.nos[0]:p.no)!==no);
+    lsSet('seikei_part_masters',PARTS);
+    renderMstList();
+    toast('削除しました','ok');
+  } catch (e) { toast('削除できませんでした: ' + e.message, 'err'); }
 }
 
 function loadMaster(i) {
@@ -2546,7 +2534,7 @@ function collectData() {
     });
   });
   const data={
-    id:RID||Date.now().toString(),
+    id:RID||(UNSAVED_DRAFT && UNSAVED_DRAFT.id)||Date.now().toString(),
     savedAt: toJST(new Date()),
     savedBy:CU.id, savedByName:CU.name,
     productName:gv('productName'),
@@ -2566,9 +2554,8 @@ function collectData() {
            mgr:SIGNS.mgr, sup:SIGNS.sup, agg:SIGNS.agg},
    prodCheckItems:deep(PC_ITEMS),
     changeLog: deep(CHANGE_LOG),
-    photos: deep(PHOTOS.filter(p => (p.url||'').trim())),
+    photos: deep(PHOTOS.filter(p => p.binding || p.fileId || (p.url||'').trim())),
     refPhotos: deep(REF_PHOTOS),
-    ...(CUR_DEL || {}),
   };
   document.querySelectorAll('[data-k]').forEach(el=>{
     const k=el.getAttribute('data-k');
@@ -2579,6 +2566,7 @@ function collectData() {
 
 function fillForm(d) {
   RID=d.id;
+  UNSAVED_DRAFT=null;
   const sv2=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
   ['productName','recordDate','machineNo','condNo','material','mbName','mbRatio','dryTemp','dryTime','moldMachine','takeMachine','boxMachine'].forEach(id=>sv2(id,d[id]));
 
@@ -2607,7 +2595,6 @@ function fillForm(d) {
       const k=el.getAttribute('data-k');
       if(d[k]!==undefined){el.value=d[k];if(el.tagName==='SELECT')upOn(el);}
     });
-    refreshEntBlank();
     M5.forEach((label,i)=>{
       const ynEl=document.querySelector(`[data-k="m5_${i}yn"]`);
       const acEl=document.getElementById(`m5ac${i}`);
@@ -2640,12 +2627,6 @@ function fillForm(d) {
   setStatus('読込済: '+(d.pnPairs?d.pnPairs.map(p=>p.no).join('/'):d.partNo||d.id), 'ok');
   document.getElementById('sid').textContent='ID: '+d.id;
  applyLock(!!SIGNS.agg);
-
-  // 削除情報を引き継ぐ（このまま保存しても復活しないように）
-  CUR_DEL = d.deleted
-    ? { deleted:true, deletedBy:d.deletedBy, deletedByName:d.deletedByName, deletedAt:d.deletedAt }
-    : null;
-  applyDelBanner();
 
   // 写真を復元
   PHOTOS     = d.photos    ? deep(d.photos)    : [];
@@ -2714,7 +2695,7 @@ function validateForm() {
 // 保存
 // ══════════════════════════════════════════════
 async function saveRecord() {
-  if (VIEW_ONLY) { toast('閲覧モードです。ポータルからログインして開いてください', 'warn'); return; }
+  if (SAVE_BUSY) { toast('保存処理中です', 'warn'); return false; }
   if (LOCKED) { toast('この記録は確定済みのため保存できません', 'warn'); return; }
 
   const hasReq = PN_PAIRS.some(p=>p.req.trim());
@@ -2775,33 +2756,48 @@ async function saveRecord() {
     }
   }
 
-  const data=collectData(); RID=data.id;
-  const list=JSON.parse(ls('seikei_records')||'[]');
-  const idx=list.findIndex(r=>r.id===data.id);
-  if(idx>=0)list[idx]=data;else list.unshift(data);
-  lsSet('seikei_records',list.slice(0,300));
-  HIST=list;
-  document.getElementById('sid').textContent='ID: '+data.id;
-
-  if(GAS_URL){
-    setStatus('<span class="spinner"></span>スプレッドシートへ保存中...','loading');
-    try{
+  const data=collectData();
+  const submittedSnapshot = takeSnapshot();
+  UNSAVED_DRAFT = deep(data);
+  SAVE_BUSY = true;
+  setStatus('スプレッドシートへ保存中...','loading');
+  try {
+      if (!GAS_URL) throw new Error('GAS未設定');
       const r=await gasPost({action:'saveSeikei',data});
-      if(r.ok){toast('✅ 保存しました（Googleスプレッドシート）','ok');setStatus('✅ スプレッドシートに保存済み','ok');}
-      else throw new Error(r.error||'保存失敗');
-    }catch(e){
-      toast('⚠️ ローカルに保存しました（GASエラー）','warn');
-      setStatus('⚠️ ローカル保存済み','warn');
-    }
-  }else{
-    toast('💾 ローカルに保存しました（GAS URLが未設定）','warn');
-    setStatus('⚠️ ローカル保存済み（GAS未設定）','warn');
+      if (!r || !r.ok) throw new Error((r && r.error) || '保存失敗');
+      RID = r.id;
+      data.id = r.id;
+      data.signs = r.signs;
+      data.operator = r.operator;
+      data.operatorId = r.operatorId;
+      data.photos = r.photos || [];
+      data.refPhotos = r.refPhotos || [];
+      PHOTOS = deep(data.photos);
+      REF_PHOTOS = deep(data.refPhotos);
+      submittedSnapshot.photos = JSON.stringify(PHOTOS);
+      submittedSnapshot.refPhotos = JSON.stringify(REF_PHOTOS);
+      renderPhotos(); renderRefPhotos();
+      STARTER = { name: r.operator, id: r.operatorId, loginId: r.operatorId };
+      syncSigns_(r.signs);
+      HIST = [data, ...HIST.filter(item => item.id !== data.id)];
+      lsSet('seikei_records', HIST.slice(0,300));
+      UNSAVED_DRAFT = null;
+      document.getElementById('sid').textContent='ID: '+RID;
+      toast('✅ 保存しました（Googleスプレッドシート）','ok');
+      setStatus('✅ スプレッドシートに保存済み','ok');
+      if (r.notification && !r.notification.ok) {
+        toast('記録は保存済みですが、通知に失敗しました', 'warn');
+        setStatus('保存済み・通知失敗', 'warn');
+      }
+      LAST_SNAPSHOT = submittedSnapshot;
+      return true;
+  } catch (e) {
+    toast('保存できませんでした。入力はこの画面にのみ残っています: ' + e.message, 'err');
+    setStatus('未保存。再読込や画面を閉じると入力は失われます', 'warn');
+    return false;
+  } finally {
+    SAVE_BUSY = false;
   }
-
-  // 保存後、現在値を新たなスナップショットにする（次回の差分基準）
-  LAST_SNAPSHOT = takeSnapshot();
-
-  if (SIGNS.agg) applyLock(true);
 }
 // ══════════════════════════════════════════════
 // 新規
@@ -2809,6 +2805,8 @@ async function saveRecord() {
 function newForm(){
   if(!confirm('入力内容をクリアして新規作成しますか？'))return;
   RID=null;
+  UNSAVED_DRAFT=null;
+  LAST_SNAPSHOT={};
   PN_PAIRS=[{no:'',req:''}]; renderPnPairs();
   STARTER = { name: CU.name, id: CU.id, loginId: CU.loginId };
   document.getElementById('operator').value = CU.name;
@@ -2826,7 +2824,6 @@ function newForm(){
     document.getElementById(`cb-${role}`).checked=false;
   });
   document.getElementById('sid').textContent='';
-  CUR_DEL = null; applyDelBanner();
   PHOTOS = []; REF_PHOTOS = [];
   renderPhotos(); renderRefPhotos();
   CHANGE_LOG = [];
@@ -2845,14 +2842,29 @@ function clearHistFilters() {
   document.getElementById('histSearch').value = '';
   document.getElementById('histFilterSign').value = '';
   document.getElementById('histFilterClient').value = '';
-  const mc = document.getElementById('histFilterMachine'); if (mc) mc.value = '';
-  const dc = document.getElementById('histShowDeleted'); if (dc) { dc.checked = false; HIST_SHOW_DELETED = false; }
-  const hf = document.getElementById('histFrom');          if (hf) hf.value = '';
-  const ht = document.getElementById('histTo');            if (ht) ht.value = '';
   renderHistTabs();
 }
 
+// ★R01：履歴のクリックは data属性＋委譲で処理（品番/key/idをインラインJSに埋め込まない）。
+function bindHistDelegation_(){
+  const modal = document.getElementById('histModal');
+  if (!modal || modal._histBound) return;
+  modal.addEventListener('click', function(ev){
+    const t = ev.target;
+    const tabBtn = t.closest && t.closest('[data-histtab]');
+    if (tabBtn) { setHistTab(tabBtn.getAttribute('data-histtab')); return; }
+    const newBtn = t.closest && t.closest('[data-newkey]');
+    if (newBtn) { newFromMaster(newBtn.getAttribute('data-newkey')); return; }
+    const togBtn = t.closest && t.closest('[data-togglekey]');
+    if (togBtn) { toggleHistGroup(togBtn.getAttribute('data-togglekey')); return; }
+    const rec = t.closest && t.closest('[data-loadid]');
+    if (rec) { loadRecord(rec.getAttribute('data-loadid')); return; }
+  });
+  modal._histBound = true;
+}
+
 async function openHistory(){
+  bindHistDelegation_();
   document.getElementById('histModal').classList.add('show');
   document.getElementById('histList').innerHTML='<div class="hist-empty">読み込み中...</div>';
   document.getElementById('histTabs').innerHTML='';
@@ -2860,34 +2872,23 @@ async function openHistory(){
   if(GAS_URL){
     try{
       const r=await gasGet('listSeikei&limit=300');
-      if(r.ok&&r.records){
-        const ids=r.records.map(x=>x.id);
-        HIST=[...r.records,...HIST.filter(x=>!ids.includes(x.id))];
-      }
-    }catch(e){}
+      if (!r || !r.ok || !Array.isArray(r.records)) throw new Error((r && r.error) || '取得失敗');
+      HIST=r.records;
+      lsSet('seikei_records', HIST);
+    }catch(e){
+      HIST=[];
+      document.getElementById('histList').textContent='履歴を取得できませんでした';
+      toast('履歴取得失敗: ' + e.message, 'err');
+      return;
+    }
   }
   HIST.sort((a,b)=>(b.savedAt||'').localeCompare(a.savedAt||''));
   HIST_TAB='all';
   HIST_EXPANDED={};
-  // 削除済みの切替は管理者・マスターにだけ見せる
-  HIST_SHOW_DELETED = false;
-  const delWrap = document.getElementById('histDelWrap');
-  const delCb   = document.getElementById('histShowDeleted');
-  if (delCb)   delCb.checked = false;
-  if (delWrap) delWrap.style.display = isUnlockRole() ? 'inline-flex' : 'none';
   const clients = [...new Set(PARTS.map(p=>p.client||'').filter(Boolean))];
   const clientSel = document.getElementById('histFilterClient');
   clientSel.innerHTML = '<option value="">取引先: すべて</option>'
     + clients.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
-
-  // 号機の選択肢を記録から自動生成
-  const machines = [...new Set(HIST.map(r => String(r.machineNo||'').trim()).filter(Boolean))]
-    .sort((a,b) => a.localeCompare(b, 'ja', {numeric:true}));
-  const macSel = document.getElementById('histFilterMachine');
-  if (macSel) {
-    macSel.innerHTML = '<option value="">号機: すべて</option>'
-      + machines.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
-  }
   renderHistTabs();
 }
 
@@ -2895,12 +2896,7 @@ function getHistFiltered() {
   const q      = (document.getElementById('histSearch')?.value||'').toLowerCase().trim();
   const sign   = document.getElementById('histFilterSign')?.value || '';
   const client = document.getElementById('histFilterClient')?.value || '';
-  const machine = document.getElementById('histFilterMachine')?.value || '';
-  const dFrom   = document.getElementById('histFrom')?.value || '';
-  const dTo     = document.getElementById('histTo')?.value || '';
   return HIST.filter(r => {
-    // 削除済みは、切替がONのときだけ表示
-    if (r.deleted && !HIST_SHOW_DELETED) return false;
     const nos  = (r.pnPairs?r.pnPairs.map(p=>p.no):[r.partNo||'']).join(' ');
     const reqs = (r.pnPairs?r.pnPairs.map(p=>p.req):[r.reqNo||'']).join(' ');
     const matchQ = !q ||
@@ -2924,29 +2920,17 @@ function getHistFiltered() {
       matchSign = false;
     }
     const matchClient = !client || (r.client||'') === client;
-    // 号機
-    const matchMachine = !machine || String(r.machineNo||'').trim() === machine;
-    // 記入日の範囲（片側だけの指定も可）
-    const rd = String(r.recordDate||'').trim();
-    let matchDate = true;
-    if (dFrom || dTo) {
-      if (!rd) matchDate = false;
-      else {
-        if (dFrom && rd < dFrom) matchDate = false;
-        if (dTo   && rd > dTo)   matchDate = false;
-      }
-    }
     // 取引先タブで絞り込み（マスター経由で取引先を解決）
     const rnos2  = (r.pnPairs?r.pnPairs.map(p=>p.no):[r.partNo||'']);
     const masterT = PARTS.find(p => (p.nos||[p.no]).some(n => rnos2.includes(n)));
     const rClientT = String(r.client || masterT?.client || '').trim() || '__none__';
     const matchTab = HIST_TAB==='all' || rClientT === HIST_TAB;
-    return matchQ && matchSign && matchClient && matchMachine && matchDate && matchTab;
+    return matchQ && matchSign && matchClient && matchTab;
   });
 }
 
 function groupByPartNo(records) {
-  const groups = {};
+  const groups = Object.create(null);
   records.forEach(r => {
     const nos = r.pnPairs ? r.pnPairs.map(p=>p.no).filter(Boolean) : [r.partNo||''];
     const key = nos.join('/') || '不明';
@@ -2962,21 +2946,7 @@ function groupByPartNo(records) {
 // 取引先タブを生成
 function renderHistTabs() {
   const q = (document.getElementById('histSearch')?.value||'').toLowerCase().trim();
-  const machine = document.getElementById('histFilterMachine')?.value || '';
-  const dFrom   = document.getElementById('histFrom')?.value || '';
-  const dTo     = document.getElementById('histTo')?.value || '';
   const base = HIST.filter(r => {
-    // 削除済みは、切替がONのときだけ数える
-    if (r.deleted && !HIST_SHOW_DELETED) return false;
-    // 号機
-    if (machine && String(r.machineNo||'').trim() !== machine) return false;
-    // 記入日の範囲
-    if (dFrom || dTo) {
-      const rd = String(r.recordDate||'').trim();
-      if (!rd) return false;
-      if (dFrom && rd < dFrom) return false;
-      if (dTo   && rd > dTo)   return false;
-    }
     if (!q) return true;
     const nos  = (r.pnPairs?r.pnPairs.map(p=>p.no):[r.partNo||'']).join(' ');
     const reqs = (r.pnPairs?r.pnPairs.map(p=>p.req):[r.reqNo||'']).join(' ');
@@ -2984,7 +2954,7 @@ function renderHistTabs() {
   });
 
   // 取引先ごとに件数集計（マスター経由で解決、空は未設定）
-  const clientsMap = {};
+  const clientsMap = Object.create(null);
   base.forEach(r => {
     const rnos = (r.pnPairs?r.pnPairs.map(x=>x.no):[r.partNo||'']);
     const master = PARTS.find(p => (p.nos||[p.no]).some(n => rnos.includes(n)));
@@ -2999,11 +2969,11 @@ function renderHistTabs() {
   if (HIST_TAB !== 'all' && !clientKeys.includes(HIST_TAB)) HIST_TAB = 'all';
 
   const tabsEl = document.getElementById('histTabs');
-  let html = `<button class="htab${HIST_TAB==='all'?' on':''}" onclick="setHistTab('all')">すべて <span class="hbadge">${base.length}</span></button>`;
+  let html = `<button type="button" class="htab${HIST_TAB==='all'?' on':''}" data-histtab="all">すべて <span class="hbadge">${base.length}</span></button>`;
   clientKeys.forEach(c => {
     const label = c === '__none__' ? '未設定' : c;
     const icon  = c === '__none__' ? '' : '🏢 ';
-    html += `<button class="htab${HIST_TAB===c?' on':''}" onclick="setHistTab('${esc(c).replace(/'/g,"\\'")}')">${icon}${esc(label)} <span class="hbadge">${clientsMap[c]}</span></button>`;
+    html += `<button type="button" class="htab${HIST_TAB===c?' on':''}" data-histtab="${esc(c)}">${icon}${esc(label)} <span class="hbadge">${clientsMap[c]}</span></button>`;
   });
   tabsEl.innerHTML = html;
   renderHistList();
@@ -3028,7 +2998,8 @@ function renderHistList(){
   Object.entries(groups).forEach(([key, g]) => {
     const isExp = !!HIST_EXPANDED[key];
     const latest = g.records[0];
-    const safeKey = key.replace(/'/g, "\\'");
+    // ★R01：品番由来の key はインラインJSに連結せず、data属性(esc済み)＋委譲で扱う。
+    const keyAttr = esc(key);
     const mst = PARTS.find(p => (p.nos||[p.no]).some(n => key.split('/').includes(n)));
     const client = mst ? (mst.client||'') : '';
     const groupColors = ['#1a3a6b','#2955a0','#1a6896','#16537e'];
@@ -3041,11 +3012,11 @@ function renderHistList(){
           + '<div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:1px;">' + esc(g.name) + (client ? ' ／ 🏢 ' + esc(client) : '') + '</div>'
         + '</div>'
         + '<span style="font-size:10px;color:rgba(255,255,255,.6);white-space:nowrap;">' + g.records.length + '件</span>'
-        + '<button onclick="newFromMaster(\'' + safeKey + '\')" style="padding:4px 10px;font-size:11px;border:none;border-radius:4px;background:#27ae60;color:#fff;cursor:pointer;font-weight:bold;white-space:nowrap;">＋ 新規作成</button>'
+        + '<button type="button" data-newkey="' + keyAttr + '" style="padding:4px 10px;font-size:11px;border:none;border-radius:4px;background:#27ae60;color:#fff;cursor:pointer;font-weight:bold;white-space:nowrap;">＋ 新規作成</button>'
       + '</div>'
       + '<div style="padding:8px 8px 0;">' + histRecordCard(latest) + '</div>'
       + (g.records.length > 1
-        ? '<button onclick="toggleHistGroup(\'' + safeKey + '\')" style="width:100%;padding:7px;font-size:11px;background:' + (isExp?'#eef2f9':'#f8f9fc') + ';border:none;border-top:1px solid #dce4f0;cursor:pointer;color:#5a6a85;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;">'
+        ? '<button type="button" data-togglekey="' + keyAttr + '" style="width:100%;padding:7px;font-size:11px;background:' + (isExp?'#eef2f9':'#f8f9fc') + ';border:none;border-top:1px solid #dce4f0;cursor:pointer;color:#5a6a85;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;">'
           + (isExp ? '▲ 閉じる' : '▽ 過去の記録を見る（あと' + (g.records.length-1) + '件）')
           + '</button>'
           + (isExp ? '<div style="padding:0 8px 8px;">' + g.records.slice(1).map(r => histRecordCard(r)).join('') + '</div>' : '')
@@ -3078,7 +3049,7 @@ function histRecordCard(r) {
   })();
   const date   = savedAtJST.substring(0, 10);
   const time   = savedAtJST.substring(11, 16);
-  const safeId = String(r.id||'').replace(/'/g,"\\'");
+  const idAttr = esc(String(r.id||''));   // ★R01：id も data属性(esc)＋委譲で扱う
   const master  = PARTS.find(p => (p.nos||[p.no]).some(n => nos.split(' / ').includes(n)));
   const client  = r.client || master?.client || '';
   const signs = r.signs || {};
@@ -3096,29 +3067,16 @@ function histRecordCard(r) {
   const operator    = safeStr(r.operator || r.operatorId || r.savedByName);
   const machineNo   = safeStr(r.machineNo);
   const recordDate  = safeStr(r.recordDate);
-  // 削除済み表示と、管理者向けの削除／復元ボタン
-  const isDel = !!r.deleted;
-  const canDel = isUnlockRole();
-  const delBadge = isDel
-    ? '<span class="hrec-del-badge">🗑 削除済み'
-      + (r.deletedByName ? '（' + esc(r.deletedByName) + '）' : '') + '</span>'
-    : '';
-  const actBtn = !canDel ? ''
-    : (isDel
-        ? '<button class="hrec-btn rst" onclick="event.stopPropagation();restoreRecord(\'' + safeId + '\')">↩ 復元</button>'
-        : '<button class="hrec-btn del" onclick="event.stopPropagation();deleteRecord(\'' + safeId + '\')">🗑 削除</button>');
-
-  return '<div class="hrec' + (allSigned ? ' hrec-done' : '') + (isDel ? ' hrec-deleted' : '') + '" onclick="loadRecord(\'' + safeId + '\')">'
+  return '<div class="hrec' + (allSigned ? ' hrec-done' : '') + '" data-loadid="' + idAttr + '" style="cursor:pointer">'
     + '<div class="hrec-top">'
       + '<div style="flex:1;min-width:0;">'
         + '<div class="hrec-req">📋 ' + esc(reqs||'依頼番号なし')
           + '<span style="font-size:11px;font-weight:normal;color:var(--tx2);margin-left:6px;">' + esc(productName) + '</span>'
           + (client ? '<span style="font-size:10px;color:var(--blue2);margin-left:6px;">🏢 ' + esc(client) + '</span>' : '')
         + '</div>'
-        + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;">' + delBadge + doneBadge + signBadges + '</div>'
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;">' + doneBadge + signBadges + '</div>'
       + '</div>'
       + '<div class="hrec-date" style="flex-shrink:0;">' + esc(date) + '<br>' + esc(time) + '</div>'
-      + actBtn
     + '</div>'
     + '<div class="hrec-sub">'
       + '<div class="hrec-tag"><span>品番</span> <strong>' + esc(nos||'-') + '</strong></div>'
@@ -3128,124 +3086,6 @@ function histRecordCard(r) {
     + '</div>'
     + '<span class="hrec-arrow">›</span>'
     + '</div>';
-}
-
-// ══════════════════════════════════════════════
-// 記録の削除／復元（管理者・マスターのみ・論理削除）
-// ══════════════════════════════════════════════
-
-// 削除フラグだけ書き換えて保存する（GAS側の saveSeikei をそのまま使う）
-async function saveDeletedFlag(rec) {
-  const list = JSON.parse(ls('seikei_records') || '[]');
-  const i = list.findIndex(x => String(x.id) === String(rec.id));
-  if (i >= 0) list[i] = rec; else list.unshift(rec);
-  lsSet('seikei_records', list.slice(0, 300));
-
-  if (!GAS_URL) return true;
-  const r = await gasPost({ action: 'saveSeikei', data: rec });
-  if (!r || !r.ok) throw new Error((r && r.error) || '保存に失敗しました');
-  return true;
-}
-
-async function deleteRecord(id) {
-  if (!isUnlockRole()) { toast('削除の権限がありません', 'err'); return; }
-  const rec = HIST.find(x => String(x.id) === String(id));
-  if (!rec) { toast('記録が見つかりません', 'err'); return; }
-
-  // 確定済み（集計確認サイン済み）は削除できない
-  if (rec.signs && rec.signs.agg) {
-    alert('この記録は「集計確認」サイン済みのため削除できません。\n\n'
-        + '削除する場合は、記録を開いてロックを解除し、\n集計確認サインを外してから削除してください。');
-    return;
-  }
-
-  const nos  = (rec.pnPairs ? rec.pnPairs.map(p=>p.no)  : [rec.partNo||'']).filter(Boolean).join(' / ');
-  const reqs = (rec.pnPairs ? rec.pnPairs.map(p=>p.req) : [rec.reqNo||'']).filter(Boolean).join(' / ');
-  const ok = confirm(
-    '【この記録を削除します】\n\n'
-    + '依頼番号: ' + (reqs || '-') + '\n'
-    + '品番: ' + (nos || '-') + '\n'
-    + '製品名: ' + (rec.productName || '-') + '\n'
-    + '記入日: ' + (rec.recordDate || '-') + '\n'
-    + '担当者: ' + (rec.operator || '-') + '\n\n'
-    + '履歴から見えなくなります。\n'
-    + '（データは残るので、あとで復元できます）\n\nよろしいですか？'
-  );
-  if (!ok) return;
-
-  rec.deleted       = true;
-  rec.deletedBy     = CU.id;
-  rec.deletedByName = CU.name;
-  rec.deletedAt     = toJST(new Date());
-
-  try {
-    await saveDeletedFlag(rec);
-    toast('🗑 記録を削除しました', 'ok');
-  } catch (e) {
-    rec.deleted = false;   // 失敗したら元に戻す
-    delete rec.deletedBy; delete rec.deletedByName; delete rec.deletedAt;
-    toast('削除に失敗しました: ' + e.message, 'err');
-    renderHistTabs();
-    return;
-  }
-
-  // 開いている記録を削除した場合は、そのまま保存しても復活しないようにする
-  if (String(RID) === String(id)) {
-    CUR_DEL = { deleted:true, deletedBy:rec.deletedBy, deletedByName:rec.deletedByName, deletedAt:rec.deletedAt };
-    applyDelBanner();
-  }
-  renderHistTabs();
-}
-
-async function restoreRecord(id) {
-  if (!isUnlockRole()) { toast('復元の権限がありません', 'err'); return; }
-  const rec = HIST.find(x => String(x.id) === String(id));
-  if (!rec) { toast('記録が見つかりません', 'err'); return; }
-  if (!confirm('この記録を元に戻しますか？\n（履歴に再び表示されます）')) return;
-
-  const keep = { deletedBy: rec.deletedBy, deletedByName: rec.deletedByName, deletedAt: rec.deletedAt };
-  rec.deleted = false;
-  delete rec.deletedBy; delete rec.deletedByName; delete rec.deletedAt;
-
-  try {
-    await saveDeletedFlag(rec);
-    toast('↩ 記録を復元しました', 'ok');
-  } catch (e) {
-    rec.deleted = true;                 // 失敗したら元に戻す
-    Object.assign(rec, keep);
-    toast('復元に失敗しました: ' + e.message, 'err');
-    renderHistTabs();
-    return;
-  }
-
-  if (String(RID) === String(id)) { CUR_DEL = null; applyDelBanner(); }
-  renderHistTabs();
-}
-
-function onToggleDeleted() {
-  const cb = document.getElementById('histShowDeleted');
-  HIST_SHOW_DELETED = !!(cb && cb.checked);
-  renderHistTabs();
-}
-
-// 開いている記録が削除済みのときに出す帯
-function applyDelBanner() {
-  const b = document.getElementById('delBanner');
-  if (!b) return;
-  if (CUR_DEL && CUR_DEL.deleted) {
-    b.style.display = 'flex';
-    b.innerHTML = '🗑 <span style="font-weight:bold;">この記録は削除済みです</span>'
-      + '<span style="font-size:10px;">'
-      + (CUR_DEL.deletedByName ? esc(CUR_DEL.deletedByName) + ' が削除' : '')
-      + (CUR_DEL.deletedAt ? '（' + esc(String(CUR_DEL.deletedAt).substring(0,16).replace('T',' ')) + '）' : '')
-      + '</span>'
-      + (isUnlockRole()
-          ? '<button onclick="restoreRecord(\'' + String(RID).replace(/'/g,"\\'") + '\')" style="margin-left:auto;padding:5px 14px;font-size:11px;font-weight:bold;border:none;border-radius:4px;background:var(--g);color:#fff;cursor:pointer;">↩ 復元する</button>'
-          : '');
-  } else {
-    b.style.display = 'none';
-    b.innerHTML = '';
-  }
 }
 
 function loadRecord(id){
@@ -3266,6 +3106,8 @@ function newFromMaster(partNoKey) {
   if (!master) { toast('マスターデータが見つかりません', 'err'); return; }
 
   RID = null;
+  UNSAVED_DRAFT = null;
+  LAST_SNAPSHOT = {};
   PN_PAIRS = (master.nos||[master.no||'']).map(no => ({no, req:''}));
   renderPnPairs();
 
@@ -3292,7 +3134,6 @@ function newFromMaster(partNoKey) {
     renderPC('pcTb', PC_ITEMS, false);
   }
   renderNotesFrom(master.notes);
-  CUR_DEL = null; applyDelBanner();
   REF_PHOTOS = (master.photos && master.photos.length) ? deep(master.photos) : [];
   PHOTOS = [];
   renderRefPhotos(); renderPhotos();
@@ -3317,13 +3158,28 @@ function newFromMaster(partNoKey) {
 // ══════════════════════════════════════════════
 // GAS通信
 // ══════════════════════════════════════════════
-async function gasGet(action){
-  const r=await fetch(GAS_URL+'?action='+action);
-  return r.json();
+// 読み書きともトークン付きPOSTに統一（GETの匿名取得は廃止）。
+async function gasCall_(action, payload){
+  if(!AUTH_TOKEN){ handleUnauthorized_(); return { ok:false, error:'unauthorized' }; }
+  const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({ ...(payload||{}), action, token:AUTH_TOKEN })});
+  if (!r.ok) throw new Error('HTTP error');
+  const j=await r.json();
+  if(j && j.error==='unauthorized'){ handleUnauthorized_(); }
+  return j;
+}
+// 旧gasGet互換：'listSeikei&limit=300' のようなクエリ付き文字列を本文に展開する。
+async function gasGet(actionStr){
+  const parts=String(actionStr).split('&');
+  const action=parts.shift();
+  const extra={};
+  parts.forEach(kv=>{ const i=kv.indexOf('='); if(i>=0) extra[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1)); });
+  return gasCall_(action, extra);
 }
 async function gasPost(body){
-  const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
-  return r.json();
+  const b=Object.assign({}, body||{});
+  const action=b.action; delete b.action;
+  return gasCall_(action, b);
 }
 
 // ══════════════════════════════════════════════
@@ -3344,9 +3200,12 @@ function upOn(sel){
   if(sel.value==='OK'||sel.value==='○')sel.classList.add('ok');
   else if(sel.value==='NG'||sel.value==='✕')sel.classList.add('ng');
 }
-function closeM(id){document.getElementById(id).classList.remove('show');}
+function closeM(id){
+  if (id === 'masterModal') clearPrivatePhotoView_(document.getElementById('m-photoView'));
+  document.getElementById(id).classList.remove('show');
+}
 function setStatus(msg,type){
-  document.getElementById('smsg').innerHTML=msg;
+  document.getElementById('smsg').textContent=String(msg);
   document.getElementById('sdot').style.background=type==='ok'?'var(--g)':type==='warn'?'var(--o)':'var(--o)';
 }
 function toast(msg,type){
@@ -3370,13 +3229,13 @@ function labelOfKey(k) {
   if (!k) return k;
 
   // 成形条件: c_si_ri_(b1|b2|r|v|ok)
-  let m = k.match(/^c_(\d+)_(\d+)_(b1|b2|r|v2|v|ok)$/);
+  let m = k.match(/^c_(\d+)_(\d+)_(b1|b2|r|v|ok)$/);
   if (m) {
     const si = +m[1], ri = +m[2], sub = m[3];
     const sec = COND_SECS[si];
     const secName = sec ? sec.label : 'セクション' + si;
     const rowName = (sec && sec.rows[ri] && sec.rows[ri].n) ? sec.rows[ri].n : '行' + (ri+1);
-    const subName = {b1:'基準値①', b2:'基準値②', r:'管理値', v:'記入欄①', v2:'記入欄②', ok:'OK/NG'}[sub] || sub;
+    const subName = {b1:'基準値①', b2:'基準値②', r:'管理値', v:'記入欄', ok:'OK/NG'}[sub] || sub;
     return `${secName} ${rowName} ${subName}`;
   }
 
@@ -3428,9 +3287,16 @@ function labelOfKey(k) {
   // 現在の data-k 値をすべて取得（差分比較用スナップショット）
 function takeSnapshot() {
   const snap = {};
+  ['productName','recordDate','machineNo','condNo','material','mbName','mbRatio','dryTemp','dryTime',
+    'moldMachine','takeMachine','boxMachine'].forEach(id => { snap[id] = gv(id); });
+  snap.pnPairs = JSON.stringify(PN_PAIRS);
+  snap.photos = JSON.stringify(PHOTOS);
+  snap.refPhotos = JSON.stringify(REF_PHOTOS);
+  snap.condSections = JSON.stringify(COND_SECS);
+  snap.prodCheckItems = JSON.stringify(PC_ITEMS);
   document.querySelectorAll('[data-k]').forEach(el => {
     const k = el.getAttribute('data-k');
-    if (k.startsWith('m_')) return;  // マスター編集用は除外
+    if (k.startsWith('m_') || k.endsWith('_m-pcTb')) return;
     snap[k] = el.value;
   });
   return snap;
@@ -3441,9 +3307,9 @@ function diffFromSnapshot() {
   const now = takeSnapshot();
   const diffs = [];
   // 変更・追加
-  Object.keys(now).forEach(k => {
+  [...new Set([...Object.keys(now), ...Object.keys(LAST_SNAPSHOT)])].forEach(k => {
     const before = LAST_SNAPSHOT[k] !== undefined ? LAST_SNAPSHOT[k] : '';
-    const after  = now[k];
+    const after  = now[k] !== undefined ? now[k] : '';
     if (String(before) !== String(after)) {
       diffs.push({ field: labelOfKey(k), key: k, before: String(before), after: String(after) });
     }
@@ -3483,7 +3349,7 @@ function renderChangeLog() {
       + '</div>'
       + '<div class="clog-reason"><b>変更理由：</b>'
         + '<span data-tl-text>' + esc(entry.reason || '(未記入)') + '</span>'
-        + '<button class="tr-btn" onclick="translateCell(this)" title="翻訳">🌐</button>'
+        + "<button class=\"tr-btn\" data-csp-click=\"h93\" data-csp-source-click=\"translateCell(this)\" title=\"翻訳\">🌐</button>"
       + '</div>'
       + '<div class="translate-box"></div>'
       + diffs
@@ -3618,13 +3484,163 @@ function onLangChange() {
   if (TL_LABELS_ON) applyLabelTranslation();
 }
 
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function ls(k){try{return localStorage.getItem(k);}catch(e){return null;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function esc(s){return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function ls(k){return MEMORY_CACHE.get(k) || null;}
+function lsSet(k,v){MEMORY_CACHE.set(k,JSON.stringify(v));}
 
 document.querySelectorAll('.mo').forEach(el=>{
   el.addEventListener('click',e=>{if(e.target===el)closeM(el.id);});
 });
+
+const PRIVATE_PHOTO_API_URL = GAS_URL;
+
+const PRIVATE_PHOTO_MAX_BYTES = 8 * 1024 * 1024;
+const PRIVATE_PHOTO_MAX_BASE64 = Math.ceil(PRIVATE_PHOTO_MAX_BYTES / 3) * 4;
+const PRIVATE_PHOTO_VIEWS = new Map();
+
+function clearPrivatePhotoView_(container) {
+  const state = PRIVATE_PHOTO_VIEWS.get(container);
+  if (state) {
+    state.cancelled = true;
+    state.controller.abort();
+    state.urls.forEach(url => URL.revokeObjectURL(url));
+    state.urls.clear();
+    PRIVATE_PHOTO_VIEWS.delete(container);
+  }
+  if (container) container.replaceChildren();
+}
+
+function clearPrivatePhotoViews_() {
+  Array.from(PRIVATE_PHOTO_VIEWS.keys()).forEach(clearPrivatePhotoView_);
+}
+
+function privatePhotoBytes_(photo) {
+  if (!photo || !['image/jpeg','image/png'].includes(photo.mimeType) ||
+      typeof photo.base64 !== 'string' || !photo.base64 || photo.base64.length > PRIVATE_PHOTO_MAX_BASE64 ||
+      photo.base64.length % 4 || !/^[A-Za-z0-9+/]+={0,2}$/.test(photo.base64) ||
+      !Number.isInteger(photo.byteLength) || photo.byteLength <= 0 || photo.byteLength > PRIVATE_PHOTO_MAX_BYTES) throw new Error('invalid_image');
+  const binary = atob(photo.base64);
+  if (binary.length !== photo.byteLength || btoa(binary) !== photo.base64) throw new Error('invalid_image');
+  const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+  const valid = photo.mimeType === 'image/png'
+    ? bytes.length >= 45 && Array.from(bytes.slice(0,8)).join(',') === '137,80,78,71,13,10,26,10'
+    : bytes.length >= 16 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255 &&
+      bytes[bytes.length-2] === 255 && bytes[bytes.length-1] === 217;
+  if (!valid) throw new Error('invalid_image');
+  let width = 0, height = 0;
+  if (photo.mimeType === 'image/png') {
+    const u32 = at => bytes[at]*0x1000000+(bytes[at+1]<<16)+(bytes[at+2]<<8)+bytes[at+3];
+    width = u32(16); height = u32(20);
+  } else {
+    let pos = 2;
+    while (pos+4 < bytes.length) {
+      if (bytes[pos++] !== 255) throw new Error('invalid_image');
+      while (bytes[pos] === 255) pos++;
+      const marker = bytes[pos++], length = (bytes[pos]<<8)+bytes[pos+1];
+      if (length < 2 || pos+length > bytes.length) throw new Error('invalid_image');
+      if ([192,193,194].includes(marker)) {
+        height = (bytes[pos+3]<<8)+bytes[pos+4]; width = (bytes[pos+5]<<8)+bytes[pos+6]; break;
+      }
+      if (marker === 218 || marker === 217) break;
+      pos += length;
+    }
+  }
+  if (!width || !height || width > 8192 || height > 8192 || width*height > 16*1024*1024) throw new Error('invalid_image');
+  return bytes;
+}
+
+function privatePhotoFromDraft_(dataUrl) {
+  if (typeof dataUrl !== 'string' || dataUrl.length > PRIVATE_PHOTO_MAX_BASE64+64) throw new Error('invalid_image');
+  const match = dataUrl.match(/^data:(image\/(?:jpeg|png));base64,([A-Za-z0-9+/]+={0,2})$/);
+  if (!match) throw new Error('invalid_image');
+  const padding = match[2].endsWith('==') ? 2 : match[2].endsWith('=') ? 1 : 0;
+  return {mimeType:match[1], base64:match[2], byteLength:match[2].length/4*3-padding};
+}
+
+async function requestPrivatePhoto_(binding, signal) {
+  if (!AUTH_TOKEN) throw new Error('unauthorized');
+  if (!binding || typeof binding !== 'object' || !Number.isInteger(binding.slot) || binding.slot < 0 || binding.slot >= 100 ||
+      (!!binding.recordId === !!binding.partNo) || binding.fileId !== undefined || binding.url !== undefined) throw new Error('invalid_binding');
+  const request = {slot:binding.slot};
+  if (binding.recordId) request.recordId = String(binding.recordId);
+  else request.partNo = String(binding.partNo);
+  if (binding.collection !== undefined) request.collection = binding.collection;
+  const token = AUTH_TOKEN;
+  const response = await fetch(PRIVATE_PHOTO_API_URL, {
+    method:'POST', credentials:'omit', headers:{'Content-Type':'text/plain'}, cache:'no-store', signal,
+    body:JSON.stringify({...request, action:'getPhoto', token})
+  });
+  if (!response.ok) throw new Error('photo_unavailable');
+  const raw = await response.text();
+  if (raw.length > PRIVATE_PHOTO_MAX_BASE64+2048) throw new Error('photo_unavailable');
+  const result = JSON.parse(raw);
+  if (result && result.error === 'unauthorized') {
+    clearPrivatePhotoViews_();
+    if (typeof handleUnauthorized_ === 'function') handleUnauthorized_();
+    else { AUTH_TOKEN = ''; try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) {} }
+    throw new Error('unauthorized');
+  }
+  if (!result || result.ok !== true || !result.photo || token !== AUTH_TOKEN) throw new Error('photo_unavailable');
+  return result.photo;
+}
+
+async function renderPrivatePhotos_(container, items) {
+  if (!container) return;
+  clearPrivatePhotoView_(container);
+  const state = {cancelled:false, urls:new Set(), controller:new AbortController()};
+  PRIVATE_PHOTO_VIEWS.set(container, state);
+  if (!items.length) { container.textContent = '写真なし'; return; }
+  for (const item of items) {
+    if (state.cancelled) return;
+    const figure = document.createElement('figure');
+    figure.className = 'private-photo';
+    figure.style.cssText = 'display:inline-flex;flex-direction:column;gap:4px;margin:4px;max-width:100%;vertical-align:top';
+    const img = document.createElement('img');
+    img.alt = String(item.name || '写真');
+    img.style.cssText = 'width:240px;height:180px;max-width:100%;object-fit:contain';
+    const caption = document.createElement('figcaption');
+    caption.textContent = String(item.name || '写真');
+    const status = document.createElement('span');
+    status.setAttribute('role','status');
+    status.textContent = '写真を読み込み中...';
+    figure.append(img, caption, status);
+    container.appendChild(figure);
+    let url;
+    try {
+      if (!item.binding && !item.localDataUrl) throw new Error('save_before_view');
+      const photo = item.binding
+        ? await requestPrivatePhoto_(item.binding, state.controller.signal)
+        : privatePhotoFromDraft_(item.localDataUrl);
+      const bytes = privatePhotoBytes_(photo);
+      if (state.cancelled) return;
+      url = URL.createObjectURL(new Blob([bytes], {type:photo.mimeType}));
+      state.urls.add(url);
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('image_timeout')), 10000);
+        img.onload = () => {
+          clearTimeout(timer);
+          if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth > 8192 || img.naturalHeight > 8192 ||
+              img.naturalWidth * img.naturalHeight > 16*1024*1024) reject(new Error('invalid_image'));
+          else resolve();
+        };
+        img.onerror = () => { clearTimeout(timer); reject(new Error('invalid_image')); };
+        img.src = url;
+      });
+      if (state.cancelled) { img.removeAttribute('src'); return; }
+      status.textContent = '';
+    } catch (error) {
+      if (url) { URL.revokeObjectURL(url); state.urls.delete(url); }
+      img.removeAttribute('src');
+      if (!state.cancelled) status.textContent = error.message === 'save_before_view'
+        ? '保存後に写真を表示できます'
+        : '写真を表示できません（権限または画像を確認してください）';
+    }
+  }
+}
+window.addEventListener('pagehide', clearPrivatePhotoViews_);
+window.addEventListener('beforeunload', clearPrivatePhotoViews_);
+window.addEventListener('pagehide', clearSeikeiPrivatePhotos_);
+
 </script>
 </body>
 </html>
