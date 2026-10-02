@@ -397,8 +397,12 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
   }
   #main-wrap.view-only .dsec .dt td::before{ content:attr(data-c); font-size:9.5px; color:var(--tx3); flex:0 0 auto; }
   #main-wrap.view-only .dsec .dt td[data-u]:not([data-u=""])::after{ content:attr(data-u); font-size:10px; color:var(--acc); font-weight:bold; flex:0 0 auto; }
-  #main-wrap.view-only .dsec .dt td input{ flex:1 1 auto; min-width:0; text-align:left!important; padding:2px 4px; }
+  #main-wrap.view-only .dsec .dt td input{ flex:0 1 auto; width:78px; min-width:0; text-align:left!important; padding:2px 4px; }
+  #main-wrap.view-only .dsec .dt td.c-r input{ width:52px; text-align:left!important; }
+  #main-wrap.view-only .dsec .dt td.c-b1 input,
+  #main-wrap.view-only .dsec .dt td.c-b2 input{ width:58px; }
   #main-wrap.view-only .dsec .dt td.c-name{ grid-column:1; grid-row:1; font-weight:bold; flex-wrap:wrap; }
+  #main-wrap.view-only .dsec .dt td.c-name input{ flex:1 1 auto; width:auto; }
   #main-wrap.view-only .dsec .dt td.c-name::before{ display:none; }
   #main-wrap.view-only .dsec .dt td.c-name input{ font-weight:bold; font-size:12.5px; color:var(--blue)!important; }
   #main-wrap.view-only .dsec .dt td.c-r{ grid-column:2; grid-row:1; justify-content:flex-end; }
@@ -411,6 +415,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
   #main-wrap.view-only .dsec .dt td.c-u2,
   #main-wrap.view-only .dsec .dt td.c-no2,
   #main-wrap.view-only .dsec .dt td.c-act{ display:none; }
+  #main-wrap.view-only .dsh .add-r-btn{ display:none; }
   /* 製品確認なども画面内に収める */
   #main-wrap.view-only .card .cb > .st{ min-width:0; }
 }
@@ -422,7 +427,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 <div class="topbar">
   <div class="tb-L">
     <div class="tb-title">📋 成形記録書</div>
-    <div class="tb-sub">関ヶ原プラ工業株式会社</div>
+    <div class="tb-sub">関ヶ原プラ工業株式会社 <span style="opacity:.55;">v2026-10-02a</span></div>
   </div>
   <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
     <select id="lang-select" onchange="onLangChange()">
