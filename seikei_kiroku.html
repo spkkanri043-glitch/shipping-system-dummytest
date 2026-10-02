@@ -378,6 +378,42 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 #viewBanner{ background:#eaf2fb; border:1px solid var(--blue2); color:#1d3f70; border-radius:6px; padding:9px 13px; margin-bottom:10px; display:none; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px; }
 #viewBanner .vb-sub{ font-size:10.5px; color:var(--tx2); }
 @media print{ #viewBanner{ display:none !important; } }
+
+/* ── 閲覧モード × 狭い画面：成形条件を縦積みにして横スクロールを無くす ── */
+@media(max-width:700px){
+  #main-wrap.view-only .dsec{ overflow-x:visible; }
+  #main-wrap.view-only .dsec .dt{ min-width:0; display:block; table-layout:auto; }
+  #main-wrap.view-only .dsec .dt colgroup,
+  #main-wrap.view-only .dsec .dt thead{ display:none; }
+  #main-wrap.view-only .dsec .dt tbody{ display:block; }
+  #main-wrap.view-only .dsec .dt tr{
+    display:grid; grid-template-columns:1fr 1fr; gap:1px 8px;
+    border:1px solid var(--bd); border-left:3px solid var(--blue2); border-radius:5px;
+    padding:6px 9px; margin-bottom:6px; background:var(--wh);
+  }
+  #main-wrap.view-only .dsec .dt td{
+    border:none!important; padding:2px 0; display:flex; align-items:center; gap:5px;
+    text-align:left; min-width:0; background:transparent!important;
+  }
+  #main-wrap.view-only .dsec .dt td::before{ content:attr(data-c); font-size:9.5px; color:var(--tx3); flex:0 0 auto; }
+  #main-wrap.view-only .dsec .dt td[data-u]:not([data-u=""])::after{ content:attr(data-u); font-size:10px; color:var(--acc); font-weight:bold; flex:0 0 auto; }
+  #main-wrap.view-only .dsec .dt td input{ flex:1 1 auto; min-width:0; text-align:left!important; padding:2px 4px; }
+  #main-wrap.view-only .dsec .dt td.c-name{ grid-column:1; grid-row:1; font-weight:bold; flex-wrap:wrap; }
+  #main-wrap.view-only .dsec .dt td.c-name::before{ display:none; }
+  #main-wrap.view-only .dsec .dt td.c-name input{ font-weight:bold; font-size:12.5px; color:var(--blue)!important; }
+  #main-wrap.view-only .dsec .dt td.c-r{ grid-column:2; grid-row:1; justify-content:flex-end; }
+  #main-wrap.view-only .dsec .dt td.c-b1{ grid-column:1; }
+  #main-wrap.view-only .dsec .dt td.c-b2{ grid-column:2; }
+  #main-wrap.view-only .dsec .dt td.c-v1{ grid-column:1; }
+  #main-wrap.view-only .dsec .dt td.c-v2{ grid-column:2; }
+  #main-wrap.view-only .dsec .dt td.c-ok{ grid-column:1/-1; }
+  #main-wrap.view-only .dsec .dt td.c-u1,
+  #main-wrap.view-only .dsec .dt td.c-u2,
+  #main-wrap.view-only .dsec .dt td.c-no2,
+  #main-wrap.view-only .dsec .dt td.c-act{ display:none; }
+  /* 製品確認なども画面内に収める */
+  #main-wrap.view-only .card .cb > .st{ min-width:0; }
+}
 </style>
 </head>
 <body>
@@ -1193,9 +1229,11 @@ function addCondRowEl(targetId, prefix, si, ri, row, masterMode, saved) {
   tr.id = `${prefix}tr-${si}-${ri}`;
   if (!masterMode && row.adhoc) tr.className = 'addrow';
 
-  const mstTd = masterMode ? '' : ' class="g-mst"';
-  const inpTd = masterMode ? '' : ' class="g-inp"';
-  const inpTdL = masterMode ? '' : ' class="g-inp divL"';
+  const mstCls  = masterMode ? '' : ' g-mst';
+  const inpCls  = masterMode ? '' : ' g-inp';
+  const inpClsL = masterMode ? '' : ' g-inp divL';
+  // 基準値②を使わないセクションでは、縦積み時に②の欄を隠す
+  const has2 = !!(sec.u2 || u2 || String(b2v).trim());
 
   // 単位セル：編集できるときはプルダウン、それ以外は固定表示
   const unitCell = (curVal, which) => {
@@ -1216,18 +1254,18 @@ function addCondRowEl(targetId, prefix, si, ri, row, masterMode, saved) {
       class="${editable?'':'fixv'}" ${editable?'':'readonly'} style="text-align:right;">`;
 
   tr.innerHTML = `
-    <td><input type="text" class="tx" value="${esc(row.n||'')}" ${editable?'':'readonly'}
+    <td class="c-name"><input type="text" class="tx" value="${esc(row.n||'')}" ${editable?'':'readonly'}
       ${editable ? `oninput="${prefix==='m'?'M_COND_SECS':'COND_SECS'}[${si}].rows[${ri}].n=this.value"` : ''}
       ${editable ? '' : 'title="項目名はマスター管理から変更してください"'}>${(!masterMode && row.adhoc) ? '<span class="rowtag">当日追加</span>' : ''}<div class="tl-sub" data-tl="${esc(row.n||'')}"></div></td>
-    <td${mstTd}>${baseCell(b1v, k+'_b1')}</td>
-    <td${mstTd}>${unitCell(u1, 'u1')}</td>
-    <td${mstTd}>${baseCell(b2v, k+'_b2')}</td>
-    <td${mstTd}>${unitCell(u2, 'u2')}</td>
-    <td${mstTd}><input type="text" value="${sv.r !== undefined ? sv.r : r}" data-k="${k}_r" class="${editable?'master-range':'fixv mng'}" ${editable?'':'readonly'} style="text-align:center;font-size:10px;font-weight:bold;"></td>
-    <td${inpTdL}><input type="text" inputmode="decimal" class="ent" placeholder="未記入" value="${esc(sv.v !== undefined ? sv.v : (row.v !== undefined ? row.v : ''))}" data-k="${k}_v" oninput="mkEnt(this)"></td>
-    <td${inpTd}><input type="text" inputmode="decimal" class="ent" placeholder="未記入" value="${esc(sv.v2 !== undefined ? sv.v2 : (row.v2 !== undefined ? row.v2 : ''))}" data-k="${k}_v2" oninput="mkEnt(this)"></td>
-    ${isTA ? `<td><select class="on" data-k="${k}_ok" onchange="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td>` : ''}
-    <td style="white-space:nowrap;">
+    <td class="c-b1${mstCls}" data-c="基準値①" data-u="${esc(u1)}">${baseCell(b1v, k+'_b1')}</td>
+    <td class="c-u1${mstCls}">${unitCell(u1, 'u1')}</td>
+    <td class="c-b2${has2?'':' c-no2'}${mstCls}" data-c="基準値②" data-u="${esc(u2)}">${baseCell(b2v, k+'_b2')}</td>
+    <td class="c-u2${has2?'':' c-no2'}${mstCls}">${unitCell(u2, 'u2')}</td>
+    <td class="c-r${mstCls}" data-c="管理値"><input type="text" value="${sv.r !== undefined ? sv.r : r}" data-k="${k}_r" class="${editable?'master-range':'fixv mng'}" ${editable?'':'readonly'} style="text-align:center;font-size:10px;font-weight:bold;"></td>
+    <td class="c-v1${inpClsL}" data-c="記入欄①"><input type="text" inputmode="decimal" class="ent" placeholder="未記入" value="${esc(sv.v !== undefined ? sv.v : (row.v !== undefined ? row.v : ''))}" data-k="${k}_v" oninput="mkEnt(this)"></td>
+    <td class="c-v2${inpCls}" data-c="記入欄②"><input type="text" inputmode="decimal" class="ent" placeholder="未記入" value="${esc(sv.v2 !== undefined ? sv.v2 : (row.v2 !== undefined ? row.v2 : ''))}" data-k="${k}_v2" oninput="mkEnt(this)"></td>
+    ${isTA ? `<td class="c-ok" data-c="OK/NG"><select class="on" data-k="${k}_ok" onchange="upOn(this)"><option value="">-</option><option>OK</option><option>NG</option></select></td>` : ''}
+    <td class="c-act" style="white-space:nowrap;">
       <button class="mv" onclick="moveRow('${targetId}','${prefix}',${si},${ri},-1)">▲</button>
       <button class="mv" onclick="moveRow('${targetId}','${prefix}',${si},${ri},1)">▼</button>
       <button class="db${(!masterMode && hasBase) ? ' locked' : ''}" onclick="delRow('${targetId}','${prefix}',${si},${ri},this)" title="${(!masterMode && hasBase) ? '基準値のある行は削除できません' : 'この行を削除'}">🗑</button>
@@ -1923,7 +1961,7 @@ function applyViewOnly() {
   if (!VIEW_ONLY) return;
 
   const wrap = document.getElementById('main-wrap');
-  if (wrap) wrap.classList.add('locked');
+  if (wrap) { wrap.classList.add('locked'); wrap.classList.add('view-only'); }
 
   // 保存ボタンを止める
   const saveBtn = document.querySelector('.btn-save');
@@ -1940,8 +1978,7 @@ function applyViewOnly() {
     b.style.display = 'flex';
     b.innerHTML = '👁 <span style="font-weight:bold;">閲覧モード</span>'
       + '<span class="vb-sub">通知のリンクから開いたため、記入・サイン・保存はできません。'
-      + '記入やサインを行う場合は、ポータルからログインして開いてください。<br>'
-      + '※ 画面が狭いときは、成形条件の表を横になぞると右側（記入欄）まで見られます。</span>';
+      + '記入やサインを行う場合は、ポータルからログインして開いてください。</span>';
   }
 }
 
