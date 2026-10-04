@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-iKFbsI8wu9/1KCE9tE0uYvU/3LmtzghdpYnyCd07TJs='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-1P9urhp9GVHHrPrFofW9cD07peqKaiirDPdPvoXNzsU='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { manualSyncSheet()
@@ -589,7 +589,7 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
     <div class="nt ao" data-csp-click="h10" data-csp-source-click="sp('cal',this)">📅 カレンダー設定</div>
     <div class="nt ao" data-csp-click="h11" data-csp-source-click="sp('st',this)">⚙ 設定</div>
   </div>
-  <div class="content">
+  <div class="content" id="shift-content" inert aria-busy="true">
 
     <!-- DASHBOARD -->
     <div class="pg on" id="pg-db">
@@ -1020,7 +1020,7 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
 </div>
 
 <!-- SHIFT EDIT MODAL -->
-<div id="smod" class="mov hid">
+<div id="smod" class="mov hid" inert>
   <div class="mod" style="max-width:min(500px,calc(100vw - 20px))">
     <!-- タイトル＋閉じるボタン -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -1075,7 +1075,7 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
 </div>
 
 <!-- ADD/EDIT EMPLOYEE MODAL -->
-<div id="emod" class="mov hid">
+<div id="emod" class="mov hid" inert>
   <div class="mod" style="max-width:min(520px,calc(100vw - 20px))">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div class="mttl" style="margin-bottom:0">👤 <span id="emttl">従業員追加</span></div>
@@ -1262,6 +1262,16 @@ let ROSTER = [];
 // 認証付きの初回読込(loadShiftData＋listRequests)が完全に成功するまで false。
 // false の間はサーバーへの保存(saveToSheet/scheduleSave)を行わない＝未読込の端末内データでシートを上書きしない。
 let SHIFT_DATA_READY = false;
+// 保存待ちと通信中は別の状態。失敗・部分成功で未保存の変更を忘れない。
+let _saveTimer = null;
+let _saving = false;
+let _savePromise = null;
+let _dirty = false;
+let _dataRevision = 0;
+let _loadSequence = 0;
+let _requestReadSequence = 0;
+let _requestWrites = 0;
+let _loadFailed = false;
 // 代理申請の対象を解決：まずシフト従業員(EMPLOYEES＝年休等の詳細を持つ)、無ければポータル名簿(ROSTER＝id/name/dept)。
 // これで代理対象がポータル名簿由来IDでも emp が見つかり、req.eid をサーバー(shiftRosterOwner_)が正本照合できる。
 function resolveTarget_(id){
@@ -1269,8 +1279,10 @@ function resolveTarget_(id){
 }
 async function loadRoster_(){
   if(!isA) return;
+  const token = AUTH_TOKEN;
   try{
     const r = await gasCall_('listRoster', {});
+    if (!token || AUTH_TOKEN !== token || !cUser || !isA) return;
     if(r && r.ok && Array.isArray(r.data)){ ROSTER = r.data; rVreq(); rOTReq(); rHReq(); }
   }catch(e){ /* 取得失敗時は ROSTER 空のまま（対象欄に取得不可を表示）。静かに全消去しない */ }
 }
@@ -1416,6 +1428,7 @@ function notifyOffline() {
 }
 
 function doLogout(){
+  resetShiftSyncState_();
   clearBrowserBusinessData_();
   EMPLOYEES.length = 0;
   Object.keys(SHIFTS).forEach(key => delete SHIFTS[key]);
@@ -1438,6 +1451,7 @@ window.addEventListener('beforeunload', notifyOffline);
 window.addEventListener('pagehide', notifyOffline);
 
   function doLogoutAndClose() {
+  resetShiftSyncState_();
   clearBrowserBusinessData_();
   EMPLOYEES.length = 0;
   Object.keys(SHIFTS).forEach(key => delete SHIFTS[key]);
@@ -1461,6 +1475,7 @@ window.addEventListener('pagehide', notifyOffline);
 }
 
 function launch(){
+  setShiftDataReady_(false);
   document.body.classList.remove('app-loading'); // ログイン確定後に表示
   document.getElementById('lw').classList.add('hid');
   document.getElementById('mainApp').classList.remove('hid');
@@ -1687,6 +1702,7 @@ function buildSum(emps,days,tdk){
 
 // ══ CELL CLICK ══
 function onCell(ev,eid,dk){
+  if (!requireShiftDataReady_()) return;
   if(!isA){return;} // 従業員は閲覧のみ（クリック不可）
   if(ev.shiftKey){
     const k=eid+'|'+dk;
@@ -1707,6 +1723,7 @@ function updBulkBar(){
   else bar.classList.add('hid');
 }
 function applyBulk(){
+  if (!requireShiftDataReady_()) return;
   const t=document.getElementById('bulk-type').value;
   if(!t){alert('シフトを選択してください');return;}
   const isOff=t==='OFF'||t==='VAC';
@@ -1728,6 +1745,7 @@ function applyBulk(){
 
 // ══ DRAG & DROP ══
 function onDragStart(ev,eid,dk){
+  if (!requireShiftDataReady_()) return;
   const s=(SHIFTS[eid]||{})[dk]||{type:'OFF',ot:0};
   dragSrc={eid,dk,type:s.type,ot:s.ot,start:s.start,end:s.end};
   ev.target.closest('[data-shift-drag]').classList.add('dragging');
@@ -1737,6 +1755,7 @@ function onDragStart(ev,eid,dk){
 function onDragOver(ev){ev.preventDefault();ev.dataTransfer.dropEffect='move';ev.target.closest('[data-shift-drag]').classList.add('drag-over');}
 function onDragLeave(ev){ev.target.closest('[data-shift-drag]').classList.remove('drag-over');}
 function onDrop(ev,toEid,toDk){
+  if (!requireShiftDataReady_()) return;
   ev.preventDefault();ev.target.closest('[data-shift-drag]').classList.remove('drag-over');
   if(!dragSrc||!isA)return;
   const{eid:fE,dk:fD,type,ot,start,end}=dragSrc;
@@ -1749,6 +1768,7 @@ function onDrop(ev,toEid,toDk){
   if(start)newToShift.start=start;
   if(end)newToShift.end=end;
   SHIFTS[toEid][toDk]=newToShift;
+  persistData();scheduleSave();
   dragSrc=null;rSh();rDB();rOT();
 }
 document.addEventListener('dragend',()=>{
@@ -1796,6 +1816,7 @@ function updateOTPreview(){
   el.style.color=newTotal>lim?'var(--r)':'var(--a)';
 }
 function openMod(eid,dk){
+  if (!requireShiftDataReady_()) return;
   edEid=eid;edDK=dk;
   const ev=visEmps();
   document.getElementById('memp').innerHTML=ev.map(e=>`<option value="${escapeAttr(e.id)}"${e.id===eid?' selected':''}>${escapeHtml(e.name)}</option>`).join('');
@@ -1821,6 +1842,7 @@ function openMod(eid,dk){
 }
 function closeMod(){document.getElementById('smod').classList.add('hid');}
 function saveSh(){
+  if (!requireShiftDataReady_()) return;
   edEid=document.getElementById('memp').value;
   const t=document.getElementById('mtype').value;
   const isOff=t==='OFF'||t==='VAC';
@@ -1845,6 +1867,7 @@ function saveSh(){
 // ══ KEYBOARD ══
 function setupKB(){
   document.addEventListener('keydown',ev=>{
+    if (!SHIFT_DATA_READY) return;
     if(!document.getElementById('smod').classList.contains('hid')){if(ev.key==='Escape')closeMod();return;}
     if(!document.getElementById('emod').classList.contains('hid')){if(ev.key==='Escape')closeEmod();return;}
     if(!document.getElementById('pg-sh').classList.contains('on'))return;
@@ -1922,11 +1945,24 @@ function rEmp(){
   }).join('');
   document.getElementById('etbd').innerHTML=html||'<tr><td colspan="10" style="text-align:center;color:var(--tx2)">該当者なし</td></tr>';
 }
-function chEmpDept(eid,val){const e=EMPLOYEES.find(x=>x.id===eid);if(e){e.dept=val;e.team=(DEPT_STRUCT[val]?.teams||[val])[0];rEmp();rSh();}}
-function chEmpTeam(eid,val){const e=EMPLOYEES.find(x=>x.id===eid);if(e)e.team=val;}
-function chEmpYears(eid,val){const e=EMPLOYEES.find(x=>x.id===eid);if(e)e.years=parseFloat(val)||0;}
+function chEmpDept(eid,val){
+  if (!requireShiftDataReady_()) return;
+  const e=EMPLOYEES.find(x=>x.id===eid);
+  if(e){e.dept=val;e.team=(DEPT_STRUCT[val]?.teams||[val])[0];persistData();scheduleSave();rEmp();rSh();}
+}
+function chEmpTeam(eid,val){
+  if (!requireShiftDataReady_()) return;
+  const e=EMPLOYEES.find(x=>x.id===eid);
+  if(e){e.team=val;persistData();scheduleSave();}
+}
+function chEmpYears(eid,val){
+  if (!requireShiftDataReady_()) return;
+  const e=EMPLOYEES.find(x=>x.id===eid);
+  if(e){e.years=parseFloat(val)||0;persistData();scheduleSave();}
+}
 // 有給残日数の手動上書き（管理者のみ）
 function chEmpAL(eid,val){
+  if (!requireShiftDataReady_()) return;
   if(!isA)return;
   const e=EMPLOYEES.find(x=>x.id===eid);
   if(!e)return;
@@ -1936,7 +1972,12 @@ function chEmpAL(eid,val){
   persistData();scheduleSave();
   rEmp(); // 自動/手動バッジ再描画
 }
-function delEmp(eid){if(!confirm('削除しますか？'))return;const i=EMPLOYEES.findIndex(x=>x.id===eid);if(i>=0){EMPLOYEES.splice(i,1);rEmp();rSh();rDB();rVreq();rOTReq();rHReq();}} // 削除後も申請対象欄を更新
+function delEmp(eid){
+  if (!requireShiftDataReady_()) return;
+  if(!confirm('削除しますか？'))return;
+  const i=EMPLOYEES.findIndex(x=>x.id===eid);
+  if(i>=0){EMPLOYEES.splice(i,1);persistData();scheduleSave();rEmp();rSh();rDB();rVreq();rOTReq();rHReq();}
+}
 
 function updateEtypeOpts(){
   const cat=document.getElementById('e-ecat').value;
@@ -1970,6 +2011,7 @@ function updateTeamOpts(){
   document.getElementById('e-team').innerHTML=teams.map(t=>`<option>${escapeHtml(t)}</option>`).join('');
 }
 function openAddEmp(){
+  if (!requireShiftDataReady_()) return;
   editingEmpId=null;
   document.getElementById('emttl').textContent='従業員追加';
   document.getElementById('e-name').value='';
@@ -1982,6 +2024,7 @@ function openAddEmp(){
   document.getElementById('emod').classList.remove('hid');
 }
 function openEditEmp(eid){
+  if (!requireShiftDataReady_()) return;
   const e=EMPLOYEES.find(x=>x.id===eid);if(!e)return;
   editingEmpId=eid;
   document.getElementById('emttl').textContent='従業員編集';
@@ -1999,6 +2042,7 @@ function openEditEmp(eid){
 }
 function closeEmod(){document.getElementById('emod').classList.add('hid');}
 function saveEmp(){
+  if (!requireShiftDataReady_()) return;
   const name=document.getElementById('e-name').value.trim();
   if(!name){alert('氏名を入力してください');return;}
   const dept=document.getElementById('e-dept').value;
@@ -2089,6 +2133,7 @@ function clearVreqForm(){
   document.getElementById('vreq-remain-preview').innerHTML='';
 }
 async function submitVreq(){
+  if (!requireShiftDataReady_()) return;
   if(!cUser)return;
   // 申請対象者の決定（管理者は選択、従業員は自分）
   const targetId=isA
@@ -2133,6 +2178,7 @@ ${isA?escapeHtml(emp.name)+'の':''}申請が完了しました。` + '\n' + not
 
 // 管理者操作
 async function approveReq(id){
+  if (!requireShiftDataReady_()) return;
   const req=VAC_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('承認コメント（任意）','');
   if(note===null)return;
@@ -2166,6 +2212,7 @@ async function approveReq(id){
   alert(`✅ ${req.id} を承認しました。シフトに反映されました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function rejectReq(id){
+  if (!requireShiftDataReady_()) return;
   const req=VAC_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('却下理由を入力してください','');
   if(note===null)return;
@@ -2178,6 +2225,7 @@ async function rejectReq(id){
   alert(`❌ ${req.id} を却下しました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function cancelReq(id){
+  if (!requireShiftDataReady_()) return;
   const req=VAC_REQUESTS.find(r=>r.id===id);if(!req)return;
   const wasApproved=req.status==='approved';
   if(wasApproved){
@@ -2324,6 +2372,7 @@ function clearOTReqForm(){
   document.getElementById('otreq-month-preview').innerHTML='';
 }
 async function submitOTReq(){
+  if (!requireShiftDataReady_()) return;
   if(!cUser)return;
   const targetId=isA?(document.getElementById('otreq-target')?.value||''):cUser.id;
   const emp = isA ? resolveTarget_(targetId) : getEmpOrCurrent(targetId);
@@ -2357,6 +2406,7 @@ async function submitOTReq(){
 管理者の承認をお待ちください。` + '\n' + notificationSummary_(cres.notification).text);
 }
 async function approveOTReq(id){
+  if (!requireShiftDataReady_()) return;
   const req=OT_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('承認コメント（任意）','');
   if(note===null)return;
@@ -2374,6 +2424,7 @@ async function approveOTReq(id){
   alert(`✅ ${req.id} を承認しました。シフトの残業時間に反映されました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function rejectOTReq(id){
+  if (!requireShiftDataReady_()) return;
   const req=OT_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('却下理由を入力してください','');
   if(note===null)return;
@@ -2387,6 +2438,7 @@ async function rejectOTReq(id){
   alert(`❌ ${req.id} を却下しました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function cancelOTReq(id){
+  if (!requireShiftDataReady_()) return;
   const req=OT_REQUESTS.find(r=>r.id===id);if(!req)return;
   const wasApproved=req.status==='approved';
   if(wasApproved){
@@ -2511,6 +2563,7 @@ function clearHReqForm(){
   const hp=document.getElementById('hreq-hours-preview');if(hp)hp.textContent='';
 }
 async function submitHReq(){
+  if (!requireShiftDataReady_()) return;
   if(!cUser)return;
   const targetId=isA?(document.getElementById('hreq-target')?.value||''):cUser.id;
   const emp = isA ? resolveTarget_(targetId) : getEmpOrCurrent(targetId);
@@ -2546,6 +2599,7 @@ async function submitHReq(){
 管理者の承認をお待ちください。` + '\n' + notificationSummary_(cres.notification).text);
 }
 async function approveHReq(id){
+  if (!requireShiftDataReady_()) return;
   const req=H_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('承認コメント（任意）','');
   if(note===null)return;
@@ -2569,6 +2623,7 @@ async function approveHReq(id){
   alert(`✅ ${req.id} を承認しました。シフトに「休出」として反映されました。${req.furikae?'\n振替休日('+req.furikae+')もシフトに反映されました。':''}` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function rejectHReq(id){
+  if (!requireShiftDataReady_()) return;
   const req=H_REQUESTS.find(r=>r.id===id);if(!req||req.status!=='pending')return;
   const note=prompt('却下理由を入力してください','');
   if(note===null)return;
@@ -2583,6 +2638,7 @@ async function rejectHReq(id){
 }
 // 振替休日の後日設定
 async function editFurikae(id){
+  if (!requireShiftDataReady_()) return;
   const req=H_REQUESTS.find(r=>r.id===id);
   if(!req||req.status!=='approved'){alert('承認済みの申請にのみ設定できます');return;}
   const val=prompt(`${escapeHtml(req.name)} の振替休日を入力してください
@@ -2605,6 +2661,7 @@ async function editFurikae(id){
 }
 
 async function cancelHReq(id){
+  if (!requireShiftDataReady_()) return;
   const req=H_REQUESTS.find(r=>r.id===id);if(!req)return;
   const wasApproved=req.status==='approved';
   if(wasApproved){
@@ -2835,6 +2892,7 @@ function calPeriodDays(){
 }
 
 function toggleCalDay(y,m,d){
+  if (!requireShiftDataReady_()) return;
   if(!isA)return;
   const k=dkey(y,m,d);
   const dow=new Date(y,m,d).getDay();
@@ -2846,15 +2904,16 @@ function toggleCalDay(y,m,d){
     if(cur==='company-hol')delete CAL_SPECIAL[k];
     else CAL_SPECIAL[k]='company-hol';
   }
-  persistData();
+  persistData();scheduleSave();
   rCal();rSh();rDB();
 }
 function resetCalMonth(){
+  if (!requireShiftDataReady_()) return;
   if(!confirm(`${calPeriodLabel()}の特殊日設定をリセットしますか？`))return;
   calPeriodDays().forEach(({y,m,d})=>{
     const k=dkey(y,m,d);delete CAL_SPECIAL[k];
   });
-  persistData();
+  persistData();scheduleSave();
   rCal();rSh();rDB();
 }
 function rCal(){
@@ -2923,7 +2982,10 @@ function rCal(){
     }).join('');
   }
 }
-function deleteCalDay(k){delete CAL_SPECIAL[k];persistData();rCal();rSh();rDB();}
+function deleteCalDay(k){
+  if (!requireShiftDataReady_()) return;
+  delete CAL_SPECIAL[k];persistData();scheduleSave();rCal();rSh();rDB();
+}
 
 // ══ SETTINGS ══
 function rSt(){
@@ -2958,6 +3020,7 @@ function rSt(){
   document.getElementById('dept-setting').innerHTML=dhtml;
 }
 function saveDeptSettings(){
+  if (!requireShiftDataReady_()) return;
   Object.keys(DEPT_STRUCT).forEach(dept=>{
     const ti=document.getElementById('dteam-'+dept);
     const qi=document.getElementById('dquota-'+dept);
@@ -3036,6 +3099,7 @@ function restoreData() {
 
 // ポータルから従業員を受け取った時はlocalStorageも更新
 function syncFromPortalAndPersist(portalEmps) {
+  if (!requireShiftDataReady_()) return;
   if (!portalEmps || !portalEmps.length) return;
   const active = portalEmps.filter(e => e.status === 'active' || e.status === '在職' || !e.status);
   if (!active.length) return;
@@ -3114,6 +3178,7 @@ function validClaims_() {
 }
 
 function handleUnauthorized_() {
+  resetShiftSyncState_();
   clearBrowserBusinessData_();
   EMPLOYEES.length = 0;
   Object.keys(SHIFTS).forEach(key => delete SHIFTS[key]);
@@ -3133,36 +3198,66 @@ function handleUnauthorized_() {
 // 全API：トークン付きPOST（text/plain）に統一。GETの匿名アクセスは廃止。
 async function gasCall_(action, payload) {
   if (!AUTH_TOKEN) { handleUnauthorized_(); return null; }
+  const token = AUTH_TOKEN;
+  const requestWrite = ['createRequest', 'updateOwnRequest', 'cancelRequest', 'setFurikae', 'decideRequest'].includes(action);
+  if ((requestWrite || action === 'saveShiftKey') && !requireShiftDataReady_()) return {ok: false, error: 'shift_data_not_ready'};
+  if (requestWrite) { _requestWrites++; _dataRevision++; }
   try {
     const res = await fetch(GAS_URL_SHIFT, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action, token: AUTH_TOKEN, ...(payload || {}) })
+      body: JSON.stringify({ action, token, ...(payload || {}) })
     });
     if (!res.ok) throw new Error('通信エラー');
     const json = await res.json();
+    // 別セッションの応答は、unauthorizedを含め現在の画面へ適用しない。
+    if (AUTH_TOKEN !== token || !cUser) return null;
     if (json && json.error === 'unauthorized') { handleUnauthorized_(); return null; }
     if (!json || typeof json !== 'object') throw new Error('不正な応答');
     return json;
-  } catch(e) { console.error('[gasCall_]', action, e); return null; }
+  } catch(e) { console.error('[gasCall_] 通信または応答を確認できません'); return null; }
+  finally {
+    if (requestWrite && AUTH_TOKEN === token && cUser) {
+      _requestWrites = Math.max(0, _requestWrites - 1);
+      _dataRevision++;
+    }
+  }
 }
 
 // ══ 申請システム（サーバー権威・1件単位）══
 //   申請一覧はサーバー(listRequests)を唯一の真実として取得する。
 //   staffトークンでは本人分のみ、leader以上は全件が返る（サーバー側でフィルタ）。
-async function refreshRequests_() {
+async function fetchRequestsSnapshot_() {
   const res = await gasCall_('listRequests', {});
-  if (!res || !res.ok) return false;
-  const all = res.requests || [];
-  VAC_REQUESTS.length = 0; OT_REQUESTS.length = 0; H_REQUESTS.length = 0;
-  all.forEach(r => {
-    if (r.kind === 'vac') VAC_REQUESTS.push(r);
-    else if (r.kind === 'ot') OT_REQUESTS.push(r);
-    else if (r.kind === 'h') H_REQUESTS.push(r);
+  if (!res || res.ok !== true || !Array.isArray(res.requests)) throw new Error('invalid_request_data');
+  const next = {vac: [], ot: [], h: []};
+  const ids = new Set();
+  res.requests.forEach(r => {
+    if (!isPlainShiftObject_(r) || !['vac', 'ot', 'h'].includes(r.kind) ||
+        !shiftIdValid_(r.id) || !shiftIdValid_(r.eid) || ids.has(r.id) ||
+        !['pending', 'approved', 'rejected', 'cancelled'].includes(r.status) ||
+        !Number.isSafeInteger(r.version) || r.version < 1) throw new Error('invalid_request_data');
+    ids.add(r.id);
+    next[r.kind].push({...r});
   });
   const byNew = (a, b) => String(b.appliedAt || '').localeCompare(String(a.appliedAt || ''));
-  VAC_REQUESTS.sort(byNew); OT_REQUESTS.sort(byNew); H_REQUESTS.sort(byNew);
-  return true;
+  Object.values(next).forEach(rows => rows.sort(byNew));
+  return next;
+}
+function applyRequestsSnapshot_(next) {
+  VAC_REQUESTS = next.vac;
+  OT_REQUESTS = next.ot;
+  H_REQUESTS = next.h;
+}
+async function refreshRequests_() {
+  if (_requestWrites > 0) return false;
+  const token = AUTH_TOKEN, revision = _dataRevision, sequence = ++_requestReadSequence;
+  try {
+    const next = await fetchRequestsSnapshot_();
+    if (!token || AUTH_TOKEN !== token || !cUser || _requestWrites > 0 || revision !== _dataRevision || sequence !== _requestReadSequence) return false;
+    applyRequestsSnapshot_(next);
+    return true;
+  } catch(e) { return false; }
 }
 // 競合(conflict)時などにサーバー最新へ揃えて再描画する
 async function reloadReqsAndRender_() {
@@ -3215,21 +3310,55 @@ let _initialLoading = false;
   }
 })();
 
-// スプレッドシートに全データを保存
-let _saveTimer = null;
-let _saving = false;
-function scheduleSave() {
-  // 初回読込前は自動保存を予約しない（未読込データでシートを上書きしない）
-  if (!SHIFT_DATA_READY) { showDataNotReadyBanner_(false); return; }
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(saveToSheet, 2000);
+// スプレッドシートに全データを保存。状態変数は初回起動より前に定義済み。
+function setShiftDataReady_(ready) {
+  SHIFT_DATA_READY = ready === true;
+  ['shift-content', 'smod', 'emod'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.inert = !SHIFT_DATA_READY;
+    el.setAttribute('aria-busy', String(!SHIFT_DATA_READY));
+  });
 }
-// 未送信の変更（保存予約中・保存中）があるか。自動同期で端末の未保存変更を上書きしないために使う。
-function hasPendingSave_() { return !!_saveTimer || _saving; }
+function requireShiftDataReady_() {
+  if (SHIFT_DATA_READY && AUTH_TOKEN && cUser) return true;
+  showDataNotReadyBanner_(_loadFailed);
+  return false;
+}
+function resetShiftSyncState_() {
+  _dataRevision++;
+  _loadSequence++;
+  _requestReadSequence++;
+  _requestWrites = 0;
+  _dirty = false;
+  _loadFailed = false;
+  clearTimeout(_saveTimer);
+  _saveTimer = null;
+  ROSTER = [];
+  setShiftDataReady_(false);
+}
+function queueShiftSave_() {
+  clearTimeout(_saveTimer);
+  _saveTimer = null;
+  if (!SHIFT_DATA_READY || !_dirty || _saving || !isA || !AUTH_TOKEN) return;
+  _saveTimer = setTimeout(() => {
+    _saveTimer = null;
+    saveToSheet();
+  }, 2000);
+}
+function scheduleSave() {
+  if (!requireShiftDataReady_()) return;
+  // 申請APIは全役割で使えるが、シフトblobはadmin/masterだけが保存できる。
+  // staff/leaderの申請成功を、権限のないblob保存の失敗に変えない。
+  if (!isA) return;
+  _dataRevision++;
+  _dirty = true;
+  queueShiftSave_();
+  showSyncBadge('pending');
+}
+function hasPendingSave_() { return _dirty || _saving; }
 
-// ══ 初回読込ゲート ══
-// 認証付き初回読込が成功するまで「読み込み中」を表示し、保存を保留する。失敗時は再試行ボタンを出す。
-function showDataNotReadyBanner_(failed) {
+function showSyncNotice_(message, failed, label, action) {
   let el = document.getElementById('data-gate-banner');
   if (!el) {
     el = document.createElement('div');
@@ -3239,30 +3368,42 @@ function showDataNotReadyBanner_(failed) {
     document.body.appendChild(el);
   }
   el.textContent = '';
+  el.style.background = failed ? '#fce8e8' : '#e5effe';
+  el.style.color = failed ? '#b53030' : '#1655b0';
   const msg = document.createElement('span');
-  if (failed) {
-    el.style.background = '#fce8e8'; el.style.color = '#b53030';
-    msg.textContent = '⚠ データの読み込みに失敗しました。保存は無効になっています（変更はシートに保存されません）。';
-    el.appendChild(msg);
+  msg.textContent = message;
+  el.appendChild(msg);
+  if (label && action) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.textContent = '再試行';
-    btn.style.cssText = 'padding:4px 14px;border:1px solid #b53030;border-radius:6px;background:#fff;color:#b53030;cursor:pointer;font-size:13px';
-    btn.addEventListener('click', () => { ensureInitialLoad_(); });
+    btn.textContent = label;
+    btn.style.cssText = 'padding:4px 14px;border:1px solid currentColor;border-radius:6px;background:#fff;color:inherit;cursor:pointer;font-size:13px';
+    btn.addEventListener('click', action);
     el.appendChild(btn);
-  } else {
-    el.style.background = '#e5effe'; el.style.color = '#1655b0';
-    msg.textContent = '🔄 データを読み込み中です。完了するまで編集しないでください（保存は保留され、読込完了時にシートの内容で置き換わります）。';
-    el.appendChild(msg);
   }
   el.style.display = 'flex';
+}
+function showUnsavedData_(failed) {
+  showSyncNotice_(failed
+    ? '⚠ 保存が完了していません。一部だけ保存された可能性があります。入力はこの画面に保持しています。画面を閉じずに保存を再試行してください。'
+    : '未保存の入力をこの画面に保持しています。読み込んだ値では上書きしていません。',
+  failed, '保存を再試行', () => { manualSyncSheet(); });
+}
+
+// ══ 初回読込ゲート ══
+// 認証付き初回読込が成功するまで「読み込み中」を表示し、保存を保留する。失敗時は再試行ボタンを出す。
+function showDataNotReadyBanner_(failed) {
+  showSyncNotice_(failed
+    ? '⚠ データを確認できないため、編集・申請・保存を停止しています。未保存の入力はこの画面に保持しています。画面を閉じずに読込を再試行してください。'
+    : '🔄 データを読み込み中です。確認が完了するまで編集・申請・保存はできません。',
+  failed, failed ? '読込を再試行' : '', failed ? () => { ensureInitialLoad_(); } : null);
 }
 function hideDataGate_() {
   const el = document.getElementById('data-gate-banner');
   if (el) el.style.display = 'none';
 }
 async function ensureInitialLoad_() {
-  if (SHIFT_DATA_READY) { hideDataGate_(); return true; }
+  if (SHIFT_DATA_READY) { if (!_dirty) hideDataGate_(); return true; }
   if (_initialLoading) return false;
   _initialLoading = true;
   showDataNotReadyBanner_(false);
@@ -3277,10 +3418,10 @@ async function ensureInitialLoad_() {
   }
   _initialLoading = false;
   if (ok) {
-    hideDataGate_();
+    if (!_dirty) hideDataGate_();
     try { rSh(); rDB(); rEmp(); rPL(); rVreq(); rOTReq(); rHReq(); rOT(); } catch(e) {}
   } else {
-    showDataNotReadyBanner_(true);
+    if (AUTH_TOKEN && cUser) showDataNotReadyBanner_(true);
   }
   return ok;
 }
@@ -3357,104 +3498,183 @@ async function loadSyncLog() {
 }
 
 async function saveToSheet() {
-  if (!GAS_URL_SHIFT) { console.warn('[saveToSheet] GAS_URL_SHIFT未設定'); return; }
+  clearTimeout(_saveTimer);
   _saveTimer = null;
-  // 認証付き初回読込が成功するまでは保存しない（未読込の端末データでシートを上書きしない）
-  if (!SHIFT_DATA_READY) {
-    console.warn('[saveToSheet] 初回読込前のため保存を保留');
-    showDataNotReadyBanner_(false);
-    return;
-  }
-  // 保存中に次の保存が来たら、終了後に改めて予約する（同時保存で古い内容が後着しないように）
-  if (_saving) { scheduleSave(); return; }
+  if (_saving) return _savePromise;
+  if (!GAS_URL_SHIFT || !requireShiftDataReady_() || !isA) return false;
+  if (!_dirty) return true;
+  const token = AUTH_TOKEN;
+  const revision = ++_dataRevision;
   _saving = true;
-  try {
-    showSyncBadge('saving');
-    const shiftsJson = JSON.stringify(SHIFTS);
-    console.log('[saveToSheet] SHIFTSサイズ:', shiftsJson.length, 'bytes');
-    // ★申請(vacReqs/otReqs/hReqs)はブロブ一括保存を廃止。
-    //   申請は1件単位API(createRequest/decideRequest/…)でその都度サーバーへ保存される。
-    const results = await Promise.all([
-      saveShiftKey('shifts',     shiftsJson),
-      saveShiftKey('calSpecial', JSON.stringify(CAL_SPECIAL)),
-      saveShiftKey('employees',  JSON.stringify(EMPLOYEES.map(withoutEmployeePassword_))),
-    ]);
-    const allOk = results.every(r => r);
-    showSyncBadge(allOk ? 'saved' : 'error');
-    addSyncLogEntry('保存', allOk);
-    pushLogToGas('保存', allOk);
-    console.log('[saveToSheet] 完了 ok=' + allOk);
-  } catch(e) {
-    console.error('[saveToSheet] エラー:', e);
-    showSyncBadge('error');
-    addSyncLogEntry('保存', false);
-    pushLogToGas('保存', false);
-  } finally {
-    _saving = false;
-  }
+  _savePromise = (async () => {
+    let allOk = false;
+    try {
+      // 3キーを同じ世代から確定してから送る。申請APIの再送はここでは行わない。
+      const values = {
+        shifts: JSON.stringify(SHIFTS),
+        calSpecial: JSON.stringify(CAL_SPECIAL),
+        employees: JSON.stringify(EMPLOYEES.map(withoutEmployeePassword_))
+      };
+      parseShiftSnapshot_(values);
+      showSyncBadge('saving');
+      // 一件が失敗しても残りの終了を待つ。旧保存が裏で継続したまま次を送らない。
+      const results = await Promise.allSettled(Object.entries(values).map(([key, val]) => saveShiftKey(key, val)));
+      allOk = results.every(r => r.status === 'fulfilled' && r.value === true);
+      if (AUTH_TOKEN !== token || !cUser) return false;
+      // 保存中に加わった入力は、この応答で保存済みにしてはいけない。
+      if (allOk && revision === _dataRevision) _dirty = false;
+      if (!allOk) _dirty = true;
+      showSyncBadge(allOk ? (_dirty ? 'pending' : 'saved') : 'error');
+      if (!allOk) showUnsavedData_(true);
+      else if (!_dirty) hideDataGate_();
+      addSyncLogEntry('保存', allOk);
+      pushLogToGas('保存', allOk);
+      return allOk && !_dirty;
+    } catch(e) {
+      if (AUTH_TOKEN === token && cUser) {
+        _dirty = true;
+        showSyncBadge('error');
+        showUnsavedData_(true);
+        addSyncLogEntry('保存', false);
+        pushLogToGas('保存', false);
+      }
+      return false;
+    } finally {
+      _saving = false;
+      _savePromise = null;
+      if (AUTH_TOKEN === token && cUser) {
+        _dataRevision++;
+        // 新しい編集は次回保存へ。失敗・部分成功は自動再送せず入力を保持する。
+        if (allOk && _dirty) queueShiftSave_();
+      }
+    }
+  })();
+  return _savePromise;
 }
 
-// スプレッドシートから全データを読み込み
+// サーバーと同じデータ契約を画面でも確認する。欠損・不正値を空データへ変換しない。
+function isPlainShiftObject_(v) {
+  return v !== null && typeof v === 'object' && !Array.isArray(v) &&
+    (Object.getPrototypeOf(v) === Object.prototype || Object.getPrototypeOf(v) === null);
+}
+function shiftIdValid_(id) {
+  return typeof id === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(id) &&
+    !['__proto__', 'prototype', 'constructor'].includes(id);
+}
+function shiftDateValid_(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const d = new Date(value + 'T00:00:00Z');
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
+}
+function shiftTimeValid_(value) {
+  return typeof value === 'string' && /^(?:[01]?\d|2[0-3]):[0-5]\d$/.test(value);
+}
+function shiftStringValid_(value, max) {
+  if (typeof value !== 'string' || value.length > max) return false;
+  for (let i = 0; i < value.length; i++) {
+    const c = value.charCodeAt(i);
+    if (c >= 0xd800 && c <= 0xdbff) {
+      const next = value.charCodeAt(++i);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) return false;
+    } else if (c >= 0xdc00 && c <= 0xdfff) return false;
+  }
+  return true;
+}
+function parseShiftSnapshot_(data) {
+  const invalid = () => { throw new Error('invalid_shift_data'); };
+  const keys = ['shifts', 'calSpecial', 'employees'];
+  if (!isPlainShiftObject_(data) || Object.keys(data).length !== keys.length) invalid();
+  const next = {};
+  keys.forEach(key => {
+    if (!Object.prototype.hasOwnProperty.call(data, key) || typeof data[key] !== 'string' ||
+        data[key].length === 0 || new TextEncoder().encode(data[key]).length > 5000000) invalid();
+    try { next[key] = JSON.parse(data[key]); } catch(e) { invalid(); }
+  });
+  const num = v => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1000;
+  const str = shiftStringValid_;
+  const employeeKeys = ['id','name','dept','team','years','ecat','etype','ptStart','ptEnd','al','alOverride','lwUserId'];
+  if (!Array.isArray(next.employees) || next.employees.length > 5000) invalid();
+  const seen = new Set();
+  next.employees.forEach(e => {
+    if (!isPlainShiftObject_(e) || !shiftIdValid_(e.id) || seen.has(e.id) ||
+        Object.keys(e).some(k => !employeeKeys.includes(k))) invalid();
+    seen.add(e.id);
+    Object.keys(e).forEach(k => {
+      const v = e[k];
+      if (['name','dept','team','ecat','etype'].includes(k) && !str(v, 200)) invalid();
+      if (['years','al'].includes(k) && !num(v)) invalid();
+      if (k === 'alOverride' && v !== null && v !== '' && !num(v)) invalid();
+      if (['ptStart','ptEnd'].includes(k) && !shiftTimeValid_(v)) invalid();
+      if (k === 'lwUserId' && (!isA || !str(v, 200))) invalid();
+    });
+  });
+  if (!isPlainShiftObject_(next.shifts) || !isPlainShiftObject_(next.calSpecial)) invalid();
+  const types = ['A','B','C','D','E','F','G','H','X','J','P','OFF','VAC','HOL-W'];
+  const cellKeys = ['type','ot','start','end','vacType','reqId','note'];
+  Object.entries(next.shifts).forEach(([id, days]) => {
+    if (!shiftIdValid_(id) || !isPlainShiftObject_(days)) invalid();
+    Object.entries(days).forEach(([date, cell]) => {
+      if (!shiftDateValid_(date) || !isPlainShiftObject_(cell) || !types.includes(cell.type) ||
+          Object.keys(cell).some(k => !cellKeys.includes(k))) invalid();
+      Object.entries(cell).forEach(([k, v]) => {
+        if (k === 'ot' && !num(v)) invalid();
+        if (['start','end'].includes(k) && !shiftTimeValid_(v)) invalid();
+        if (['vacType','reqId','note'].includes(k) && !str(v, 500)) invalid();
+      });
+    });
+  });
+  Object.entries(next.calSpecial).forEach(([date, type]) => {
+    if (!shiftDateValid_(date) || !['sat-work','company-hol'].includes(type)) invalid();
+  });
+  return next;
+}
+
+// 読込中の編集・保存・申請・新しい読込があれば、古い応答は適用しない。
 async function loadFromSheet() {
-  if (!AUTH_TOKEN) return false;
+  if (!AUTH_TOKEN || !cUser || _saving || _requestWrites > 0) return false;
+  if (SHIFT_DATA_READY && _dirty) { showUnsavedData_(false); return false; }
+  const token = AUTH_TOKEN, revision = _dataRevision;
+  const sequence = ++_loadSequence, requestSequence = ++_requestReadSequence;
+  const stillCurrent = () => AUTH_TOKEN === token && cUser && sequence === _loadSequence &&
+    requestSequence === _requestReadSequence && revision === _dataRevision;
   try {
     showSyncBadge('loading');
     const result = await gasCall_('loadShiftData', {});
-    if (!result || !result.ok || !result.data) {
-      console.warn('[loadFromSheet] loadShiftData 失敗', result && result.message ? result.message : '(応答なし)');
-      showSyncBadge('error'); return false;
-    }
-    const d = result.data;
-    console.log('[loadFromSheet] 取得キー:', Object.keys(d));
-
-    function safeParseObj(json, label) {
-      if (!json || json === '') return null;
-      try { return JSON.parse(json); }
-      catch(e) { console.error('[loadFromSheet] パースエラー', label, e); return null; }
-    }
-
-    // 先に全キーを解析・検証し、申請取得まで成功してから一括で適用する（部分適用を防ぐ）
-    const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
-    const shifts = safeParseObj(d.shifts, 'shifts');
-    const calSpecial = safeParseObj(d.calSpecial, 'calSpecial');
-    const emps = safeParseObj(d.employees, 'employees');
-    if ((shifts !== null && !isObj(shifts)) ||
-        (calSpecial !== null && !isObj(calSpecial)) ||
-        (emps !== null && !Array.isArray(emps))) {
-      throw new Error('読込データの形式が不正です');
-    }
-
-    // ★申請はブロブ(d.vacReqs等)から読まない。listRequests（サーバー権威）で取得する。
-    if (!await refreshRequests_()) throw new Error('申請の取得に失敗しました');
-
-    // 待機中(await)に端末側で保存予約が入った場合は、未保存の変更を上書きしないよう
-    // シフト表ブロブの適用を見送る（申請はサーバー権威なので上で反映済み）。
-    if (SHIFT_DATA_READY && hasPendingSave_()) {
-      console.warn('[loadFromSheet] 未保存の変更があるためシフト表の上書きを見送り');
-      showSyncBadge('loaded');
+    if (!stillCurrent()) return false;
+    if (!result || result.ok !== true) throw new Error('shift_load_failed');
+    const next = parseShiftSnapshot_(result.data);
+    // 申請も一時領域に取得。検証途中で画面の配列を書き換えない。
+    const requests = await fetchRequestsSnapshot_();
+    if (!stillCurrent() || _saving || _requestWrites > 0) return false;
+    _loadFailed = false;
+    if (_dirty) {
+      // 異常読込からの復旧時はサーバーを再検証するが、保持中の入力は捨てない。
+      setShiftDataReady_(true);
+      showSyncBadge('pending');
+      showUnsavedData_(false);
       return true;
     }
-
-    if (shifts) { Object.keys(SHIFTS).forEach(k=>delete SHIFTS[k]); Object.assign(SHIFTS, shifts); }
-    if (calSpecial) { Object.keys(CAL_SPECIAL).forEach(k=>delete CAL_SPECIAL[k]); Object.assign(CAL_SPECIAL, calSpecial); }
-
-    // ポータルから従業員データを受け取っていた場合はそちらを優先
-    // シフトGASにemployeesが保存されていない場合のみ上書き
-    if (emps && emps.length && EMPLOYEES.length === 0) {
-      EMPLOYEES.length=0; emps.forEach(e=>EMPLOYEES.push(withoutEmployeePassword_(e)));
-    } else if (emps && emps.length && !window._portalEmpsReceived) {
-      // ポータルから受け取っていない場合はGASのデータを使用
-      EMPLOYEES.length=0; emps.forEach(e=>EMPLOYEES.push(withoutEmployeePassword_(e)));
-    }
-    persistData();
-    SHIFT_DATA_READY = true;
+    Object.keys(SHIFTS).forEach(k => delete SHIFTS[k]);
+    Object.assign(SHIFTS, next.shifts);
+    CAL_SPECIAL = next.calSpecial;
+    EMPLOYEES = next.employees;
+    applyRequestsSnapshot_(requests);
+    _dataRevision++;
+    setShiftDataReady_(true);
+    hideDataGate_();
     showSyncBadge('loaded');
     addSyncLogEntry('読込', true);
     pushLogToGas('読込', true);
     return true;
   } catch(e) {
-    console.warn('[loadFromSheet] 失敗:', e && e.message ? e.message : e);
+    if (!stillCurrent()) return false;
+    _loadFailed = true;
+    _dataRevision++;
+    clearTimeout(_saveTimer);
+    _saveTimer = null;
+    setShiftDataReady_(false);
     showSyncBadge('error');
+    showDataNotReadyBanner_(true);
     addSyncLogEntry('読込', false);
     pushLogToGas('読込', false);
     return false;
@@ -3465,13 +3685,16 @@ async function loadFromSheet() {
 async function manualSyncSheet() {
   if (!GAS_URL_SHIFT) { alert('ポータルから開いてください（GAS URLが未設定）'); return; }
   // 初回読込が未完了なら、ゲート経由で読み直す（成功で保存解禁）
-  if (!SHIFT_DATA_READY) { await ensureInitialLoad_(); return; }
+  if (!SHIFT_DATA_READY) return ensureInitialLoad_();
+  if (_requestWrites > 0) return false;
   // 未保存の変更があれば先に保存してから読み直す（端末の変更を読込で消さない）
-  if (hasPendingSave_()) { clearTimeout(_saveTimer); await saveToSheet(); }
+  if (hasPendingSave_() && (!await saveToSheet() || hasPendingSave_())) return false;
   const ok = await loadFromSheet();
+  if (!ok) return false;
   rSh(); rDB(); rEmp(); rPL(); rVreq(); rOTReq(); rHReq(); rOT();
   // 設定ページが表示中ならログも更新
   if (document.getElementById('pg-st').classList.contains('on')) loadSyncLog();
+  return true;
 }
 
 // ══ 自動同期タイマー（1時間ごと）══
@@ -3496,6 +3719,7 @@ function showSyncBadge(status) {
   if (!el) return;
   const map = {
     saving:  ['💾 保存中', '#b07000', '#fff7db'],
+    pending: ['💾 未保存', '#b07000', '#fff7db'],
     saved:   ['✅ 保存済', '#0b7a3d', '#e3f6ed'],
     loading: ['🔄 読込中', '#1655b0', '#e5effe'],
     loaded:  ['✅ 読込完了','#0b7a3d','#e3f6ed'],
@@ -3504,7 +3728,9 @@ function showSyncBadge(status) {
   const [text, color, bg] = map[status] || map.saved;
   el.textContent = text; el.style.color = color; el.style.background = bg;
   el.style.display = 'inline-block';
-  if (status === 'saved' || status === 'loaded') setTimeout(() => { el.style.display='none'; }, 3000);
+  if (status === 'saved' || status === 'loaded') setTimeout(() => {
+    if (el.textContent === text) el.style.display='none';
+  }, 3000);
 }
 
 // ══ SSO ══
