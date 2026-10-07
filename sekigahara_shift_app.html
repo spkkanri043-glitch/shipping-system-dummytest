@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-BbXDpGvLlygyKELqu/dVXyp4GZKnka/GtOmLCqG9z+Q='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-HCUm991b1I6IJA5aMSbxaFQ/xTfFauYPlK6wuaxKsyw=' 'sha256-0zFk5+PBVqjyrv4ihP7Wp8bqoFVwBivWwSBRcJWzn7Y='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { manualSyncSheet()
@@ -1140,6 +1140,28 @@ table.t td input:focus,table.t td select:focus{border-color:var(--pr);outline:no
 </div>
 
 <script>
+// 読込が完了するまで（読込異常の間も）、データを変える操作は受け付けない。
+//   読込で置き換わる・保存されない編集を作らないため。ページ・部署・月の切替、絞り込み、同期・再試行は使える。
+const BLOCK_BEFORE_READY_SRC_ = ['toggleCalDay','submitVreq','submitOTReq','submitHReq','saveSh','saveEmp','saveDeptSettings','resetCalMonth','openAddEmp','applyBulk'];
+function blockedBeforeReady_(target, type) {
+  if (SHIFT_DATA_READY || !cUser || !target || !target.closest) return false;
+  if (type === 'click') {
+    const a = target.closest('[data-shift-action]');
+    if (a && a.dataset.shiftAction !== 'closePortalMod') return true;
+    const c = target.closest('[data-csp-source-click]');
+    if (c) { const src = c.getAttribute('data-csp-source-click') || ''; if (BLOCK_BEFORE_READY_SRC_.some(n => src.indexOf(n + '(') === 0)) return true; }
+  }
+  if (type === 'change' && target.closest('[data-shift-change]')) return true;
+  if ((type === 'dragstart' || type === 'drop') && target.closest('[data-shift-drag]')) return true;
+  return false;
+}
+['click', 'change', 'dragstart', 'drop'].forEach(type => document.addEventListener(type, event => {
+  let blocked = false;
+  try { blocked = blockedBeforeReady_(event.target, type); } catch (e) { blocked = false; }
+  if (!blocked) return;
+  event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation();
+  try { showDataNotReadyBanner_(_loadFailed); if (type === 'change') { rEmp(); } } catch (e) {}
+}, true));
 document.addEventListener('click', event => {
   const el = event.target.closest('[data-shift-action]');
   if (!el) return;
@@ -1291,8 +1313,10 @@ function resolveTarget_(id){
 let ROSTER_READY = false;
 async function loadRoster_(){
   if(!isA) return;
+  const token = AUTH_TOKEN; // ログアウト・別セッションへの切替後に届いた応答は適用しない
   try{
     const r = await gasCall_('listRoster', {});
+    if(AUTH_TOKEN !== token || !cUser || !isA) return;
     if(r && r.ok && Array.isArray(r.data)){
       ROSTER = r.data; ROSTER_READY = true;
       applyPortalNames_();
@@ -1368,16 +1392,29 @@ function confirmPortalLink_(){
   persistData(); scheduleSave();
   alert(`${pairs.length}人をつなぎました。保存の表示が「保存済」になることを確認してください。\n過去に承認した有給の年休の残りは、従業員管理で見直してください。`);
 }
-// 旧ID→ポータルIDへ移す。シフト表は旧IDの行を引き継ぎ、ポータルIDの行にある承認済み申請の反映（reqId付き）は残す。
+// 旧ID→ポータルIDへ移す（画面・保存の基準の両方に同じ移し替えを当てる）。
+// シフト表は旧IDの行を引き継ぎ、ポータルIDの行にある申請の反映（reqId 付き・振替休日の OFF）は残す。
+// 確定はサーバー（saveShiftPatch の links）が名簿確認・承認済み申請との照合・隠し項目の引継ぎとともに一体で行う。
+function applyLinkTo_(t, oldId, newId){
+  const e=t.employees.find(x=>x&&x.id===oldId);
+  if(!e || t.employees.some(x=>x&&x.id===newId)) return;
+  const oldRows=t.shifts[oldId]||{}, cur=t.shifts[newId]||{};
+  const merged=JSON.parse(JSON.stringify(oldRows));
+  Object.keys(cur).forEach(k=>{
+    const c=cur[k];
+    const keep=c && (c.reqId || c.furikaeReqId || (c.type==='OFF' && c.note==='振替休日'));
+    if(keep || !Object.prototype.hasOwnProperty.call(merged,k)) merged[k]=c;
+  });
+  t.shifts[newId]=merged;
+  delete t.shifts[oldId];
+  e.id=newId;
+}
 function linkEmployeeToPortal_(oldId, newId){
-  const e=EMPLOYEES.find(x=>x.id===oldId); const p=portalById_(newId);
-  if(!e || !p) return;
-  const oldRows=SHIFTS[oldId]||{}, cur=SHIFTS[newId]||{};
-  const merged=Object.assign({}, oldRows);
-  Object.keys(cur).forEach(k=>{ if((cur[k]&&cur[k].reqId) || !Object.prototype.hasOwnProperty.call(merged,k)) merged[k]=cur[k]; });
-  SHIFTS[newId]=merged;
-  delete SHIFTS[oldId];
-  e.id=newId; e.name=p.name;
+  if(!EMPLOYEES.some(x=>x.id===oldId) || !portalById_(newId)) return;
+  applyLinkTo_({ shifts: SHIFTS, employees: EMPLOYEES }, oldId, newId);
+  if(_base) applyLinkTo_({ shifts: _base.shifts, employees: _base.employees }, oldId, newId);
+  _pendingLinks.push({ old: oldId, 'new': newId });
+  applyPortalNames_(); // 氏名はIDの一致でポータルの氏名になる
 }
 
 // 取り込み：ポータルの在籍者のうち、シフト側にいない人を管理者が選んで追加する。
@@ -1885,6 +1922,7 @@ function onDrop(ev,toEid,toDk){
   if(end)newToShift.end=end;
   SHIFTS[toEid][toDk]=newToShift;
   dragSrc=null;rSh();rDB();rOT();
+  scheduleSave(); // 入れ替えを保存（以前は他の編集のついでにしか保存されなかった）
 }
 document.addEventListener('dragend',()=>{
   document.querySelectorAll('.sc.dragging').forEach(el=>el.classList.remove('dragging'));
@@ -2064,9 +2102,9 @@ function rEmp(){
   }).join('');
   document.getElementById('etbd').innerHTML=html||'<tr><td colspan="10" style="text-align:center;color:var(--tx2)">該当者なし</td></tr>';
 }
-function chEmpDept(eid,val){const e=EMPLOYEES.find(x=>x.id===eid);if(e){e.dept=val;e.team=(DEPT_STRUCT[val]?.teams||[val])[0];rEmp();rSh();}}
-function chEmpTeam(eid,val){const e=EMPLOYEES.find(x=>x.id===eid);if(e)e.team=val;}
-function chEmpYears(eid,val){const e=EMPLOYEES.find(x=>x.id===eid);if(e)e.years=parseFloat(val)||0;}
+function chEmpDept(eid,val){const e=EMPLOYEES.find(x=>x.id===eid);if(e){e.dept=val;e.team=(DEPT_STRUCT[val]?.teams||[val])[0];rEmp();rSh();scheduleSave();}}
+function chEmpTeam(eid,val){const e=EMPLOYEES.find(x=>x.id===eid);if(e){e.team=val;scheduleSave();}}
+function chEmpYears(eid,val){const e=EMPLOYEES.find(x=>x.id===eid);if(e){e.years=parseFloat(val)||0;scheduleSave();}}
 // 有給残日数の手動上書き（管理者のみ）
 function chEmpAL(eid,val){
   if(!isA)return;
@@ -2078,7 +2116,7 @@ function chEmpAL(eid,val){
   persistData();scheduleSave();
   rEmp(); // 自動/手動バッジ再描画
 }
-function delEmp(eid){if(!confirm('削除しますか？'))return;const i=EMPLOYEES.findIndex(x=>x.id===eid);if(i>=0){EMPLOYEES.splice(i,1);rEmp();rSh();rDB();rVreq();rOTReq();rHReq();}} // 削除後も申請対象欄を更新
+function delEmp(eid){if(!confirm('削除しますか？'))return;const i=EMPLOYEES.findIndex(x=>x.id===eid);if(i>=0){EMPLOYEES.splice(i,1);rEmp();rSh();rDB();rVreq();rOTReq();rHReq();scheduleSave();}} // 削除後も申請対象欄を更新
 
 function updateEtypeOpts(){
   const cat=document.getElementById('e-ecat').value;
@@ -2311,29 +2349,10 @@ async function approveReq(id){
   // ★サーバー決裁（leader以上のみ）。状態遷移・審査者はサーバーが確定する。
   const dres=await gasCall_('decideRequest',{id:req.id,decision:'approved',reviewNote:note||'',baseVersion:req.version});
   if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('承認に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
-  Object.assign(req,dres.request); // status/reviewedAt/reviewedBy/version をサーバー値に同期
-  // シフトに反映（全休・半休の場合）
-  if(req.type==='全休'||req.type==='半休前'||req.type==='半休後'){
-    const from=new Date(req.from),to=new Date(req.to);
-    let cur=new Date(from);
-    while(cur<=to){
-      const y=cur.getFullYear(),m=cur.getMonth(),d=cur.getDate();
-      if(!isRestDay(y,m,d)){
-        const k=dkey(y,m,d);
-        if(!SHIFTS[req.eid])SHIFTS[req.eid]={};
-        SHIFTS[req.eid][k]={type:'VAC',ot:0,vacType:req.type,reqId:req.id};
-      }
-      cur.setDate(cur.getDate()+1);
-    }
-  }
-  // 有給残日数を自動減算（alOverrideを更新）
-  const emp=EMPLOYEES.find(x=>x.id===req.eid);
-  if(emp&&req.days>0){
-    const cur=getAL(emp);
-    emp.alOverride=Math.max(0,Math.round((cur-req.days)*10)/10);
-  }
+  syncReq_(req,dres.request); // status/reviewedAt/reviewedBy/version をサーバー値に同期
+  // シフトへの反映（全休・半休）と有給残日数の減算は、サーバーが承認と同時に保存済み。結果を画面へ反映する。
+  applyServerEffects_(dres.effects);
   rVreq();updVreqBadge();rSh();rPL();rDB();rEmp();
-  persistData();scheduleSave();
 
   alert(`✅ ${req.id} を承認しました。シフトに反映されました。` + '\n' + notificationSummary_(dres.notification).text);
 }
@@ -2344,7 +2363,7 @@ async function rejectReq(id){
   if(!note.trim()){alert('却下理由を入力してください');return;}
   const dres=await gasCall_('decideRequest',{id:req.id,decision:'rejected',reviewNote:note,baseVersion:req.version});
   if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('却下に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
-  Object.assign(req,dres.request);
+  syncReq_(req,dres.request);
   rVreq();updVreqBadge();rDB();
 
   alert(`❌ ${req.id} を却下しました。` + '\n' + notificationSummary_(dres.notification).text);
@@ -2358,25 +2377,12 @@ async function cancelReq(id){
   // ★サーバー権威で取消（pending＝本人or管理者／approved＝管理者のみ）
   const cres=await gasCall_('cancelRequest',{id:req.id,baseVersion:req.version});
   if(!cres||!cres.ok){ if(cres&&cres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('取消に失敗しました'+(cres&&cres.message?'\n'+cres.message:''));} return; }
-  Object.assign(req,cres.request);
+  syncReq_(req,cres.request);
   if(wasApproved){
-    // シフトから削除（承認済みの反映を戻す）
-    const from=new Date(req.from),to=new Date(req.to);
-    let cur=new Date(from);
-    while(cur<=to){
-      const y=cur.getFullYear(),m=cur.getMonth(),d=cur.getDate();
-      const k=dkey(y,m,d);
-      if(SHIFTS[req.eid]?.[k]?.reqId===req.id)SHIFTS[req.eid][k]={type:'OFF',ot:0};
-      cur.setDate(cur.getDate()+1);
-    }
-    // 有給残日数を加算して戻す
-    const emp=EMPLOYEES.find(x=>x.id===req.eid);
-    if(emp&&req.days>0){
-      const cur=getAL(emp);
-      emp.alOverride=Math.round((cur+req.days)*10)/10;
-    }
+    // シフト反映の巻き戻しと有給残日数の戻しは、サーバーが取消と同時に保存済み。
+    applyServerEffects_(cres.effects);
     rSh();rPL();rEmp();
-    scheduleSave(); // シフト反映の巻き戻しを保存
+    if(cres.effects&&cres.effects.alNotReverted) alert('この申請は以前の版で承認されたため、有給残日数は自動で戻していません。従業員管理で確認してください。');
   }
   rVreq();updVreqBadge();rDB();
 }
@@ -2534,15 +2540,10 @@ async function approveOTReq(id){
   if(note===null)return;
   const dres=await gasCall_('decideRequest',{id:req.id,decision:'approved',reviewNote:note||'',baseVersion:req.version});
   if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('承認に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
-  Object.assign(req,dres.request);
-  // シフトの残業時間を更新
-  const dt=new Date(req.date);
-  const k=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
-  if(!SHIFTS[req.eid])SHIFTS[req.eid]={};
-  const cur=SHIFTS[req.eid][k]||{type:req.shift,ot:0};
-  SHIFTS[req.eid][k]={...cur,type:req.shift,ot:req.hours,reqId:req.id};
+  syncReq_(req,dres.request);
+  // シフトの残業時間への反映は、サーバーが承認と同時に保存済み。
+  applyServerEffects_(dres.effects);
   rOTReq();updAllBadges();rSh();rOT();rDB();
-  persistData();scheduleSave(); // ★追加
   alert(`✅ ${req.id} を承認しました。シフトの残業時間に反映されました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function rejectOTReq(id){
@@ -2552,10 +2553,8 @@ async function rejectOTReq(id){
   if(!note.trim()){alert('却下理由を入力してください');return;}
   const dres=await gasCall_('decideRequest',{id:req.id,decision:'rejected',reviewNote:note,baseVersion:req.version});
   if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('却下に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
-  Object.assign(req,dres.request);
+  syncReq_(req,dres.request);
   rOTReq();updAllBadges();rDB();
-
-  persistData();scheduleSave(); // ★追加
   alert(`❌ ${req.id} を却下しました。` + '\n' + notificationSummary_(dres.notification).text);
 }
 async function cancelOTReq(id){
@@ -2566,14 +2565,10 @@ async function cancelOTReq(id){
   }else if(req.status!=='pending'){alert('取消できない状態です');return;}
   const cres=await gasCall_('cancelRequest',{id:req.id,baseVersion:req.version});
   if(!cres||!cres.ok){ if(cres&&cres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('取消に失敗しました'+(cres&&cres.message?'\n'+cres.message:''));} return; }
-  Object.assign(req,cres.request);
+  syncReq_(req,cres.request);
   if(wasApproved){
-    const dt=new Date(req.date);
-    const k=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
-    if(SHIFTS[req.eid]?.[k]?.reqId===req.id){
-      SHIFTS[req.eid][k]={...SHIFTS[req.eid][k],ot:0};
-    }
-    rSh();rOT();scheduleSave();
+    applyServerEffects_(cres.effects); // 残業時間の戻しはサーバーが取消と同時に保存済み
+    rSh();rOT();
   }
   rOTReq();updAllBadges();rDB();
 }
@@ -2723,20 +2718,10 @@ async function approveHReq(id){
   if(note===null)return;
   const dres=await gasCall_('decideRequest',{id:req.id,decision:'approved',reviewNote:note||'',baseVersion:req.version});
   if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('承認に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
-  Object.assign(req,dres.request);
-  const dt=new Date(req.date);
-  const k=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
-  if(!SHIFTS[req.eid])SHIFTS[req.eid]={};
-  SHIFTS[req.eid][k]={type:'HOL-W',ot:0,start:req.start,end:req.end,reqId:req.id};
-  // 振替休日があればシフトにOFFをセット
-  if(req.furikae){
-    const fdt=new Date(req.furikae);
-    const fk=dkey(fdt.getFullYear(),fdt.getMonth(),fdt.getDate());
-    if(!SHIFTS[req.eid])SHIFTS[req.eid]={};
-    SHIFTS[req.eid][fk]={type:'OFF',ot:0,note:'振替休日'};
-  }
+  syncReq_(req,dres.request);
+  // 休出と振替休日（OFF）のシフトへの反映は、サーバーが承認と同時に保存済み。
+  applyServerEffects_(dres.effects);
   rHReq();updAllBadges();rSh();rOT();rDB();
-  persistData();scheduleSave();
 
   alert(`✅ ${req.id} を承認しました。シフトに「休出」として反映されました。${req.furikae?'\n振替休日('+req.furikae+')もシフトに反映されました。':''}` + '\n' + notificationSummary_(dres.notification).text);
 }
@@ -2747,9 +2732,8 @@ async function rejectHReq(id){
   if(!note.trim()){alert('却下理由を入力してください');return;}
   const dres=await gasCall_('decideRequest',{id:req.id,decision:'rejected',reviewNote:note,baseVersion:req.version});
   if(!dres||!dres.ok){ if(dres&&dres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('却下に失敗しました'+(dres&&dres.message?'\n'+dres.message:''));} return; }
-  Object.assign(req,dres.request);
+  syncReq_(req,dres.request);
   rHReq();updAllBadges();rDB();
-  persistData();scheduleSave();
 
   alert(`❌ ${req.id} を却下しました。` + '\n' + notificationSummary_(dres.notification).text);
 }
@@ -2763,16 +2747,12 @@ async function editFurikae(id){
   if(!val.trim()){alert('日付を入力してください');return;}
   const dt=new Date(val.trim());
   if(isNaN(dt)){alert('正しい日付形式で入力してください（例: 2026-05-10）');return;}
-  const fk=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
-  // ★サーバー権威で振替休日を保存（本人or管理者・承認済みのみ）
+  // ★サーバー権威で振替休日を保存（本人or管理者・承認済みのみ）。シフトへの反映（OFF）もサーバーが同時に保存する。
   const fres=await gasCall_('setFurikae',{id:req.id,furikae:val.trim(),baseVersion:req.version});
   if(!fres||!fres.ok){ if(fres&&fres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('設定に失敗しました'+(fres&&fres.message?'\n'+fres.message:''));} return; }
-  Object.assign(req,fres.request);
-  // シフトに振替休日（OFF）を反映
-  if(!SHIFTS[req.eid])SHIFTS[req.eid]={};
-  SHIFTS[req.eid][fk]={type:'OFF',ot:0,note:'振替休日'};
+  syncReq_(req,fres.request);
+  applyServerEffects_(fres.effects);
   rHReqList();rSh();rDB();
-  scheduleSave();
   alert(`✅ 振替休日（${val.trim()}）をシフトに反映しました。`);
 }
 
@@ -2784,17 +2764,10 @@ async function cancelHReq(id){
   }else if(req.status!=='pending'){alert('取消できない状態です');return;}
   const cres=await gasCall_('cancelRequest',{id:req.id,baseVersion:req.version});
   if(!cres||!cres.ok){ if(cres&&cres.conflict){await reloadReqsAndRender_();alert('他の端末で更新されました。最新の状態に更新しました。');} else {alert('取消に失敗しました'+(cres&&cres.message?'\n'+cres.message:''));} return; }
-  Object.assign(req,cres.request);
+  syncReq_(req,cres.request);
   if(wasApproved){
-    const dt=new Date(req.date);
-    const k=dkey(dt.getFullYear(),dt.getMonth(),dt.getDate());
-    if(SHIFTS[req.eid]?.[k]?.reqId===req.id)SHIFTS[req.eid][k]={type:'OFF',ot:0};
-    if(req.furikae){
-      const fdt=new Date(req.furikae);
-      const fk=dkey(fdt.getFullYear(),fdt.getMonth(),fdt.getDate());
-      if(SHIFTS[req.eid]?.[fk]?.note==='振替休日')delete SHIFTS[req.eid][fk];
-    }
-    rSh();rOT();scheduleSave();
+    applyServerEffects_(cres.effects); // 休出・振替休日の戻しはサーバーが取消と同時に保存済み
+    rSh();rOT();
   }
   rHReq();updAllBadges();rDB();
 }
@@ -3020,6 +2993,7 @@ function toggleCalDay(y,m,d){
   }
   persistData();
   rCal();rSh();rDB();
+  scheduleSave(); // 会社カレンダーの変更を保存
 }
 function resetCalMonth(){
   if(!confirm(`${calPeriodLabel()}の特殊日設定をリセットしますか？`))return;
@@ -3028,6 +3002,7 @@ function resetCalMonth(){
   });
   persistData();
   rCal();rSh();rDB();
+  scheduleSave(); // リセットを保存
 }
 function rCal(){
   document.getElementById('cal-mlbl').textContent=calPeriodLabel();
@@ -3095,7 +3070,7 @@ function rCal(){
     }).join('');
   }
 }
-function deleteCalDay(k){delete CAL_SPECIAL[k];persistData();rCal();rSh();rDB();}
+function deleteCalDay(k){delete CAL_SPECIAL[k];persistData();rCal();rSh();rDB();scheduleSave();}
 
 // ══ SETTINGS ══
 function rSt(){
@@ -3294,6 +3269,9 @@ function handleUnauthorized_() {
   _syncLog = [];
   // 認証切れでは業務データを消すため、未保存状態も破棄して保存・読込を止める（宣言前に呼ばれてもよいよう try）
   try { clearTimeout(_saveTimer); _saveTimer = null; _dirty = false; SHIFT_DATA_READY = false; hideDataGate_(); } catch(e) {}
+  // 保存の基準・保存待ちの連携・ポータル名簿も破棄する
+  try { _base = null; _pendingLinks.length = 0; } catch(e) {}
+  try { ROSTER = []; ROSTER_READY = false; } catch(e) {}
   try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
   AUTH_TOKEN = null; cUser = null; isA = false;
   try {
@@ -3310,7 +3288,9 @@ let _reqWriteGen = 0;
 let _reqReadSeq = 0;
 async function gasCall_(action, payload) {
   if (!AUTH_TOKEN) { handleUnauthorized_(); return null; }
-  if (REQ_WRITE_ACTIONS_.indexOf(action) >= 0) _reqWriteGen++;
+  // 申請の書込みは送信時と応答後の両方で世代を進める（書込み中に取り始めた一覧も古い応答として捨てる）
+  const isReqWrite = REQ_WRITE_ACTIONS_.indexOf(action) >= 0;
+  if (isReqWrite) _reqWriteGen++;
   try {
     const res = await fetch(GAS_URL_SHIFT, {
       method: 'POST',
@@ -3323,6 +3303,33 @@ async function gasCall_(action, payload) {
     if (!json || typeof json !== 'object') throw new Error('不正な応答');
     return json;
   } catch(e) { console.error('[gasCall_]', action, e); return null; }
+  finally { if (isReqWrite) _reqWriteGen++; }
+}
+// 決裁などのサーバー応答を、手元の申請（一覧の現在の要素も含む）へ反映する
+function syncReq_(req, r) {
+  if (!r) return;
+  Object.assign(req, r);
+  [VAC_REQUESTS, OT_REQUESTS, H_REQUESTS].forEach(arr => {
+    const cur = arr.find(x => x && x.id === r.id);
+    if (cur && cur !== req) Object.assign(cur, r);
+  });
+}
+// 決裁に伴うシフト表・年休の変更はサーバーが保存済み。画面と保存の基準（_base）の両方へ同じ変更を反映する
+// （基準にも入れるので、管理者の次の保存でこの変更を送り直さない）。
+function applyServerEffects_(eff) {
+  if (!eff) return;
+  (eff.cells || []).forEach(c => {
+    const eid = c[0], k = c[1], val = c[2];
+    [SHIFTS, _base && _base.shifts].forEach(t => {
+      if (!t) return;
+      if (val === null) { if (t[eid]) delete t[eid][k]; }
+      else { if (!t[eid]) t[eid] = {}; t[eid][k] = JSON.parse(JSON.stringify(val)); }
+    });
+  });
+  (eff.emps || []).forEach(u => {
+    const e = EMPLOYEES.find(x => x && x.id === u.id); if (e) e.alOverride = u.alOverride;
+    const b = _base && _base.employees.find(x => x && x.id === u.id); if (b) b.alOverride = u.alOverride;
+  });
 }
 
 // ══ 申請システム（サーバー権威・1件単位）══
@@ -3465,13 +3472,14 @@ function hideDataGate_() {
   if (el) el.style.display = 'none';
 }
 // 保存の失敗・一部失敗：未保存の入力を保持していることと再試行の方法を表示する（自動再送はしない）。
-function showUnsavedBanner_() {
+function showUnsavedBanner_(reason) {
   showDataNotReadyBanner_(false);
   const el = document.getElementById('data-gate-banner');
   el.textContent = '';
   el.style.background = '#fce8e8'; el.style.color = '#b53030';
   const msg = document.createElement('span');
-  msg.textContent = '⚠ 保存が完了していません（一部だけ保存された可能性があります）。入力はこの画面に保持しています。画面を閉じずに保存を再試行してください。';
+  msg.textContent = '⚠ 保存が完了していません（保存できたか確認できない場合を含みます）。入力はこの画面に保持しています。画面を閉じずに保存を再試行してください（同じ内容を送り直しても二重にはなりません）。' +
+    (reason ? '（理由：' + reason + '）' : '');
   el.appendChild(msg);
   const btn = document.createElement('button');
   btn.type = 'button';
@@ -3506,13 +3514,45 @@ async function ensureInitialLoad_() {
   return ok;
 }
 
-async function saveShiftKey(key, val) {
-  // 値はPOST本文で送る（URLクエリの文字数上限・URLへのデータ露出が無くなる）。
-  // 権限のないキー（例：staffがshifts/employees）はGAS側で拒否され ok:false が返る。
-  const r = await gasCall_('saveShiftKey', { key: key, val: val });
-  if (r && r.ok) return true;
-  if (r && r.message) console.log('[saveKey]', key, ':', r.message);
-  return false;
+// ══ 保存の基準と変更分 ══
+// 最後に読み込んだ（または保存できた）時点の状態。保存はこの基準からの変更分だけを送る。
+//   全体を上書きしないので、他端末の変更やサーバーが保存した決裁の結果を、古い全体で消さない。
+let _base = null;
+// 保存待ちのID連携（{old,new}）。サーバーが名簿で確認し、隠し項目の引継ぎと勤務表の移し替えを一体で行う。
+const _pendingLinks = [];
+const SHIFT_EMP_EDITABLE_ = ['name','dept','team','years','ecat','etype','ptStart','ptEnd','al','alOverride','lwUserId'];
+function snapshot_() {
+  return JSON.parse(JSON.stringify({ shifts: SHIFTS, calSpecial: CAL_SPECIAL, employees: EMPLOYEES.map(withoutEmployeePassword_) }));
+}
+function buildPatch_(base, cur) {
+  const j = v => JSON.stringify(v === undefined ? null : v);
+  const shifts = [];
+  new Set([...Object.keys(base.shifts), ...Object.keys(cur.shifts)]).forEach(eid => {
+    const b = base.shifts[eid] || {}, c = cur.shifts[eid] || {};
+    new Set([...Object.keys(b), ...Object.keys(c)]).forEach(k => {
+      if (j(b[k]) !== j(c[k])) shifts.push([eid, k, c[k] === undefined ? null : c[k]]);
+    });
+  });
+  const cal = [];
+  new Set([...Object.keys(base.calSpecial), ...Object.keys(cur.calSpecial)]).forEach(k => {
+    if (base.calSpecial[k] !== cur.calSpecial[k]) cal.push([k, cur.calSpecial[k] === undefined ? null : cur.calSpecial[k]]);
+  });
+  const bById = {};
+  base.employees.forEach(e => { if (e && e.id != null) bById[String(e.id)] = e; });
+  const cIds = new Set(cur.employees.filter(e => e && e.id != null).map(e => String(e.id)));
+  const remove = Object.keys(bById).filter(id => !cIds.has(id));
+  const upsert = [];
+  cur.employees.forEach(e => {
+    if (!e || e.id == null) return;
+    const b = bById[String(e.id)], fields = {};
+    SHIFT_EMP_EDITABLE_.forEach(f => {
+      if (!b) { if (e[f] !== undefined) fields[f] = e[f]; }
+      else if (j(b[f]) !== j(e[f])) fields[f] = e[f] === undefined ? null : e[f];
+    });
+    if (!b) upsert.push({ id: String(e.id), fields, isNew: true }); // 新しく追加した人だけ「新規」
+    else if (Object.keys(fields).length) upsert.push({ id: String(e.id), fields });
+  });
+  return { shifts, cal, emps: { remove, upsert } };
 }
 
 // ══ 同期ログ管理 ══
@@ -3590,33 +3630,39 @@ async function saveToSheet() {
   if (!isA) return true; // 非管理者はシフト表等を保存しない（scheduleSave 参照）
   // 保存中に次の保存が来たら、終了後に改めて予約する（同時保存で古い内容が後着しないように）
   if (_saving) { clearTimeout(_saveTimer); _saveTimer = setTimeout(saveToSheet, 2000); return false; }
+  if (!_base) return false; // 読込前（基準なし）は保存しない
   _saving = true;
   const token = AUTH_TOKEN, revision = _dataRevision;
+  // 送る時点の状態と、基準からの変更分。シフト表・カレンダー・従業員・ID連携を1回の通信でまとめて保存する
+  // （サーバーがロック内で一体として確定する。一部だけ保存された組合せを作らない）。
+  const sent = snapshot_();
+  const links = _pendingLinks.slice();
+  const patch = buildPatch_(_base, sent);
+  patch.links = links;
   try {
     showSyncBadge('saving');
-    const shiftsJson = JSON.stringify(SHIFTS);
-    console.log('[saveToSheet] SHIFTSサイズ:', shiftsJson.length, 'bytes');
     // ★申請(vacReqs/otReqs/hReqs)はブロブ一括保存を廃止。
     //   申請は1件単位API(createRequest/decideRequest/…)でその都度サーバーへ保存される。
-    // 3キーとも終わるまで待つ（1件失敗でも残りの完了を待ってから結果を確定する）。
-    const results = await Promise.all([
-      saveShiftKey('shifts',     shiftsJson),
-      saveShiftKey('calSpecial', JSON.stringify(CAL_SPECIAL)),
-      saveShiftKey('employees',  JSON.stringify(EMPLOYEES.map(withoutEmployeePassword_))),
-    ]);
+    const r = await gasCall_('saveShiftPatch', { patch: patch });
     if (AUTH_TOKEN !== token) return false; // 別セッションに切り替わった後の応答は反映しない
-    const allOk = results.every(r => r);
+    const allOk = !!(r && r.ok === true);
+    if (allOk) {
+      _base = sent;
+      _pendingLinks.splice(0, links.length);
+    }
     if (allOk && revision === _dataRevision) {
       _dirty = false;
       showSyncBadge('saved');
       hideDataGate_();
+      // ID連携を保存したら、サーバーが確定した結果（ポータルの氏名・守ったセル）を読み直す
+      if (links.length) setTimeout(async () => { if (!hasPendingSave_() && await loadFromSheet()) { try { rSh(); rDB(); rEmp(); rPL(); rVreq(); rOTReq(); rHReq(); rOT(); } catch(e) {} } }, 0);
     } else if (allOk) {
       // 保存中に加わった入力は未保存のまま（予約済みの次回保存で送る）
       showSyncBadge('pending');
     } else {
-      // 失敗・一部成功：未保存を保持し、自動再送はしない
+      // 失敗・応答不明：未保存を保持し、自動再送はしない（再送しても同じ結果になる形で送っている）
       showSyncBadge('error');
-      showUnsavedBanner_();
+      showUnsavedBanner_(r && r.message ? r.message : '');
     }
     addSyncLogEntry('保存', allOk);
     pushLogToGas('保存', allOk);
@@ -3646,7 +3692,10 @@ async function loadFromSheet() {
     showSyncBadge('loading');
     const result = await gasCall_('loadShiftData', {});
     if (superseded()) return false;
-    if (result && result.error === 'shift_data_invalid') throw invalidData(result.message || '保存データの形式が不正です');
+    // データ異常（不正値・キー欠損/重複・見出し異常・シート不在・保存の途中停止）は空として扱わず止める
+    if (result && ['shift_data_invalid', 'shift_data_missing', 'shift_write_interrupted'].indexOf(result.error) >= 0) {
+      throw invalidData(result.message || '保存データの形式が不正です');
+    }
     if (!result || !result.ok || !result.data || typeof result.data !== 'object') {
       console.warn('[loadFromSheet] loadShiftData 失敗', result && result.message ? result.message : '(応答なし)');
       showSyncBadge('error'); return false;
@@ -3705,7 +3754,11 @@ async function loadFromSheet() {
       // ポータルから受け取っていない場合はGASのデータを使用
       EMPLOYEES.length=0; emps.forEach(e=>EMPLOYEES.push(withoutEmployeePassword_(e)));
     }
-    applyPortalNames_(); // ポータル名簿を取得済みなら、IDが一致する人の氏名をポータルの最新にそろえる
+    // 読み込んだ状態を保存の基準にする（未送信のID連携があれば基準にも同じ移し替えを当て直す）
+    _base = snapshot_();
+    _pendingLinks.forEach(l => applyLinkTo_({ shifts: _base.shifts, employees: _base.employees }, l.old, l['new']));
+    _pendingLinks.forEach(l => applyLinkTo_({ shifts: SHIFTS, employees: EMPLOYEES }, l.old, l['new']));
+    applyPortalNames_(); // ポータル名簿を取得済みなら、IDが一致する人の氏名をポータルの最新にそろえる（次の保存で反映）
     persistData();
     _loadFailed = false;
     SHIFT_DATA_READY = true;
