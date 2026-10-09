@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-M8l/vYr2FJXNmBQI+42Dxfzo9zRN7GpHJCnEwbQE/Ls=' 'sha256-NbGf7ds+Cug7gS3AHTwnzpl7P4GtecgWvdYr2DNXsGg='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-M8l/vYr2FJXNmBQI+42Dxfzo9zRN7GpHJCnEwbQE/Ls=' 'sha256-pQnxly6O/0QvaCLuTYIOZgtuGFbNHqO1ZDHgkI3k5Wc='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { onLangChange()
@@ -5101,6 +5101,68 @@ async function requestPrivatePhoto_(binding, signal) {
   return result.photo;
 }
 
+// 写真を画面いっぱいに表示する（拡大・縮小・全体・等倍。Esc・背景のクリック・✕で閉じる）。
+//   写真はアプリ内の一時 URL（blob:）のまま表示し、外部へは出さない。
+function openPhotoViewer_(url, name) {
+  if (!url) return;
+  const old = document.getElementById('photoViewer');
+  if (old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = 'photoViewer';
+  ov.setAttribute('role', 'dialog');
+  ov.setAttribute('aria-label', '写真の拡大表示');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(10,15,25,.92);display:flex;flex-direction:column';
+  const bar = document.createElement('div');
+  bar.style.cssText = 'display:flex;align-items:center;gap:6px;padding:8px 10px;color:#fff;font-size:13px;flex:0 0 auto';
+  const title = document.createElement('div');
+  title.textContent = String(name || '写真');
+  title.style.cssText = 'flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:bold';
+  const mkBtn = (label, tip) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = label; b.title = tip; b.setAttribute('aria-label', tip);
+    b.style.cssText = 'min-width:40px;height:36px;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:rgba(255,255,255,.12);color:#fff;font-size:15px;cursor:pointer;font-family:inherit';
+    return b;
+  };
+  const bOut = mkBtn('－', '縮小'), bIn = mkBtn('＋', '拡大'), bFit = mkBtn('全体', '画面に合わせる'),
+        b1 = mkBtn('等倍', '元の大きさ'), bClose = mkBtn('✕', '閉じる');
+  bar.append(title, bOut, bIn, bFit, b1, bClose);
+  const area = document.createElement('div');
+  area.style.cssText = 'flex:1;overflow:auto;display:flex;touch-action:pinch-zoom pan-x pan-y';
+  const img = document.createElement('img');
+  img.alt = String(name || '写真');
+  img.style.cssText = 'display:block;margin:auto;max-width:none;user-select:none';
+  area.appendChild(img);
+  ov.append(bar, area);
+  let scale = 1, fit = 1;
+  const apply = () => {
+    img.style.width = Math.round(img.naturalWidth * scale) + 'px';
+    img.style.height = Math.round(img.naturalHeight * scale) + 'px';
+  };
+  const toFit = () => {
+    fit = Math.min(1, area.clientWidth / (img.naturalWidth || 1), area.clientHeight / (img.naturalHeight || 1));
+    scale = fit; apply();
+  };
+  const zoom = f => { scale = Math.min(8, Math.max(0.1, scale * f)); apply(); };
+  img.onload = toFit;
+  img.src = url;
+  const onKey = e => {
+    if (e.key === 'Escape') close();
+    else if (e.key === '+' || e.key === '=') zoom(1.25);
+    else if (e.key === '-') zoom(1 / 1.25);
+  };
+  const close = () => { document.removeEventListener('keydown', onKey); ov.remove(); };
+  bIn.addEventListener('click', () => zoom(1.25));
+  bOut.addEventListener('click', () => zoom(1 / 1.25));
+  bFit.addEventListener('click', toFit);
+  b1.addEventListener('click', () => { scale = 1; apply(); });
+  bClose.addEventListener('click', close);
+  area.addEventListener('click', e => { if (e.target === area) close(); });
+  img.addEventListener('dblclick', () => { scale = (scale > fit * 1.01) ? fit : Math.min(8, fit * 2); apply(); });
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(ov);
+  bClose.focus();
+}
+
 async function renderPrivatePhotos_(container, items) {
   if (!container) return;
   clearPrivatePhotoView_(container);
@@ -5145,6 +5207,16 @@ async function renderPrivatePhotos_(container, items) {
       });
       if (state.cancelled) { img.removeAttribute('src'); return; }
       status.textContent = '';
+      // 写真のクリック、または「⤢ 大きく表示」で、画面いっぱいに表示する
+      img.style.cursor = 'zoom-in';
+      img.title = 'クリックで大きく表示';
+      img.addEventListener('click', () => openPhotoViewer_(url, item.name));
+      const zoomBtn = document.createElement('button');
+      zoomBtn.type = 'button';
+      zoomBtn.textContent = '⤢ 大きく表示';
+      zoomBtn.style.cssText = 'align-self:flex-start;padding:3px 10px;font-size:11px;border:1px solid var(--blue2);border-radius:4px;background:var(--sec);color:var(--blue);cursor:pointer;font-family:inherit';
+      zoomBtn.addEventListener('click', () => openPhotoViewer_(url, item.name));
+      figure.insertBefore(zoomBtn, status);
     } catch (error) {
       if (url) { URL.revokeObjectURL(url); state.urls.delete(url); }
       img.removeAttribute('src');
