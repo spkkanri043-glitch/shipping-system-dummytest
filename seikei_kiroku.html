@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-M8l/vYr2FJXNmBQI+42Dxfzo9zRN7GpHJCnEwbQE/Ls=' 'sha256-pQnxly6O/0QvaCLuTYIOZgtuGFbNHqO1ZDHgkI3k5Wc='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-M8l/vYr2FJXNmBQI+42Dxfzo9zRN7GpHJCnEwbQE/Ls=' 'sha256-PwzoEkAli4YnGocFkT6HGacyZS8eOv8IK5q5n3SQXLc='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { onLangChange()
@@ -3709,7 +3709,8 @@ async function saveRecord() {
   // RID があり、かつ前回スナップショットが存在する場合のみ（＝2回目以降の保存）
   const isExisting = !!RID && Object.keys(LAST_SNAPSHOT).length > 0;
   if (isExisting) {
-    const diffs = diffFromSnapshot();
+    // わかりやすい形にしてから比べる（写真の内部の識別子の違いなど、見た目が同じものは変更として数えない）
+    const diffs = diffFromSnapshot().map(friendlyDiff_).filter(d => String(d.before) !== String(d.after));
     if (diffs.length > 0) {
       // 変更内容のプレビューを作る
       const preview = diffs.slice(0, 8).map(d =>
@@ -4834,6 +4835,27 @@ function diffFromSnapshot() {
   return diffs;
 }
 
+// 変更履歴の1件を、表示用のわかりやすい形にする（JSON の文字のまま見せない）。
+//   対象：写真・参考写真・品番の組・成形条件・製品確認の項目。それ以外はそのまま返す。
+function friendlyDiff_(d) {
+  if (!d) return d;
+  const key = String(d.key || d.field || '');
+  const parse = v => { try { const x = JSON.parse(v); return Array.isArray(x) ? x : null; } catch (e) { return null; } };
+  const fmt = {
+    photos:    { label: '写真',     f: a => a.length ? a.map(p => (p && p.name) || '写真').join('、') + '（' + a.length + '枚）' : '（なし）' },
+    refPhotos: { label: '参考写真', f: a => a.length ? a.map(p => (p && p.name) || '写真').join('、') + '（' + a.length + '枚）' : '（なし）' },
+    pnPairs:   { label: '品番',     f: a => a.filter(p => p && (p.no || p.req)).map(p =>
+                   [p.no || '-', p.seiban ? '整番 ' + p.seiban : '', p.name ? p.name : '', p.req ? '依頼 ' + p.req : ''].filter(Boolean).join(' ')).join(' ／ ') || '（なし）' },
+    condSections:   { label: '成形条件の行', f: a => a.map(sec => (sec && (sec.label || sec.key) || '') + ' ' + ((sec && sec.rows) ? sec.rows.length : 0) + '行').join('、') || '（なし）' },
+    prodCheckItems: { label: '製品確認の項目', f: a => a.length ? a.map(i => (i && i.c) || '').filter(Boolean).join('、') + '（' + a.length + '項目）' : '（なし）' }
+  }[key];
+  if (!fmt) return d;
+  const b = parse(d.before), a = parse(d.after);
+  if (!b && !a) return Object.assign({}, d, { field: fmt.label });   // 既にわかりやすい形
+  return Object.assign({}, d, { field: fmt.label,
+    before: b ? fmt.f(b) : (d.before || ''), after: a ? fmt.f(a) : (d.after || '') });
+}
+
   // 変更履歴を記録書内に描画
 function renderChangeLog() {
   const card = document.getElementById('changeLogCard');
@@ -4852,7 +4874,7 @@ function renderChangeLog() {
   if (cnt) cnt.textContent = '（全' + CHANGE_LOG.length + '回）';
 
   body.innerHTML = CHANGE_LOG.slice().reverse().map(entry => {
-    const diffs = (entry.diffs || []).map(d =>
+    const diffs = (entry.diffs || []).map(friendlyDiff_).map(d =>
       '<div class="clog-diff">'
         + '<span class="clog-field">' + esc(d.field) + '</span>：'
         + '<span class="clog-before">' + esc(d.before || '(空欄)') + '</span>'
