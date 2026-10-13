@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-eBj8qr5tS33+WxXsa+tMXeAK/CBjvejwhj4bkU8IeYs=' 'sha256-GBXZDpqCAwjDZMVjRNTKyNDajpWOmKxQOHKy6xqfpIk='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lltMuEiz09lcPNVMpMqbHl1Y0WHrJ7l/LLrdEQ5I2Og=' 'sha256-ROzCNzh+v3JpQRMBTNZvpSjZmq4Ybn/Fi/dcCsp6e6E='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -17,9 +17,9 @@ const __moguCsp = (() => {
 },
 "h5": function(event, _p) { setPeriod(0)
 },
-"h6": function(event, _p) { clearPeriodBtn();applyFilter()
+"h6": function(event, _p) { clearPeriodBtn();loadData()
 },
-"h7": function(event, _p) { clearPeriodBtn();applyFilter()
+"h7": function(event, _p) { clearPeriodBtn();loadData()
 },
 "h8": function(event, _p) { applyFilter()
 },
@@ -295,9 +295,9 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
       <button class="period-btn"    id="p-30"     data-csp-click="h4" data-csp-source-click="setPeriod(30)">直近30日</button>
       <button class="period-btn"    id="p-0"      data-csp-click="h5" data-csp-source-click="setPeriod(0)">全期間</button>
       <div class="date-inputs">
-        <input class="date-input" type="date" id="date-from" data-csp-change="h6" data-csp-source-change="clearPeriodBtn();applyFilter()">
+        <input class="date-input" type="date" id="date-from" data-csp-change="h6" data-csp-source-change="clearPeriodBtn();loadData()">
         <span style="color:var(--tx3);font-size:12px">〜</span>
-        <input class="date-input" type="date" id="date-to" data-csp-change="h7" data-csp-source-change="clearPeriodBtn();applyFilter()">
+        <input class="date-input" type="date" id="date-to" data-csp-change="h7" data-csp-source-change="clearPeriodBtn();loadData()">
       </div>
     </div>
     <div class="filter-selects">
@@ -517,6 +517,7 @@ function goPortal() {
 }
 
 // データ取得
+var _reportLoadSeq = 0;
 async function loadData() {
   if (!AUTH_TOKEN) {
     document.getElementById('table-area').innerHTML = '<div class="empty">🔒 業務管理ポータルからご利用ください</div>';
@@ -524,7 +525,16 @@ async function loadData() {
   }
   document.getElementById('table-area').innerHTML = '<div class="loading"><div class="spinner"></div>読み込み中...</div>';
   try {
-    const d = await gasPost_('getReports', {});   // トークン付きPOST（GETの匿名取得は廃止）
+    // 選択中の期間を GAS に渡して、その範囲のデータを取得する（本番 2026-09-08 の改善を引継ぎ）。
+    // GAS 側の件数上限のため、期間を渡さないと1か月以上前が表示されないことがあった。
+    const from = document.getElementById('date-from').value;
+    const to   = document.getElementById('date-to').value;
+    const filters = {};
+    if (from) filters.dateFrom = from;
+    if (to)   filters.dateTo = to;
+    const seq = ++_reportLoadSeq; // 期間を続けて変えたとき、古い期間の応答で上書きしない
+    const d = await gasPost_('getReports', { filters: filters });   // トークン付きPOST（GETの匿名取得は廃止）
+    if (seq !== _reportLoadSeq) return;
     if (!Array.isArray(d.data)) throw new Error('不正な応答');
     allReports = d.data.filter(r => r['完了フラグ'] === '完了');
     buildFilterOptions();
@@ -561,7 +571,7 @@ function fillSelect(id, opts) {
 function setPeriod(key) {
   ['today','7','30','0'].forEach(k => document.getElementById('p-'+k)?.classList.toggle('on', String(k)===String(key)));
   setPeriodDates(key);
-  applyFilter();
+  loadData(); // 期間を変えたら GAS から取り直す
 }
 
 function clearPeriodBtn() {
