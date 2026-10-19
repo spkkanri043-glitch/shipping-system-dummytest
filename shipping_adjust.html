@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-4ze1ufBg/TZkYwgn1sdPnVJ0v8QBafsC6MVN+xukTiI='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-8v5nfJNrd1yiEwkXIlHKAaLfpLR8cdsGrIbYKQMcS/g='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -587,7 +587,7 @@ async function loadLocalCSV(input) {
   const files=Array.from(input.files);
   if(files.length!==1){showStatus('err','1つのCSVを選択してください');return;}
   try {
-    pendingAdjustment_={action:'prepareBatch',payload:{requestId:crypto.randomUUID(),csvText:await files[0].text()}};
+    pendingAdjustment_={action:'prepareBatch',payload:{requestId:crypto.randomUUID(),csvText:await files[0].text(),fileName:files[0].name}};
     await runAdjustmentOperation_();
   }catch(e){showStatus('err',e.message);}
   input.value='';
@@ -918,9 +918,10 @@ async function execExport() {
   });
   if(!changes.length){showStatus('err','調整対象がありません');return;}
   if(!confirm('この調整を確定しますか？'))return;
+  // ★v3.3 全件の写し（records）は送らない。サーバーが revision で同じ写しかを確かめる（400行超の出荷でも送れるように）
   pendingAdjustment_={action:'saveAdjustment',payload:{
     requestId:crypto.randomUUID(),batchId:batchSnapshot_.batchId,sourceFileId:batchSnapshot_.sourceFileId,
-    version:batchSnapshot_.version,revision:batchSnapshot_.revision,records:batchSnapshot_.records,changes
+    version:batchSnapshot_.version,revision:batchSnapshot_.revision,changes
   }};
   return runAdjustmentOperation_();
 }
@@ -956,8 +957,12 @@ async function runAdjustmentOperation_() {
   try {
     const result=await gasCall_(operation.action,operation.payload);
     if(!result||!result.ok){
-      const receipt=await gasCall_('getBatch',{requestId:operation.payload.requestId});
-      if(receipt&&!receipt.ok&&receipt.message==='REQUEST_NOT_OWNED')pendingAdjustment_=null;
+      // ★v3.3 同じ要求で続けられる失敗（途中で止まった・混み合い）のときだけ要求を残す
+      if(result&&!result.retrySameRequest&&result.code!=='BUSY'&&['busy','unavailable'].indexOf(result.error)<0)pendingAdjustment_=null;
+      else {
+        const receipt=await gasCall_('getBatch',{requestId:operation.payload.requestId});
+        if(receipt&&!receipt.ok&&receipt.message==='REQUEST_NOT_OWNED')pendingAdjustment_=null;
+      }
       throw new Error(result&&result.message||'保存未完了');
     }
     pendingAdjustment_=null;

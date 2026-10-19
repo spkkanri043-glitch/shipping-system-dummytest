@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-ktXj5GC4Sf0oqp1J/QN7jRYcnWbVGwSWpFJpU47MfZo='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-UUD8OJUzXRoR+AAABTB/7Uhlqimy3Q6mYIkqgea3WZU='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -360,13 +360,13 @@ select,input[type=date]{width:100%;padding:10px;border:1px solid #ccc;border-rad
     <div style="overflow-y:auto;flex:1;padding:14px">
       <div class="modal-field" style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px">
         <div class="modal-label" style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:8px">☁️ ドライブから選ぶ</div>
-        <div style="font-size:11px;color:#888;margin-bottom:10px">Googleドライブのフォルダからファイルを選択</div>
+        <div style="font-size:11px;color:#888;margin-bottom:10px">読込元フォルダの新しいCSV（リーダー以上が取り込めます）と、取り込み済みの出荷</div>
         <button style="width:100%;padding:10px;background:#3a7bdc;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px" data-csp-click="h20" data-csp-source-click="loadDriveFileList()">📋 ファイル一覧を取得</button>
         <div id="drive-file-list" style="display:none;border:1px solid #e5e5e0;border-radius:8px"></div>
       </div>
       <div class="modal-field" style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px">
         <div class="modal-label" style="font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:8px">📁 ファイルから選ぶ</div>
-        <div style="font-size:11px;color:#888;margin-bottom:10px">iPhone・PC・タブレット向け</div>
+        <div style="font-size:11px;color:#888;margin-bottom:10px">管理者・マスター用。選んだCSVは読込元フォルダに保存してから取り込みます</div>
         <label style="display:block;width:100%;padding:12px;background:#1a1a18;color:#fff;border-radius:8px;text-align:center;font-size:14px;font-weight:700;cursor:pointer">
           ファイルを選択
           <input type="file" accept=".csv,.CSV" multiple style="display:none" data-csp-change="h21" data-csp-source-change="loadCSVFromFile(this)">
@@ -1172,46 +1172,77 @@ async function loadDriveFileList() {
     const data = await gasCall('getFileList', {});
     renderPendingPreparations_(data && data.pendingRequests || []);
     if (!data.ok) throw new Error(data.message || '取得失敗');
-    if (!data.files || data.files.length === 0) { showUrlFb('フォルダにCSVファイルがありません', 'warn'); return; }
+    // ★v3.3 inbox＝読込元フォルダの新しい CSV（選ぶとサーバーがドライブから読んで取り込む。leader 以上にだけ届く）
+    //        files＝取り込み済みの出荷（照合できるもの。全員）
+    const inboxFiles  = (data.inbox || []).slice().sort(function(a, b) { return String(a.name).localeCompare(String(b.name), 'ja'); });
+    const sourceFiles = (data.files || []).slice().sort(function(a, b) { return new Date(a.updated) - new Date(b.updated); });
+    const total = inboxFiles.length + sourceFiles.length;
+    if (total === 0) { showUrlFb('読込元フォルダに新しいCSVも、取り込み済みの出荷もありません', 'warn'); return; }
     const listEl = document.getElementById('drive-file-list');
     listEl.style.display = 'block';
-    data.files.sort(function(a, b) {
-      if (a.folder === 'pending' && b.folder !== 'pending') return -1;
-      if (a.folder !== 'pending' && b.folder === 'pending') return 1;
-      return new Date(a.updated) - new Date(b.updated);
-    });
-    const pendingFiles = data.files.filter(function(f) { return f.folder === 'pending'; });
-    const sourceFiles  = data.files.filter(function(f) { return f.folder !== 'pending'; });
-    var html2 = '<div style="padding:8px 12px;border-bottom:2px solid #e5e5e0;display:flex;justify-content:space-between;align-items:center;background:#f9f9f7"><span style="font-size:11px;color:#888">' + data.files.length + "件（複数選択可）</span><button data-csp-click=\"h23\" data-csp-source-click=\"loadSelectedFiles()\" style=\"padding:6px 16px;background:#1e8a55;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer\">選択して読込</button></div>";
-    if (pendingFiles.length > 0) {
-      html2 += '<div style="padding:6px 12px;background:#fff8ec;font-size:11px;font-weight:700;color:#b56e00;border-bottom:1px solid #f0e8cc">🔄 作業中（未完了フォルダ）</div>';
-      pendingFiles.forEach(function(f) {
-        // ★旧: f.name.replace(/'/g, "\'") は置換になっていなかった。
-        //   二重引用符の中の "\'" は ' と同じ文字なので、' を ' に置き換えるだけ。
-        //   さらに、値を入れる先の属性は " で囲まれているため、
-        //   本当に無害化すべき文字は " のほうだった。esc() で両方まとめて処理する。
-        var safeName = esc(f.name);
-        var labelColor = f.label && f.label.includes('前倒し') ? '#1a5fb4' : f.label && f.label.includes('後ろ倒し') ? '#c0392b' : '#b56e00';
-        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fffdf5"><input type="checkbox" value="' + esc(f.id) + '" data-name="' + safeName + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#e8a000"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + esc(f.name) + '</div><div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center"><span style="color:' + labelColor + ';font-weight:600">' + esc(f.label) + '</span><span style="color:#888">' + esc(f.updated) + '</span></div></div></label>';
+    var html2 = '<div style="padding:8px 12px;border-bottom:2px solid #e5e5e0;display:flex;justify-content:space-between;align-items:center;background:#f9f9f7"><span style="font-size:11px;color:#888">' + total + "件（1つ選んで読込）</span><button data-csp-click=\"h23\" data-csp-source-click=\"loadSelectedFiles()\" style=\"padding:6px 16px;background:#1e8a55;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer\">選択して読込</button></div>";
+    // ★名前・ラベル・日時はサーバーから来た文字。属性にも本文にも esc() を通してから入れる。
+    if (inboxFiles.length > 0) {
+      html2 += '<div style="padding:6px 12px;background:#f0f5ff;font-size:11px;font-weight:700;color:#3a7bdc;border-bottom:1px solid #dce8ff">🆕 新規（読込元フォルダのCSV・選ぶと取り込みます）</div>';
+      inboxFiles.forEach(function(f) {
+        var labelColor = f.label === '取込途中' ? '#b56e00' : '#3a7bdc';
+        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" value="' + esc(f.id) + '" data-kind="inbox" data-name="' + esc(f.name) + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#3a7bdc"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + esc(f.name) + '</div><div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center"><span style="color:' + labelColor + ';font-weight:600">' + esc(f.label) + '</span><span style="color:#888">' + esc(f.updated) + '</span></div></div></label>';
       });
     }
     if (sourceFiles.length > 0) {
-      html2 += '<div style="padding:6px 12px;background:#f0f5ff;font-size:11px;font-weight:700;color:#3a7bdc;border-bottom:1px solid #dce8ff">🆕 新規（読込元フォルダ）</div>';
+      html2 += '<div style="padding:6px 12px;background:#fff8ec;font-size:11px;font-weight:700;color:#b56e00;border-bottom:1px solid #f0e8cc">📦 取り込み済みの出荷</div>';
       sourceFiles.forEach(function(f) {
-        // ★旧: f.name.replace(/'/g, "\'") は置換になっていなかった。
-        //   二重引用符の中の "\'" は ' と同じ文字なので、' を ' に置き換えるだけ。
-        //   さらに、値を入れる先の属性は " で囲まれているため、
-        //   本当に無害化すべき文字は " のほうだった。esc() で両方まとめて処理する。
-        var safeName = esc(f.name);
-        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" value="' + esc(f.id) + '" data-name="' + safeName + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#3a7bdc"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + esc(f.name) + '</div><div style="font-size:11px;color:#888;margin-top:3px">' + esc(f.updated) + '</div></div></label>';
+        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fffdf5"><input type="checkbox" value="' + esc(f.id) + '" data-kind="batch" data-name="' + esc(f.name) + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#e8a000"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + esc(f.name) + '</div><div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center"><span style="color:#b56e00;font-weight:600">' + esc(f.label) + '</span><span style="color:#888">' + esc(f.updated) + '</span></div></div></label>';
       });
     }
     listEl.innerHTML = html2;
-    showUrlFb(data.files.length + '件見つかりました（作業中:' + pendingFiles.length + '件 / 新規:' + sourceFiles.length + '件）', 'ok');
-  } catch(err) { showUrlFb('エラー: ' + err.message, 'err'); }
+    showUrlFb(total + '件見つかりました（新規:' + inboxFiles.length + '件 / 取り込み済み:' + sourceFiles.length + '件）', 'ok');
+  } catch(err) { showUrlFb('エラー: ' + friendlyError_(err.message), 'err'); }
 }
 
-async function loadSelectedFiles() { return loadSelectedCanonicalBatch_(); }
+async function loadSelectedFiles() {
+  const selected=document.querySelectorAll('#drive-file-list input[type=checkbox]:checked');
+  if(selected.length===1&&!records.length&&selected[0].dataset.kind==='inbox')return importInboxCsv_(selected[0].value,selected[0].dataset.name);
+  return loadSelectedCanonicalBatch_();
+}
+
+// ★v3.3 読込元フォルダの CSV を取り込んで、そのまま照合の画面に読み込む。
+//   サーバーが要求ID をファイルと中身から決めるので、途中で止まったら同じファイルを選び直すだけで続きから進む。
+let inboxImportBusy_ = false;
+async function importInboxCsv_(fileId, name) {
+  if (inboxImportBusy_) return;
+  inboxImportBusy_ = true;
+  showUrlFb('取り込み中: ' + name + '（行数が多いと少し時間がかかります）', 'info');
+  try {
+    const result = await gasCall('prepareBatch', { sourceFileId: fileId });
+    if (!result || !result.ok) throw new Error(result && result.message || '取込未完了');
+    const batch = await gasCall('getBatch', { batchId: result.batchId });
+    if (!batch || !batch.ok) throw new Error(batch && batch.message || '取り込んだ出荷を確認できません');
+    records=batch.records;sourceFileName=batch.batchId;loadedFiles=[batch.batchId+'.csv'];logEntries=[];
+    updateStats();renderList();renderHinbanFilter();updateChips();
+    showUrlFb('取り込み完了: ' + records.length + '件（' + name + '）', 'ok');
+    showFB('ok','正本CSV・manifest作成済み: '+batch.batchId);
+  } catch (e) {
+    showUrlFb('取り込めませんでした: ' + friendlyError_(e.message) + '\n同じファイルをもう一度選ぶと、続きから再開します。', 'err');
+  } finally { inboxImportBusy_ = false; }
+}
+
+// サーバーの短い理由コードを、画面で読める文に（コードも残す）
+function friendlyError_(msg) {
+  const m = String(msg || '');
+  const map = {
+    ADMIN_REQUIRED: '「ファイルから選ぶ」は管理者・マスターだけが使えます。リーダーは「ファイル一覧を取得」から選んでください',
+    IMPORT_ROLE_REQUIRED: '取り込みはリーダー以上が行います',
+    SOURCE_ALREADY_REGISTERED: '同じ出荷（バーコード）が既に取り込まれています',
+    SOURCE_FILE_CHANGED: '取り込みのあとでファイルの中身が変わっています。管理者に確認してください',
+    SOURCE_FILE_NOT_ALLOWED: '読込元フォルダのCSVではないため取り込めません',
+    SOURCE_FILE_NOT_FOUND: 'ファイルが見つかりません。一覧を取り直してください',
+    INVALID_CSV_SIZE: 'CSVが空か、大きすぎます（1回 1,000行まで）',
+    CSV_SCHEMA_MISMATCH: 'CSVの見出しが違うか、行数が多すぎます（1回 1,000行まで）'
+  };
+  for (const k of Object.keys(map)) if (m.indexOf(k) >= 0) return map[k] + '（' + k + '）';
+  return m;
+}
 
 function parseShippingCsvRows_(text) {
   text = String(text).replace(/^\uFEFF/, '');
@@ -1281,7 +1312,8 @@ let pendingPrepare_ = null;
 async function prepareLocalCsv_(file) {
   if(pendingPrepare_) {showFB('err','未完了の取込要求を先に再試行してください');return;}
   const csvText=await file.text();
-  pendingPrepare_={requestId:crypto.randomUUID(),csvText};
+  // ★v3.3 fileName は読込元フォルダに保存するときの名前に使うだけ（同じ要求かどうかの判定には使わない）
+  pendingPrepare_={requestId:crypto.randomUUID(),csvText,fileName:file.name};
   await retryPreparation_();
 }
 async function retryPreparation_() {
@@ -1289,8 +1321,13 @@ async function retryPreparation_() {
   try {
     const result=await gasCall('prepareBatch',pendingPrepare_);
     if(!result || !result.ok){
-      const receipt=await gasCall('getBatch',{requestId:pendingPrepare_.requestId});
-      if(receipt && !receipt.ok && receipt.message==='REQUEST_NOT_OWNED')pendingPrepare_=null;
+      // ★v3.3 同じ要求で続けられるのは「途中で止まった」「混み合い」だけ。権限・CSV の中身の誤りは要求を残さない
+      //   （残すと次のファイルを選べなくなり、続けられない「取込を再開」も出続けていた）
+      if(result && !result.retrySameRequest && result.code!=='BUSY' && ['busy','unavailable'].indexOf(result.error)<0)pendingPrepare_=null;
+      else {
+        const receipt=await gasCall('getBatch',{requestId:pendingPrepare_.requestId});
+        if(receipt && !receipt.ok && receipt.message==='REQUEST_NOT_OWNED')pendingPrepare_=null;
+      }
       throw new Error(result && result.message || '取込未完了');
     }
     const batch=await gasCall('getBatch',{batchId:result.batchId});
@@ -1300,7 +1337,7 @@ async function retryPreparation_() {
     updateStats();renderList();renderHinbanFilter();updateChips();
     showFB('ok','正本CSV・manifest作成済み: '+batch.batchId);
   }catch(e){
-    showFB('err',e.message+(pendingPrepare_?' / 要求ID: '+pendingPrepare_.requestId:''));
+    showFB('err',friendlyError_(e.message)+(pendingPrepare_?' / 要求ID: '+pendingPrepare_.requestId:''));
   }
   renderPendingPreparations_(pendingPrepare_?[{requestId:pendingPrepare_.requestId,kind:'prepare'}]:[]);
 }
@@ -1319,7 +1356,7 @@ function renderPendingPreparations_(items) {
         if(!receipt || !receipt.ok)throw new Error(receipt && receipt.message || '要求を確認できません');
         pendingPrepare_=receipt.operation.payload;
         await retryPreparation_();
-      }catch(e){showFB('err',e.message);}
+      }catch(e){showFB('err',friendlyError_(e.message));}
     };
     box.appendChild(button);
   });
