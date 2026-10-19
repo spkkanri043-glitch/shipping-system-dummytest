@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-W+WAD4ImjtDAcD1D8UREMv1ccw6KaElJgCxBGwMjLU4=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-U9NgMuYpT+l6U4iWR28dQV5YBDMqJNcAaY4M7NfV7ds=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -1794,9 +1794,20 @@ function execConfirm() {
 // ============================================================
 // 自動バックアップ（リロード対策）
 // ============================================================
-const BACKUP_KEY = 'sakugyo_wip_backup';
+// ★2026-10-20 作業データの復元（アプリを閉じても続きから）：下書きだけ端末（localStorage）に置く。
+//   名前は新しくする（旧名 sakugyo_wip_backup はほかの画面が起動時に消すため）。
+//   本人の ID が一致・24時間以内のときだけ復元、送信・ログアウト・新しい作業で消す（下の処理のまま）。写真は含めない。
+//   端末に置けないとき（プライベートモード等）は、今までどおり画面の中のメモリだけ。
+const BACKUP_KEY = 'sakugyo_wip_backup_v2';
+const draftStorage = (() => {
+  try {
+    const s = window.localStorage, probe = '__sakugyo_probe__';
+    s.setItem(probe, '1'); s.removeItem(probe);
+    return s;
+  } catch (e) { return pageMemoryStorage; }
+})();
 
-// 作業中データを localStorage に保存
+// 作業中データを保存（端末に置けないときは画面の中のメモリ）
 function autoSave() {
   if (!currentUser || workState.status === 'ended') return;
   try {
@@ -1821,19 +1832,19 @@ function autoSave() {
       count:   count,
       defects: defects,
     };
-    pageMemoryStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+    draftStorage.setItem(BACKUP_KEY, JSON.stringify(data));
   } catch(e) {}
 }
 
 // バックアップをクリア（正常保存・ログアウト時）
 function clearAutoSave() {
-  try { pageMemoryStorage.removeItem(BACKUP_KEY); } catch(e) {}
+  try { draftStorage.removeItem(BACKUP_KEY); } catch(e) {}
 }
 
 // 起動時にバックアップがあれば復元確認
 function checkAndRestoreBackup() {
   try {
-    const raw = pageMemoryStorage.getItem(BACKUP_KEY);
+    const raw = draftStorage.getItem(BACKUP_KEY);
     if (!raw) return;
     const data = JSON.parse(raw);
     if (!data.user || !currentUser || data.user.id !== currentUser.id) { clearAutoSave(); return; }
