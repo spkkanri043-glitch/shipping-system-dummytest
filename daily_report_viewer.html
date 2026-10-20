@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lltMuEiz09lcPNVMpMqbHl1Y0WHrJ7l/LLrdEQ5I2Og=' 'sha256-ROzCNzh+v3JpQRMBTNZvpSjZmq4Ybn/Fi/dcCsp6e6E='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lltMuEiz09lcPNVMpMqbHl1Y0WHrJ7l/LLrdEQ5I2Og=' 'sha256-uFlRfOtqLEeH5Pv3yhlJFMMmSrQ8a1OxCdptdKq/TrY='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -691,6 +691,14 @@ function renderWorkerSummary() {
   });
 }
 
+// ★2026-10-20 1個あたりのタクト（秒）＝作業時間（分）×60 ÷ 合計数量。どちらかが 0・不明なら出さない。
+function taktSecPerPiece_(r) {
+  const min = Number(r['作業時間分']), total = Number(r['合計']);
+  if (!(min > 0) || !(total > 0)) return null;
+  return min * 60 / total;
+}
+function fmtTakt_(r) { const t = taktSecPerPiece_(r); return t == null ? '—' : t.toFixed(1) + ' 秒'; }
+
 // XSS対策ヘルパー（要素本文用 / 二重引用符属性値用）。
 function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function escapeAttr(s){ return escapeHtml(s); }
@@ -731,6 +739,7 @@ function renderTable() {
       <td style="text-align:center;color:var(--tx2)">${Number(r['端数個数']||0) > 0 ? `+${Number(r['端数個数'])||0}個` : '—'}</td>
       <td style="text-align:center;font-weight:700;color:var(--pr)">${(Number(r['合計'])||0).toLocaleString()}</td>
       <td style="text-align:center">${Number(r['作業時間分'])||0} 分</td>
+      <td style="text-align:center;white-space:nowrap">${escapeHtml(fmtTakt_(r))}</td>
       <td style="text-align:center">
         ${hasDefect ? `<span class="defect-badge">${Number(r['不具合数'])||0}個</span>` : `<span class="no-defect">なし</span>`}
       </td>
@@ -750,6 +759,7 @@ function renderTable() {
           <th>端数</th>
           <th>合計数量</th>
           <th>作業時間</th>
+          <th>タクト/個</th>
           <th>不具合</th>
           <th>写真</th>
         </tr></thead>
@@ -887,6 +897,7 @@ function openDetail(idx) {
         <div class="detail-item"><div class="detail-label">端数個数</div><div class="detail-value">${Number(r['端数個数']||0)} 個</div></div>
         <div class="detail-item"><div class="detail-label">合計数量</div><div class="detail-value large">${(Number(r['合計'])||0).toLocaleString()} 個</div></div>
         <div class="detail-item"><div class="detail-label">作業時間</div><div class="detail-value">${escapeHtml(r['作業時間分']||0)} 分</div></div>
+        <div class="detail-item"><div class="detail-label">タクト（1個あたり）</div><div class="detail-value">${escapeHtml(fmtTakt_(r))}</div></div>
       </div>
     </div>
 
