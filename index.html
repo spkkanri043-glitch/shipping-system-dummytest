@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-6V2rd4/+w2VjEumSXeSSS+6dmf+mmC0qzgM0RNBPit4='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-JWvy0nMnJadV5r6yVlazBQ6KzrxRTxLdo9OAW+9z8gI='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -1180,7 +1180,7 @@ async function loadDriveFileList() {
     const data = await gasCall('getFileList', {});
     renderPendingPreparations_(data && data.pendingRequests || []);
     if (!data.ok) throw new Error(data.message || '取得失敗');
-    // ★v3.3 inbox＝読込元フォルダの新しい CSV（選ぶとサーバーがドライブから読んで取り込む。leader 以上にだけ届く）
+    // ★v3.3 inbox＝読込元フォルダの新しい CSV（選ぶとサーバーがドライブから読んで取り込む。leader・admin・master にだけ届く）
     //        files＝取り込み済みの出荷（照合できるもの。全員）
     const inboxFiles  = (data.inbox || []).slice().sort(function(a, b) { return String(a.name).localeCompare(String(b.name), 'ja'); });
     const sourceFiles = (data.files || []).slice().sort(function(a, b) { return new Date(a.updated) - new Date(b.updated); });
@@ -1244,13 +1244,13 @@ function friendlyError_(msg) {
   const m = String(msg || '');
   const map = {
     ADMIN_REQUIRED: '「ファイルから選ぶ」は管理者・マスターだけが使えます。リーダーは「ファイル一覧を取得」から選んでください',
-    IMPORT_ROLE_REQUIRED: '取り込みはリーダー以上が行います',
+    IMPORT_ROLE_REQUIRED: 'CSVの取り込みはリーダー以上が行えます。取り込み済みの出荷は「ファイル一覧を取得」から開けます',
     SOURCE_ALREADY_REGISTERED: '同じ出荷（バーコード）が既に取り込まれています',
     SOURCE_FILE_CHANGED: '取り込みのあとでファイルの中身が変わっています。管理者に確認してください',
     SOURCE_FILE_NOT_ALLOWED: '読込元フォルダのCSVではないため取り込めません',
     SOURCE_FILE_NOT_FOUND: 'ファイルが見つかりません。一覧を取り直してください',
-    INVALID_CSV_SIZE: 'CSVが空か、大きすぎます（1回 1,000行まで）',
-    CSV_SCHEMA_MISMATCH: 'CSVの見出しが違うか、行数が多すぎます（1回 1,000行まで）'
+    INVALID_CSV_SIZE: 'CSVが空か、大きすぎます（1回 1,500行・300KBまで）',
+    CSV_SCHEMA_MISMATCH: 'CSVの見出しが違うか、行数が多すぎます（1回 1,500行まで）'
   };
   for (const k of Object.keys(map)) if (m.indexOf(k) >= 0) return map[k] + '（' + k + '）';
   return m;
