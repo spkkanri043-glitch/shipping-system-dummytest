@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-JWvy0nMnJadV5r6yVlazBQ6KzrxRTxLdo9OAW+9z8gI='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-6c4kdhqIQHj2fB5kyolvEmxCKF34TpQlXv5Me3YKTUA='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -616,7 +616,7 @@ function restoreData() {
 async function loadCSVFiles(input) {
   const files=Array.from(input.files);
   if(files.length!==1){showFB('err','1つのCSVを選択してください');return;}
-  if(records.length){showFB('err','現在のバッチを保存・リセットしてから取り込んでください');return;}
+  if(records.length){showFB('err','画面に出荷があります。追加注文は、読込元フォルダのCSVを「ファイル一覧を取得」の🆕新規から選ぶと、今の出荷に足せます');return;}
   try {await prepareLocalCsv_(files[0]);}catch(e){showFB('err',e.message);}
   input.value='';
 }
@@ -1173,6 +1173,19 @@ function closeUrlModal() {
   if (fileList) fileList.style.display = 'none';
 }
 
+// ★2026-10-21 一覧の「取り込み済みの出荷」の見せ方：元のファイル名（「ファイルから選ぶ」で付いた _up＋8文字は外す）と日本時間
+function sourceDisplayName_(name) {
+  return String(name || '').replace(/_up[0-9A-Za-z]{1,8}(\.csv)$/i, '$1');
+}
+function jstTime_(iso) {
+  const d = new Date(iso);
+  if (!iso || isNaN(d.getTime())) return String(iso || '');
+  const p = {};
+  new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(d).forEach(function(x) { p[x.type] = x.value; });
+  return p.year + '/' + p.month + '/' + p.day + ' ' + p.hour + ':' + p.minute;
+}
+
 async function loadDriveFileList() {
   if (!GAS_DEPLOY_URL || GAS_DEPLOY_URL === 'YOUR_DEPLOY_URL') { showUrlFb('GAS_DEPLOY_URLが未設定です', 'err'); return; }
   showUrlFb('ファイル一覧を取得中...', 'info');
@@ -1200,7 +1213,10 @@ async function loadDriveFileList() {
     if (sourceFiles.length > 0) {
       html2 += '<div style="padding:6px 12px;background:#fff8ec;font-size:11px;font-weight:700;color:#b56e00;border-bottom:1px solid #f0e8cc">📦 取り込み済みの出荷</div>';
       sourceFiles.forEach(function(f) {
-        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fffdf5"><input type="checkbox" value="' + esc(f.id) + '" data-kind="batch" data-name="' + esc(f.name) + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#e8a000"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + esc(f.name) + '</div><div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center"><span style="color:#b56e00;font-weight:600">' + esc(f.label) + '</span><span style="color:#888">' + esc(f.updated) + '</span></div></div></label>';
+        // ★2026-10-21 元のファイル名（何日の出荷か）を大きく、出荷の番号は小さく。時刻は日本時間。
+        var title = f.sourceName ? sourceDisplayName_(f.sourceName) : f.name;
+        var sub = f.sourceName ? '<div style="font-size:10px;color:#999;margin-top:2px;word-break:break-all">' + esc(f.name) + '</div>' : '';
+        html2 += '<label style="padding:10px 12px;border-bottom:1px solid #f0f0ea;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fffdf5"><input type="checkbox" value="' + esc(f.id) + '" data-kind="batch" data-name="' + esc(f.name) + '" style="width:18px;height:18px;flex-shrink:0;accent-color:#e8a000"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;word-break:break-all">' + esc(title) + '</div>' + sub + '<div style="font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center"><span style="color:#b56e00;font-weight:600">' + esc(f.label) + '</span><span style="color:#888">' + esc(jstTime_(f.updated)) + ' 取り込み</span></div></div></label>';
       });
     }
     listEl.innerHTML = html2;
@@ -1210,8 +1226,56 @@ async function loadDriveFileList() {
 
 async function loadSelectedFiles() {
   const selected=document.querySelectorAll('#drive-file-list input[type=checkbox]:checked');
-  if(selected.length===1&&!records.length&&selected[0].dataset.kind==='inbox')return importInboxCsv_(selected[0].value,selected[0].dataset.name);
+  if(selected.length===1&&selected[0].dataset.kind==='inbox'){
+    if(!records.length)return importInboxCsv_(selected[0].value,selected[0].dataset.name);
+    return appendInboxCsv_(selected[0].value,selected[0].dataset.name);   // ★2026-10-21 画面に出荷があるとき＝追加注文として足す
+  }
   return loadSelectedCanonicalBatch_();
+}
+
+// ★2026-10-21 追加注文：画面の出荷に、一覧の新しい CSV（追加の行）を足す。同じバーコードは飛ばす（v3.1 と同じ）。
+//   ①まだ送っていない消し込みがあれば先に保存 ②サーバーの写し（revision）を添えて追加を頼む ③足した出荷を読み直す。
+//   照合が終わった出荷には足さない（サーバーが BATCH_FINISHED で断る）。止まったら同じファイルを選び直すと続きから。
+function scanStateDiffers_(screen, server) {
+  const byBc = {};
+  (server || []).forEach(function(r) { byBc[r['バーコード番号']] = r; });
+  return screen.length !== (server || []).length || screen.some(function(r) {
+    const s = byBc[r['バーコード番号']];
+    return !s || ['消込済', '消込日時', '納品調整'].some(function(k) { return String(r[k] || '') !== String(s[k] || ''); });
+  });
+}
+async function appendInboxCsv_(fileId, name) {
+  if (inboxImportBusy_) return;
+  if (!confirm('今の出荷に、追加のCSVを足します。\n\n追加: ' + name + '\n\n済みにした行はそのままです。同じバーコードの行は飛ばします。よろしいですか？')) return;
+  inboxImportBusy_ = true;
+  showUrlFb('追加中: ' + name, 'info');
+  let retryable = true;
+  try {
+    clearTimeout(cloudSaveTimer);
+    let snap = await gasCall('getBatch', { batchId: sourceFileName });
+    if (!snap || !snap.ok) { retryable = false; throw new Error(snap && snap.message || '今の出荷を確認できません'); }
+    if (scanStateDiffers_(records, snap.records)) {
+      const saved = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr(), batchId: sourceFileName });
+      if (!saved || !saved.ok || saved.code === 'BATCH_BUSY') { retryable = false; throw new Error('今の出荷を保存できません: ' + (saved && saved.message || '')); }
+      logEntries = [];
+      snap = await gasCall('getBatch', { batchId: sourceFileName });
+      if (!snap || !snap.ok) throw new Error(snap && snap.message || '今の出荷を確認できません');
+    }
+    const result = await gasCall('prepareBatch', { appendTo: sourceFileName, sourceFileId: fileId, revision: snap.revision });
+    if (!result || !result.ok) {
+      retryable = !result || !!result.retrySameRequest || result.code === 'BUSY' || ['busy','unavailable'].indexOf(result.error) >= 0;
+      throw new Error(result && result.message || '追加未完了');
+    }
+    const batch = await gasCall('getBatch', { batchId: result.batchId });
+    if (!batch || !batch.ok) throw new Error(batch && batch.message || '足した出荷を確認できません');
+    records=batch.records;sourceFileName=batch.batchId;loadedFiles=[batch.batchId+'.csv'];logEntries=[];
+    updateStats();renderList();renderHinbanFilter();updateChips();
+    autoSave();   // 足した出荷として保存し直す（クラウド復元で足した後の出荷が戻るように）
+    showUrlFb('追加しました: ' + (result.added || 0) + '件（同じバーコードで飛ばした行 ' + (result.skipped || 0) + '件）。全部で ' + records.length + '件', 'ok');
+    showFB('ok', '追加注文を足しました: ' + name);
+  } catch (e) {
+    showUrlFb('追加できませんでした: ' + friendlyError_(e.message) + (retryable ? '\n同じファイルをもう一度選ぶと、続きから再開します。' : ''), 'err');
+  } finally { inboxImportBusy_ = false; }
 }
 
 // ★v3.3 読込元フォルダの CSV を取り込んで、そのまま照合の画面に読み込む。
@@ -1250,7 +1314,13 @@ function friendlyError_(msg) {
     SOURCE_FILE_NOT_ALLOWED: '読込元フォルダのCSVではないため取り込めません',
     SOURCE_FILE_NOT_FOUND: 'ファイルが見つかりません。一覧を取り直してください',
     INVALID_CSV_SIZE: 'CSVが空か、大きすぎます（1回 1,500行・300KBまで）',
-    CSV_SCHEMA_MISMATCH: 'CSVの見出しが違うか、行数が多すぎます（1回 1,500行まで）'
+    CSV_SCHEMA_MISMATCH: 'CSVの見出しが違うか、行数が多すぎます（1回 1,500行まで）',
+    NOTHING_TO_APPEND: '足す行がありません（全部、今の出荷にあるバーコードです）',
+    BATCH_FINISHED: '今の出荷は照合が終わっています。「リセット」で画面を空にしてから、追加分を新しい出荷として取り込んでください',
+    STALE_OR_INCOMPLETE_SNAPSHOT: 'ほかの端末で今の出荷が更新されています。「クラウド復元」をしてから、もう一度選んでください',
+    APPEND_TOO_MANY_ROWS: '足すと1つの出荷が1,500行を超えます',
+    SOURCE_ALREADY_APPENDED: 'このCSVは別の出荷に足してあります',
+    SOURCE_NOT_ACTIVE: '今の出荷は、出荷調整などで別の版になっています。一覧から開き直してください'
   };
   for (const k of Object.keys(map)) if (m.indexOf(k) >= 0) return map[k] + '（' + k + '）';
   return m;
@@ -1376,7 +1446,8 @@ function renderPendingPreparations_(items) {
 
 async function loadSelectedCanonicalBatch_() {
   const selected=document.querySelectorAll('#drive-file-list input[type=checkbox]:checked');
-  if(selected.length!==1||records.length){showUrlFb('空の画面で1バッチを選択してください','err');return;}
+  if(selected.length!==1){showUrlFb('1つだけ選んでください','err');return;}
+  if(records.length){showUrlFb('画面に出荷が開いています。取り込み済みの別の出荷を開くときは、先に「リセット」してください（追加注文のCSVは🆕新規から選ぶと、今の出荷に足せます）','err');return;}
   try {
     const data=await gasCall('getBatch',{batchId:selected[0].dataset.name.replace(/\.csv$/i,'')});
     if(!data||!data.ok)throw new Error(data&&data.message||'読込失敗');
