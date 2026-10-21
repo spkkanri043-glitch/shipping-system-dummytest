@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-8v5nfJNrd1yiEwkXIlHKAaLfpLR8cdsGrIbYKQMcS/g='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-xzQah3Szkgc1AA74GQSrhAPUQmKdZGVzL5EGweg82yQ='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -874,22 +874,21 @@ function updateExportPreview() {
   function fmtDate(d) { return (d||'').replace(/\//g,'.').replace(/\.0(\d)/g,'.$1'); }
 
   const rows = [];
-  if (mae.length) {
-    const fromDates = [...new Set(mae.map(r => r['_origDate']||r['納品日']||''))].map(fmtDate).join('・');
-    const toDates   = [...new Set(mae.map(r => r['納品日']||''))].map(fmtDate).join('・');
-    rows.push({ label:'前倒し', count:mae.length, fname:'前倒し_' + fromDates + '→' + toDates + '.csv', color:'var(--blue)' });
-  }
-  if (ato.length) {
-    const fromDates = [...new Set(ato.map(r => r['_origDate']||r['納品日']||''))].map(fmtDate).join('・');
-    const toDates   = [...new Set(ato.map(r => r['納品日']||''))].map(fmtDate).join('・');
-    rows.push({ label:'後ろ倒し', count:ato.length, fname:'後ろ倒し_' + fromDates + '→' + toDates + '.csv', color:'var(--red)' });
-  }
+  // ★2026-10-21 前倒し・後ろ倒しは、移す先の日ごとに読込元フォルダの新しい CSV になる（元の出荷からは外れる）
+  [['前倒し', mae, 'var(--blue)'], ['後ろ倒し', ato, 'var(--red)']].forEach(function(x) {
+    const byTo = {};
+    x[1].forEach(function(r) { (byTo[r['納品日'] || ''] = byTo[r['納品日'] || ''] || []).push(r); });
+    Object.keys(byTo).sort().forEach(function(to) {
+      const fromDates = [...new Set(byTo[to].map(r => r['_origDate']||r['納品日']||''))].map(fmtDate).join('・');
+      rows.push({ label: x[0] + '（読込元フォルダの新しいCSV・' + fmtDate(to) + ' の照合で足す）', count: byTo[to].length, fname: x[0] + '_' + fromDates + '→' + fmtDate(to) + '.csv', color: x[2] });
+    });
+  });
   if (cancel.length) {
     const fromDates = [...new Set(cancel.map(r => r['_origDate']||r['納品日']||''))].map(fmtDate).join('・');
     rows.push({ label:'キャンセル', count:cancel.length, fname:'キャンセル_' + fromDates + '.csv', color:'var(--text3)' });
   }
   if (unadj.length) {
-    rows.push({ label:'未調整（派生バッチへ継続）', count:unadj.length, fname:'─', color:'var(--accent)' });
+    rows.push({ label:'残り（この出荷のまま）', count:unadj.length, fname:'─', color:'var(--accent)' });
   }
 
   const el = document.getElementById('export-preview');
@@ -970,7 +969,9 @@ async function runAdjustmentOperation_() {
     allRecords=[];selectedBCs.clear();loadedFileNames=[];batchSnapshot_=null;updateAll();
     if(live)await loadAdjustmentBatch_(live.batchId);
     const notificationFailed=result.notification&&!result.notification.ok;
-    showStatus(notificationFailed?'warn':'ok','保存済み / '+(result.results||[]).map(r=>r.state+': '+r.batchId+' ('+r.count+'件)').join(' / ')+(notificationFailed?' / 通知結果は未確認です':''));
+    // ★2026-10-21 前倒し・後ろ倒しで外した行は、読込元フォルダの新しい CSV（先の日の照合で🆕新規から足す）
+    const movedText=(result.moved||[]).map(m=>m.type+' '+m.count+'件 → '+m.filename+'（読込元フォルダ）').join(' / ');
+    showStatus(notificationFailed?'warn':'ok','保存済み / '+(result.results||[]).map(r=>r.state+': '+r.batchId+' ('+r.count+'件)').concat(movedText?[movedText]:[]).join(' / ')+(notificationFailed?' / 通知結果は未確認です':''));
   }catch(e){
     showStatus('err',e.message+' / 要求ID: '+operation.payload.requestId);
   }finally{
