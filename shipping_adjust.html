@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-xzQah3Szkgc1AA74GQSrhAPUQmKdZGVzL5EGweg82yQ='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-gTeOE+1aAio3HOceXPR6naTUN0xMY09rfzcSe8sM3p4='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -354,7 +354,7 @@ select.fi{cursor:pointer}
   <!-- Step3: 書き出し -->
   <div class="card" id="card-export" style="display:none">
     <div class="card-title">Step 3　ドライブに保存</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.7">
+    <div id="export-state" style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.7">
       保存前
     </div>
     <div id="export-preview" style="margin-bottom:12px"></div>
@@ -458,6 +458,7 @@ let pendingAdjustment_ = null;
 let operationBusy_ = false;
 let currentAdjType = '';
 let loadedFileNames = [];
+let lastSaveSummary_ = '';   // ★2026-10-21 直前に保存した内容（Step 3 に出し続ける。別の出荷を読み込むと消す）
 
 // ============================================================
 // 起動処理
@@ -873,6 +874,14 @@ function updateExportPreview() {
 
   function fmtDate(d) { return (d||'').replace(/\//g,'.').replace(/\.0(\d)/g,'.$1'); }
 
+  // ★2026-10-21 Step 3 の状態：調整を選んでいる＝「保存前：未保存の調整 N件」、選んでいない＝直前の保存の内容か案内（プレビューは出さない）
+  const stateEl = document.getElementById('export-state');
+  const adjCount = mae.length + ato.length + cancel.length;
+  if (stateEl) stateEl.textContent = adjCount
+    ? '保存前：未保存の調整 ' + adjCount + '件（「ドライブに保存実行」で保存します）'
+    : (lastSaveSummary_ || '保存するものはありません（調整する行を選んで、前倒し・後ろ倒し・キャンセルを指定してください）');
+  if (!adjCount) { document.getElementById('export-preview').innerHTML = ''; return; }
+
   const rows = [];
   // ★2026-10-21 前倒し・後ろ倒しは、移す先の日ごとに読込元フォルダの新しい CSV になる（元の出荷からは外れる）
   [['前倒し', mae, 'var(--blue)'], ['後ろ倒し', ato, 'var(--red)']].forEach(function(x) {
@@ -939,6 +948,7 @@ function pad(n) { return String(n).padStart(2,'0'); }
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 async function loadAdjustmentBatch_(batchId) {
+  lastSaveSummary_ = '';
   try {
     const batch=await gasCall_('getBatch',{batchId});
     if(!batch||!batch.ok)throw new Error(batch&&batch.message||'バッチ読込失敗');
@@ -968,6 +978,13 @@ async function runAdjustmentOperation_() {
     const live=(result.results||[]).find(r=>r.state==='ACTIVE');
     allRecords=[];selectedBCs.clear();loadedFileNames=[];batchSnapshot_=null;updateAll();
     if(live)await loadAdjustmentBatch_(live.batchId);
+    // ★2026-10-21 保存した内容を Step 3 に出し続ける（4秒で消える上の知らせだけだと「保存前」に見えるため）
+    const cancelled=(result.results||[]).find(r=>r.state==='CANCELLED');
+    const now=new Date();
+    lastSaveSummary_='保存済み（'+pad(now.getHours())+':'+pad(now.getMinutes())+'）：この出荷の残り '+(live?live.count+'件（'+live.batchId+'）':'0件')
+      +(result.moved||[]).map(m=>' / '+m.type+' '+m.count+'件 → '+m.filename+'（読込元フォルダ）').join('')
+      +(cancelled?' / キャンセル '+cancelled.count+'件（キャンセルフォルダ）':'');
+    updateExportPreview();
     const notificationFailed=result.notification&&!result.notification.ok;
     // ★2026-10-21 前倒し・後ろ倒しで外した行は、読込元フォルダの新しい CSV（先の日の照合で🆕新規から足す）
     const movedText=(result.moved||[]).map(m=>m.type+' '+m.count+'件 → '+m.filename+'（読込元フォルダ）').join(' / ');
