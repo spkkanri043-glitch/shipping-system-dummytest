@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-PfGK9oI10g7BqfP6EgB6910lvyDrJm3HYkADrcYIVOA=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-YN6EuJmyJkcXF+Mn7Xth2sxgTudTGQr4KhRHjYqSACg=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -949,10 +949,16 @@ function startOnlineHeartbeat() {
   refreshOnlineUsers();
   startCellPolling();
   _onlineHeartbeatTimer = setInterval(() => {
+    if (document.hidden) return;   // ★2026-10-22 画面が隠れている間（別のタブ・最小化）は送らない（混み合いを減らす）
     sendOnlineStatus('active');
     refreshOnlineUsers();
   }, 8000); // 8秒ごとに更新（高速化）
   window.addEventListener('beforeunload', () => { sendOnlineStatus('leave'); });
+  // ★2026-10-22 画面に戻ってきたら、すぐに最新にする
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden || !currentUser) return;
+    sendOnlineStatus('active'); refreshOnlineUsers(); refreshCellFocusAndHistory();
+  });
 }
 
 // 取引先タブに「誰が編集中か」を表示
@@ -1044,7 +1050,7 @@ function getVisibleProductIds() {
 }
 
 async function refreshCellFocusAndHistory() {
-  if (!currentUser || !selCid) return;
+  if (!currentUser || !selCid || document.hidden) return;   // ★2026-10-22 画面が隠れている間は問い合わせない
   const productIds = getVisibleProductIds();
   if (!productIds) return;
   try {
@@ -1191,9 +1197,31 @@ const MOCK_PRODUCTS = {
 };
 const DEMO_STORE = { initStock:{}, cells:{} };
 
+// ★2026-10-22 保存（セル・月初在庫）は、混み合い・通信の一時的な失敗なら少し待って最大2回やり直す（同じ値を書くだけなので二重にならない）。
+//   やり直しても失敗したときだけ赤い知らせを出す。
 async function api(params) {
+  const tries = API_RETRY_ACTIONS_.includes(params.action) ? 3 : 1;
+  for (let n = 1; ; n++) {
+    try { return await apiOnce_(params); }
+    catch (error) {
+      const msg = String(error && error.message || error);
+      if (n < tries && API_RETRY_ERRORS_.some(k => msg.indexOf(k) >= 0)) { await new Promise(r => setTimeout(r, 800 * n)); continue; }
+      showLoad(false);
+      // ★2026-10-22 裏で数秒ごとに動く通信（編集中・最終更新者・オンラインの表示）の失敗では、赤い知らせを出さない
+      //   （保存とは関係ないのに「保存完了は確認できていません」と出て紛らわしかった）。保存の失敗と読み込みの失敗は文を分ける。
+      if (API_SILENT_ACTIONS_.includes(params.action)) { console.warn('[api] 裏の通信の失敗: ' + params.action + ' ' + msg); throw error; }
+      showApiNotice_(API_WRITE_ACTIONS_.includes(params.action)
+        ? '保存に失敗しました。保存できたか確認できていません。再読み込みして、入れた数字が残っているか確認してください。 '
+        : '読み込みに失敗しました。再読み込みしてください。 ', msg);
+      throw error;
+    }
+  }
+}
+const API_RETRY_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock'];
+const API_RETRY_ERRORS_ = ['server_error', 'busy', 'unavailable', '通信エラー', 'Failed to fetch', 'NetworkError', 'Load failed'];
+async function apiOnce_(params) {
   const token = getToken();
-  try {
+  {
     if (!token) { clearSession(); showLoginScreen(); throw new Error('unauthorized'); }
     const r = await fetch(GAS_URL, {
       method: 'POST',
@@ -1219,15 +1247,6 @@ async function api(params) {
     if (['getPartsData','getPartsStock','getOnlineUsers','getCellFocusList','getCellHistoryList'].includes(params.action) && j.ok !== true) throw new Error('成功を確認できませんでした');
     if (['addProduct','addClient','addGroup'].includes(params.action) && (typeof j.id !== 'string' || !j.id)) throw new Error('IDがありません');
     return j;
-  } catch (error) {
-    showLoad(false);
-    // ★2026-10-22 裏で数秒ごとに動く通信（編集中・最終更新者・オンラインの表示）の失敗では、赤い知らせを出さない
-    //   （保存とは関係ないのに「保存完了は確認できていません」と出て紛らわしかった）。保存の失敗と読み込みの失敗は文を分ける。
-    if (API_SILENT_ACTIONS_.includes(params.action)) { console.warn('[api] 裏の通信の失敗: ' + params.action + ' ' + error.message); throw error; }
-    showApiNotice_(API_WRITE_ACTIONS_.includes(params.action)
-      ? '保存に失敗しました。保存できたか確認できていません。再読み込みして、入れた数字が残っているか確認してください。 '
-      : '読み込みに失敗しました。再読み込みしてください。 ', error.message);
-    throw error;
   }
 }
 const API_SILENT_ACTIONS_ = ['setOnlineStatus', 'getOnlineUsers', 'setCellFocus', 'getCellFocusList', 'getCellHistoryList'];
@@ -2571,6 +2590,8 @@ function renderTable() {
     i.addEventListener('change', onCell);
     i.addEventListener('focus', onCellFocus);
     i.addEventListener('blur', onCellBlur);
+    i.addEventListener('keydown', onCellKeyDown_);
+    i.addEventListener('wheel', onCellWheel_, { passive: false });
   });
   mainTbody.querySelectorAll('[data-del]').forEach(b  => b.addEventListener('click', () => openDeleteConfirm(b.dataset.del)));
   mainTbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEditModal(b.dataset.edit)));
@@ -2586,6 +2607,9 @@ function renderTableOnly() { renderTable(); checkWarnItems(); }
 // ★2026-10-22 表を作り直しても、今いるセル・打ちかけの数字を保つ（安田さん：保存のたびにセルから外れて選び直しになる）。
 //   保存のときに表全体を作り直すので、次のセルに移って打ち始めたところでセルが消えていた。
 let _restoringFocus_ = false;   // 作り直し・戻しの間は、フォーカスの出入り（編集中の表示の送信・保存）を数えない
+// ★2026-10-22 ↑↓キー・マウスのホイールで、選んでいるセルの数字が増えたり減ったりしないようにする（安田さん）
+function onCellKeyDown_(e) { if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault(); }
+function onCellWheel_(e) { if (document.activeElement === e.target) e.preventDefault(); }
 function cellFocusSnapshot_() {
   const a = document.activeElement;
   if (!a || !a.matches || !a.matches('#main-tbody input[data-pid]')) return null;
