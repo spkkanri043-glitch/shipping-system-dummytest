@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-HWeqsQkI/iW3UY/eYW0W/cm04jB1ZPuEd5fEEld9bAc=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-8W0t3mzyAi8LkRSW3eBKa6tMznBOOAhuQEiO4KI7mxo=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -2924,6 +2924,8 @@ function openEditModal(pid) {
   document.getElementById('me-unit').value  = p.unit||'';
   document.getElementById('me-seiban').value = p.seiban || masterSeiban_(p.code);
   document.getElementById('me-color').value  = p.color||'';
+  if (!document.getElementById('me-seiban').value) fillSeibanFromMaster_('me-seiban', p.code,
+    () => document.getElementById('modal-edit').style.display !== 'none' && document.getElementById('me-pid').value === pid);
   document.getElementById('me-type').value  = p.itemType||'product';
   document.getElementById('me-group').value = p.group||'';
   document.getElementById('me-pid').value   = pid;
@@ -2984,6 +2986,17 @@ function openAddModal() {
 
 // ★2026-10-22 整番・色調：整番は製品マスタの対応表（品番→整番。開いたときに部品の計算用にもらっている）から引く
 function masterSeiban_(code) { return (window._seibanMap && window._seibanMap[code]) || ''; }
+// 対応表に無いとき（部品の表が無い製品マスタなど）は、製品マスタを検索して同じ品番の整番を入れる。
+//   まだ空で、同じ画面が開いているときだけ入れる（打ち込んだ整番は上書きしない）。失敗しても知らせは出さない。
+async function fillSeibanFromMaster_(inputId, code, stillOpen) {
+  if (!code) return;
+  try {
+    const r = await apiOnce_({ action:'searchProducts', q:code });
+    const hit = (r.products || []).find(x => x.code === code && x.seiban);
+    const el = document.getElementById(inputId);
+    if (hit && stillOpen() && !el.value) el.value = hit.seiban;
+  } catch (e) { console.warn('[整番の自動入力] 製品マスタを引けませんでした', e && e.message); }
+}
 // 在庫表の製品の欄：品番・整番・名称・入数・色調の順（★2026-10-22 安田さん）
 function productSeibanRow_(prod) {
   const seiban = prod.seiban || masterSeiban_(prod.code);
@@ -3007,6 +3020,8 @@ function goConfirmStep(code, unit, name, itemType, seiban) {
   if (grpSel) grpSel.value = (selGroupId !== 'all' && selGroupId !== 'unset') ? selGroupId : '';
   document.getElementById('ma-name').value='';
   document.getElementById('ma-seiban').value = seiban || masterSeiban_(code);
+  if (!document.getElementById('ma-seiban').value) fillSeibanFromMaster_('ma-seiban', code,
+    () => document.getElementById('step-confirm').style.display !== 'none' && pendingCode === code);
   document.getElementById('ma-color').value  = '';
   document.getElementById('step-search').style.display='none';
   document.getElementById('step-confirm').style.display='block';
