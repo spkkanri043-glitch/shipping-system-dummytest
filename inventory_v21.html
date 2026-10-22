@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-YN6EuJmyJkcXF+Mn7Xth2sxgTudTGQr4KhRHjYqSACg=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-gHdn+M9X/LxcEGDLC22uC/I1TPa0QKXLiOBHZpK312I=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -159,17 +159,17 @@ td.cell-being-edited { outline: 2px solid #ff6b6b !important; outline-offset: -1
 .init-panel { background: #fff; border: 1px solid #e2e2e2; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
 .init-panel-hd { padding: 10px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
 .init-panel-hd:hover { background: #f9f9f9; }
-.init-lbl   { font-size: 13px; font-weight: 600; color: #444; white-space: nowrap; }
+.init-lbl   { font-size: calc(13px * var(--inv-fs)); font-weight: 600; color: #444; white-space: nowrap; }
 .init-toggle-icon { font-size: 11px; color: #999; transition: transform .2s; margin-left: auto; }
 .init-panel.collapsed .init-toggle-icon { transform: rotate(-90deg); }
 .init-panel.collapsed .init-body { display: none; }
 .init-body  { padding: 0 16px 12px; }
 .init-items { display: flex; flex-wrap: wrap; gap: 12px; }
-.init-summary { font-size: 11px; color: #999; font-weight: 400; }
+.init-summary { font-size: calc(11px * var(--inv-fs)); color: #999; font-weight: 400; }
 .init-item  { display: flex; flex-direction: column; gap: 2px; }
-.init-item label { font-size: 10px; color: #999; }
+.init-item label { font-size: calc(10px * var(--inv-fs)); color: #999; }
 .init-val   { display: flex; align-items: center; gap: 4px; }
-.init-item input { width: 80px; font-size: 12px; text-align: right; border: 1px solid #ddd; border-radius: 5px; padding: 3px 6px; -moz-appearance: textfield; }
+.init-item input { width: calc(80px * var(--inv-fs)); font-size: calc(12px * var(--inv-fs)); text-align: right; border: 1px solid #ddd; border-radius: 5px; padding: 3px 6px; -moz-appearance: textfield; }
 .init-item input::-webkit-outer-spin-button, .init-item input::-webkit-inner-spin-button { -webkit-appearance: none; }
 .init-item input:focus { outline: none; border-color: #1D9E75; }
 .init-auto-badge { font-size: 10px; color: #1D9E75; background: #e1f5ee; border-radius: 3px; padding: 1px 5px; white-space: nowrap; }
@@ -183,28 +183,29 @@ td.cell-being-edited { outline: 2px solid #ff6b6b !important; outline-offset: -1
 #main-table th, #main-table td { border-right: 1px solid #d8d8d8; border-bottom: 1px solid #d8d8d8; }
 table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
 th, td { border-right: 1px solid #ebebeb; border-bottom: 1px solid #ebebeb; white-space: nowrap; }
-thead th { background: #f7f7f7; font-size: 14px; font-weight: 600; color: #444; padding: 9px 4px; text-align: center; position: sticky; top: 0; z-index: 10; }
+thead th { background: #f7f7f7; font-size: calc(14px * var(--inv-fs)); font-weight: 600; color: #444; padding: 9px 4px; text-align: center; position: sticky; top: 0; z-index: 10; }
 /* 左上角（ヘッダー×固定列）は両方向に固定 */
 thead th.c-prod { z-index: 20; text-align: left;  padding: 7px 8px; will-change: transform; }
 thead th.c-type { z-index: 20; text-align: right; will-change: transform; }
 thead th.we  { background: #efefef; color: #ccc; }
 thead th.tdy { background: #e0f5ec; color: #0a6644; font-weight: 700; }
-.c-prod { width: 190px; min-width: 190px; max-width: 190px; background: #fff; vertical-align: top; position: relative; z-index: 6; }
-.c-type { width: 170px; min-width: 170px; max-width: 170px; background: #fff; text-align: right; position: relative; z-index: 5; }
+thead th.sat, thead th.sat span { color: #1565C0 !important; }   /* ★2026-10-22 土曜日（入力できる）は青い文字 */
+.c-prod { width: calc(190px * var(--inv-fs)); min-width: calc(190px * var(--inv-fs)); max-width: calc(190px * var(--inv-fs)); background: #fff; vertical-align: top; position: relative; z-index: 6; }
+.c-type { width: calc(170px * var(--inv-fs)); min-width: calc(170px * var(--inv-fs)); max-width: calc(170px * var(--inv-fs)); background: #fff; text-align: right; position: relative; z-index: 5; }
 /* 合計列（右端固定） */
-.c-total { width: 82px; min-width: 82px; max-width: 82px; background: #f0f4f8 !important; border-left: 2px solid #bbb !important; text-align: right; padding: 6px 10px; font-size: 14px; font-weight: 700; color: #222; white-space: nowrap; }
-.c-total.neg  { color: #c0392b; font-weight: 800; font-size: 15px; }
+.c-total { width: calc(82px * var(--inv-fs)); min-width: calc(82px * var(--inv-fs)); max-width: calc(82px * var(--inv-fs)); background: #f0f4f8 !important; border-left: 2px solid #bbb !important; text-align: right; padding: 6px 10px; font-size: calc(14px * var(--inv-fs)); font-weight: 700; color: #222; white-space: nowrap; }
+.c-total.neg  { color: #c0392b; font-weight: 800; font-size: calc(15px * var(--inv-fs)); }
 .c-total.zero { color: #bbb; font-weight: 400; }
-thead .c-total { z-index: 15; font-size: 11px; font-weight: 500; color: #666; text-align: center; background: #f7f7f7 !important; }
+thead .c-total { z-index: 15; font-size: calc(11px * var(--inv-fs)); font-weight: 500; color: #666; text-align: center; background: #f7f7f7 !important; }
 thead .c-prod, thead .c-type { z-index: 10; background: #f7f7f7; }
 td.c-prod { background: #fff; overflow: hidden; box-shadow: 3px 0 5px rgba(0,0,0,.15); will-change: transform; }
-td.c-type { background: #fff; text-align: right; padding: 8px 12px; color: #444; font-size: 14px; font-weight: 600; white-space: normal; overflow: visible; line-height: 1.5; box-shadow: 2px 0 3px rgba(0,0,0,.06); will-change: transform; }
+td.c-type { background: #fff; text-align: right; padding: 8px 12px; color: #444; font-size: calc(14px * var(--inv-fs)); font-weight: 600; white-space: normal; overflow: visible; line-height: 1.5; box-shadow: 2px 0 3px rgba(0,0,0,.06); will-change: transform; }
 td.c-type.lbl-seikei   { color: #1565C0; }
 td.c-type.lbl-keikaku  { color: #6A1B9A; }
 td.c-type.lbl-nyuuka   { color: #1D9E75; font-weight: 600; }
 td.c-type.lbl-shohi    { color: #e65100; }
-td.c-type.lbl-autoshohi{ color: #ff8f00; font-size: 14px; font-weight: 600; }
-.keikaku-note { font-size: 10px; color: #9E9E9E; display: block; margin-top: 2px; font-weight: 400; white-space: normal; line-height: 1.3; }
+td.c-type.lbl-autoshohi{ color: #ff8f00; font-size: calc(14px * var(--inv-fs)); font-weight: 600; }
+.keikaku-note { font-size: calc(10px * var(--inv-fs)); color: #9E9E9E; display: block; margin-top: 2px; font-weight: 400; white-space: normal; line-height: 1.3; }
 td.keikaku-excluded { background: #e8e8e8 !important; }
 tr.r-keikaku td.keikaku-excluded { background: #e0e0e0 !important; }
 .excluded-input { color: #aaa !important; }
@@ -212,27 +213,27 @@ tr.r-keikaku td.keikaku-excluded { background: #e0e0e0 !important; }
 .pcell  { padding: 6px 8px; vertical-align: middle; position: relative; }
 .p-row  { display: flex; align-items: baseline; gap: 3px; margin-bottom: 1px; flex-wrap: wrap; }
 .p-lbl  { font-size: 9px; color: #aaa; white-space: nowrap; min-width: 0; display: none; }
-.p-val  { font-size: 14px; color: #333; word-break: break-all; }
-.p-name { font-weight: 700; font-size: 15px; word-break: break-all; }
-.p-unit { color: #1D9E75; font-weight: 500; font-size: 13px; }
+.p-val  { font-size: calc(14px * var(--inv-fs)); color: #333; word-break: break-all; }
+.p-name { font-weight: 700; font-size: calc(15px * var(--inv-fs)); word-break: break-all; }
+.p-unit { color: #1D9E75; font-weight: 500; font-size: calc(13px * var(--inv-fs)); }
 .p-btns { display: flex; gap: 4px; margin-top: 3px; }
 /* 最初の行（naiji/part_nyuuka_plan）のみフル表示、他の行は品番のみ小さく */
 td.c-prod.pcell-main  { border-bottom: none !important; }
 td.c-prod.pcell-sub   { border-bottom: 1px solid #ebebeb; padding: 2px 8px; vertical-align: middle; }
-.pcell-sub-code { font-size: 9px; color: #bbb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+.pcell-sub-code { font-size: calc(9px * var(--inv-fs)); color: #bbb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(160px * var(--inv-fs)); }
 /* 製品/部品バッジ（右上） */
 .item-type-badge {
   position: absolute; top: 4px; right: 6px;
-  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
+  font-size: calc(10px * var(--inv-fs)); font-weight: 700; padding: 2px 6px; border-radius: 10px;
   white-space: nowrap;
 }
 .item-type-badge.product { background: #e3f6ed; color: #0a6644; border: 1px solid #b2dfdb; }
 .item-type-badge.part    { background: #f3e5ff; color: #4a1270; border: 1px solid #d1a0f0; }
-.p-parts-hint { margin-top: 3px; padding: 2px 6px; background: #f3e5ff; border-radius: 4px; font-size: 10px; line-height: 1.4; cursor: pointer; }
+.p-parts-hint { margin-top: 3px; padding: 2px 6px; background: #f3e5ff; border-radius: 4px; font-size: calc(10px * var(--inv-fs)); line-height: 1.4; cursor: pointer; }
 .p-parts-hint:hover { background: #e1bee7; }
-.btn-edit { font-size: 10px; padding: 2px 6px; border: 1px solid #b0d4f1; border-radius: 4px; background: #eef6ff; color: #1565C0; cursor: pointer; }
+.btn-edit { font-size: calc(10px * var(--inv-fs)); padding: 2px 6px; border: 1px solid #b0d4f1; border-radius: 4px; background: #eef6ff; color: #1565C0; cursor: pointer; }
 .btn-edit:hover { background: #d6eaff; }
-.btn-delp { font-size: 10px; padding: 2px 6px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; color: #ccc; cursor: pointer; }
+.btn-delp { font-size: calc(10px * var(--inv-fs)); padding: 2px 6px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; color: #ccc; cursor: pointer; }
 .btn-delp:hover { color: #e24b4a; border-color: #e24b4a; }
 /* 行カラー - 製品 */
 tr.r-naiji    td { background: #fffcf0; }
@@ -284,25 +285,35 @@ td.auto-shohi { background: #fff8f0 !important; }
 td.auto-shohi input { color: #e65100; font-style: italic; }
 td.manual-shohi-override input { color: #b71c1c; font-weight: 700; }
 /* 入力セル */
-td.nc { text-align: right; padding: 3px 4px; min-width: 60px; }
+td.nc { text-align: right; padding: 3px 4px; min-width: calc(60px * var(--inv-fs)); }
 td.nc.we, td.we { background: #ececec !important; color: #ccc !important; }
 td.sat-locked { background: #ececec !important; }
-td.nc input { width: 64px; text-align: right; font-size: 15px; padding: 4px 5px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: #1a1a1a; -moz-appearance: textfield; }
+td.nc input { width: calc(64px * var(--inv-fs)); text-align: right; font-size: calc(15px * var(--inv-fs)); padding: 4px 5px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: #1a1a1a; -moz-appearance: textfield; }
 td.nc input::-webkit-outer-spin-button, td.nc input::-webkit-inner-spin-button { -webkit-appearance: none; }
 td.nc input:hover { border-color: #ccc; background: #fafafa; }
 td.nc input:focus { border-color: #1D9E75; background: #fff; outline: none; }
 td.sat-locked  { background: #f0f0f0 !important; text-align: center; vertical-align: middle; min-width: 0; }
 td.sat-unlocked { background: #fff9f0 !important; }
-.unlock-btn { font-size: 11px; padding: 4px 7px; border: 1px solid #ccc; border-radius: 3px; background: #fff; color: #888; cursor: pointer; display: block; white-space: nowrap; }
+.unlock-btn { font-size: calc(11px * var(--inv-fs)); padding: 4px 7px; border: 1px solid #ccc; border-radius: 3px; background: #fff; color: #888; cursor: pointer; display: block; white-space: nowrap; }
 .unlock-btn:hover { border-color: #1D9E75; color: #1D9E75; }
-.relock-btn { font-size: 9px; padding: 1px 4px; border: 1px solid #f0c040; border-radius: 3px; background: #fffbe6; color: #9a6700; cursor: pointer; display: block; margin-top: 1px; }
+.relock-btn { font-size: calc(9px * var(--inv-fs)); padding: 1px 4px; border: 1px solid #f0c040; border-radius: 3px; background: #fffbe6; color: #9a6700; cursor: pointer; display: block; margin-top: 1px; }
 .relock-btn:hover { background: #f0d060; }
 /* 在庫セル */
-td.zc { text-align: right; padding: 7px 8px; font-size: 16px; font-weight: 700; min-width: 64px; }
+td.zc { text-align: right; padding: 7px 8px; font-size: calc(16px * var(--inv-fs)); font-weight: 700; min-width: calc(64px * var(--inv-fs)); }
 td.zc.neg  { color: #c0392b; font-weight: 800; }
 td.zc.zero { color: #bbb; font-weight: 400; }
 td.zc.we   { background: #f3f3f3 !important; color: #ccc; }
 td.tdy-col { background: #f5fcf9 !important; }
+/* ★2026-10-22 在庫表の文字の大きさ・太さ（ツールバーの「文字」で選ぶ。この端末に覚える。安田さん） */
+:root { --inv-fs: 1.15; }
+.inv-bold #main-table td.nc input, .inv-bold #main-table .p-val, .inv-bold .init-item input { font-weight: 700; }
+.inv-bold #main-table td.c-type, .inv-bold #main-table thead th, .inv-bold #main-table thead th span { font-weight: 800 !important; }
+.inv-bold #main-table .p-name, .inv-bold #main-table td.zc, .inv-bold #main-table td.c-total { font-weight: 800; }
+.inv-bold #main-table td.zc.zero, .inv-bold #main-table td.c-total.zero { font-weight: 400; }
+.fontctl { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.fontctl-lbl { font-size: 12px; color: #666; margin-right: 2px; white-space: nowrap; }
+.fontctl-btn[aria-pressed="true"] { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+#fontctl-bold { font-weight: 700; }
 .state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #bbb; gap: 8px; }
 .state .ico { font-size: 28px; }
 /* モーダル */
@@ -333,7 +344,7 @@ td.tdy-col { background: #f5fcf9 !important; }
 .filter-banner button { font-size: 11px; padding: 2px 10px; border: 1px solid rgba(255,255,255,.5); border-radius: 4px; background: transparent; color: #fff; cursor: pointer; }
 .filter-banner button:hover { background: rgba(255,255,255,.15); }
 /* ── 順番変更ボタン ── */
-.btn-order { font-size: 11px; padding: 2px 5px; border: 1px solid #ddd; border-radius: 4px; background: #fff; color: #888; cursor: pointer; line-height: 1; }
+.btn-order { font-size: calc(11px * var(--inv-fs)); padding: 2px 5px; border: 1px solid #ddd; border-radius: 4px; background: #fff; color: #888; cursor: pointer; line-height: 1; }
 .btn-order:hover:not(:disabled) { border-color: #1D9E75; color: #1D9E75; background: #f0faf6; }
 .btn-order:disabled { opacity: .3; cursor: not-allowed; }
 
@@ -506,6 +517,14 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
     <button class="btn btn-icon" id="prev-m">◀</button>
     <span class="mlabel" id="mlabel">—</span>
     <button class="btn btn-icon" id="next-m">▶</button>
+  </div>
+  <div class="fontctl" id="fontctl" title="在庫表の文字の大きさ・太さ（この端末に覚えます）">
+    <span class="fontctl-lbl">文字</span>
+    <button class="btn fontctl-btn" data-fs="1" aria-pressed="false">小</button>
+    <button class="btn fontctl-btn" data-fs="1.15" aria-pressed="false">中</button>
+    <button class="btn fontctl-btn" data-fs="1.3" aria-pressed="false">大</button>
+    <button class="btn fontctl-btn" data-fs="1.5" aria-pressed="false">特大</button>
+    <button class="btn fontctl-btn" id="fontctl-bold" aria-pressed="false">太字</button>
   </div>
   <div class="tsp"></div>
   <button class="btn btn-purple" id="btn-parts-filter" data-csp-click="h0" data-csp-source-click="togglePartsFilter()">🔩 部品在庫</button>
@@ -1678,11 +1697,7 @@ function calcStock(pid, upToDay) {
   for (let d = 1; d <= upToDay; d++) {
     const dt  = new Date(viewYear, viewMonth-1, d);
     const dow = dt.getDay();
-    if (dow === 0) continue;
-    if (dow === 6) {
-      if (satUnlocked[satCellKey(pid, d)]) stock -= parseFloat(mdata[`${pid}_shukko_${d}`]) || 0;
-      continue;
-    }
+    if (dow === 0) continue;   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
     stock -= parseFloat(mdata[`${pid}_shukko_${d}`]) || 0;
     const seikei_v  = mdata[`${pid}_seikei_${d}`];
     const keikaku_v = mdata[`${pid}_keikaku_${d}`];
@@ -1741,7 +1756,7 @@ function calcPartStock(pid, upToDay) {
   for (let d = 1; d <= upToDay; d++) {
     const dt  = new Date(viewYear, viewMonth-1, d);
     const dow = dt.getDay();
-    if (dow === 0 || dow === 6) continue;
+    if (dow === 0) continue;   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
     // 入荷: 実績優先、なければ予定
     const nyuukaV     = mdata[`${pid}_part_nyuuka_${d}`];
     const nyuukaPlanV = mdata[`${pid}_part_nyuuka_plan_${d}`];
@@ -1771,6 +1786,7 @@ function togglePartsDetail(prodId) {
 }
 
 // unlock/relock ハンドラ
+// ★2026-10-22 土曜日は平日と同じにいつでも入力できるようにしたので、「出荷入力」「ロック」のボタンは出さない（以下は使われない）
 function onUnlock(ck) { satUnlocked[ck]=true;  saveSat(); renderTable(); showToast('出荷入力を解除しました'); }
 function onRelock(ck) { delete satUnlocked[ck]; saveSat(); renderTable(); showToast('再ロックしました'); }
 
@@ -1854,7 +1870,7 @@ async function exportExcel() {
       for (let d = 1; d <= days; d++) {
         const dt = new Date(viewYear, viewMonth - 1, d);
         const dow = dt.getDay();
-        if (dow === 0 || dow === 6) { zRow.push(''); continue; }
+        if (dow === 0) { zRow.push(''); continue; }   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
         zRow.push(isPart ? calcPartStock(prod.id, d) : calcStock(prod.id, d));
       }
       ws2.addRow(zRow);
@@ -2192,17 +2208,17 @@ function renderTable() {
 
   // ── ヘッダー生成 ──
   let thead = '<tr>';
-  thead += '<th class="c-prod" style="text-align:left;background:#f7f7f7;font-size:12px;font-weight:600;color:#555;padding:7px 8px">製品 / 部品</th>';
-  thead += '<th class="c-type" style="text-align:right;background:#f7f7f7;font-size:12px;font-weight:600;color:#555;padding:7px 8px">区分</th>';
+  thead += '<th class="c-prod" style="text-align:left;background:#f7f7f7;font-size:calc(12px * var(--inv-fs));font-weight:600;color:#555;padding:7px 8px">製品 / 部品</th>';
+  thead += '<th class="c-type" style="text-align:right;background:#f7f7f7;font-size:calc(12px * var(--inv-fs));font-weight:600;color:#555;padding:7px 8px">区分</th>';
   for (let d=1; d<=days; d++) {
     const dt  = new Date(viewYear, viewMonth-1, d);
     const dow = dt.getDay();
-    const we  = dow===0||dow===6;
+    const we  = dow===0;   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
     const tdy = dt.getTime()===TODAY.getTime();
-    thead += `<th class="${we?'we':tdy?'tdy':''}" style="min-width:60px;font-size:12px;font-weight:600;color:#555;padding:7px 4px;text-align:center;position:sticky;top:0;background:#f7f7f7;z-index:10">
-      ${d}<br><span style="font-size:11px;font-weight:400">${DOW[dow]}</span></th>`;
+    thead += `<th class="${we?'we':tdy?'tdy':dow===6?'sat':''}" style="min-width:calc(60px * var(--inv-fs));font-size:calc(12px * var(--inv-fs));font-weight:600;color:#555;padding:7px 4px;text-align:center;position:sticky;top:0;background:#f7f7f7;z-index:10">
+      ${d}<br><span style="font-size:calc(11px * var(--inv-fs));font-weight:400">${DOW[dow]}</span></th>`;
   }
-  thead += `<th class="c-total" style="position:sticky;top:0;z-index:10;background:#f0f4f8">合計<br><span style="font-size:9px;font-weight:400">／月末</span></th>`;
+  thead += `<th class="c-total" style="position:sticky;top:0;z-index:10;background:#f0f4f8">合計<br><span style="font-size:calc(9px * var(--inv-fs));font-weight:400">／月末</span></th>`;
   thead += '</tr>';
   document.getElementById('main-thead').innerHTML = thead;
 
@@ -2265,17 +2281,17 @@ function renderTable() {
           for (let d=1; d<=days; d++) {
             const dt  = new Date(viewYear, viewMonth-1, d);
             const dow = dt.getDay();
-            const isWE = dow===0||dow===6;
+            const isSun = dow===0;   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
             const tdy  = dt.getTime()===TODAY.getTime();
-            const tdyCls = (!isWE&&tdy)?' tdy-col':'';
+            const tdyCls = (!isSun&&tdy)?' tdy-col':'';
 
             if (rtype === 'part_zaiko') {
-              if (isWE) { rHtml+=`<td class="zc we"></td>`; continue; }
+              if (isSun) { rHtml+=`<td class="zc we"></td>`; continue; }
               const z = calcPartStock(prod.id, d);
               rHtml += `<td class="zc${z<0?' neg':z===0?' zero':''}${tdyCls}">${z.toLocaleString()}</td>`;
               continue;
             }
-            if (isWE) { rHtml+=`<td class="nc we${tdyCls}"></td>`; continue; }
+            if (isSun) { rHtml+=`<td class="nc we${tdyCls}"></td>`; continue; }
 
             if (rtype === 'part_shohi') {
               // 消費数行: 成形数>計画>出荷 の優先順位で自動計算、手動入力で上書き可能
@@ -2328,7 +2344,7 @@ function renderTable() {
             for (let d = days; d >= 1; d--) {
               const dt  = new Date(viewYear, viewMonth-1, d);
               const dow = dt.getDay();
-              if (dow === 0 || dow === 6) continue;
+              if (dow === 0) continue;   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
               lastStock = calcPartStock(prod.id, d);
               break;
             }
@@ -2380,9 +2396,9 @@ function renderTable() {
                   style="${isDetailOpen?'background:#d1a0f0;color:#fff;':''}">
                   🔩
                   ${isDetailOpen
-                    ? `<span style="font-size:10px;color:#fff">${linkedParts.map(p=>escH(p)).join('、')}</span>
-                       <span style="font-size:9px;margin-left:4px;opacity:.8">▲ 閉じる</span>`
-                    : `<span style="font-size:10px;color:#6a1b9a">部品構成を見る ▼</span>`}
+                    ? `<span style="font-size:calc(10px * var(--inv-fs));color:#fff">${linkedParts.map(p=>escH(p)).join('、')}</span>
+                       <span style="font-size:calc(9px * var(--inv-fs));margin-left:4px;opacity:.8">▲ 閉じる</span>`
+                    : `<span style="font-size:calc(10px * var(--inv-fs));color:#6a1b9a">部品構成を見る ▼</span>`}
                  </div>`
               : '';
             lHtml += `<td class="c-prod pcell" rowspan="${allRows.length}">
@@ -2403,40 +2419,23 @@ function renderTable() {
           }
           // c-type を lHtml に出力し、rHtmlには出さない
           const keikakuNote = rtype === 'keikaku' ? ' <span class="keikaku-note">在庫計算：成形数優先</span>' : '';
-          lHtml += `<td class="c-type${typeLblCls}" style="padding:6px 10px;font-size:12px;font-weight:500;white-space:normal;line-height:1.4">${PROD_ROW_LABELS[rtype]||''}${keikakuNote}</td>`;
+          lHtml += `<td class="c-type${typeLblCls}" style="padding:6px 10px;font-size:calc(12px * var(--inv-fs));font-weight:500;white-space:normal;line-height:1.4">${PROD_ROW_LABELS[rtype]||''}${keikakuNote}</td>`;
           lHtml += '</tr>';
 
           for (let d=1; d<=days; d++) {
             const dt  = new Date(viewYear, viewMonth-1, d);
             const dow = dt.getDay();
-            const isSun=dow===0, isSat=dow===6;
+            const isSun=dow===0;   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
             const tdy = dt.getTime()===TODAY.getTime();
-            const tdyCls = (!isSun&&!isSat&&tdy)?' tdy-col':'';
+            const tdyCls = (!isSun&&tdy)?' tdy-col':'';
 
             if (rtype === 'zaiko') {
-              if (isSun||isSat) { rHtml+=`<td class="zc we"></td>`; continue; }
+              if (isSun) { rHtml+=`<td class="zc we"></td>`; continue; }
               const z = calcStock(prod.id, d);
               rHtml += `<td class="zc${z<0?' neg':z===0?' zero':''}${tdyCls}">${z.toLocaleString()}</td>`;
               continue;
             }
-            if (isSat && rtype === 'shukko') {
-              const ck       = satCellKey(prod.id, d);
-              const unlocked = satUnlocked[ck]===true;
-              if (unlocked) {
-                const v = mdata[`${prod.id}_shukko_${d}`];
-                const _sMC = (v !== undefined && parseFloat(v) < 0) ? 'minus-val' : '';
-                rHtml += `<td class="nc sat-unlocked">
-                  <input type="number" data-pid="${escAttr(prod.id)}" data-rt="shukko" data-d="${d}"
-                    value="${escAttr(v!==undefined?v:'')}" placeholder=""
-                    class="${_sMC}" data-csp-input="h15" data-csp-source-input="this.className=parseFloat(this.value)&lt;0?'minus-val':''">
-                  <button class="relock-btn" data-relock="${escAttr(ck)}">ロック</button>
-                </td>`;
-              } else {
-                rHtml += `<td class="sat-locked"><button class="unlock-btn" data-unlock="${escAttr(ck)}">出荷入力</button></td>`;
-              }
-              continue;
-            }
-            if (isSun||isSat) { rHtml+=`<td class="nc we${tdyCls}"></td>`; continue; }
+            if (isSun) { rHtml+=`<td class="nc we${tdyCls}"></td>`; continue; }
 
             const v = mdata[`${prod.id}_${rtype}_${d}`];
             if (rtype === 'keikaku') {
@@ -2461,12 +2460,12 @@ function renderTable() {
           let totalVal = '';
           let totalCls = '';
           if (rtype === 'zaiko') {
-            // 月末最終平日の在庫数
+            // 月末の最後の稼働日（日曜日以外）の在庫数
             let lastStock = null;
             for (let d = days; d >= 1; d--) {
               const dt  = new Date(viewYear, viewMonth-1, d);
               const dow = dt.getDay();
-              if (dow === 0 || dow === 6) continue;
+              if (dow === 0) continue;   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
               lastStock = calcStock(prod.id, d);
               break;
             }
@@ -2498,17 +2497,17 @@ function renderTable() {
           // lHtml: 部品整番+構成数セル、rHtml: 日別消費+合計セル
 
           if (!linkedParts.length) {
-            lHtml += `<tr class="parts-detail-row"><td colspan="2" style="padding:8px;text-align:center;color:#aaa;font-size:12px;background:#faf5ff">部品構成データなし</td></tr>`;
+            lHtml += `<tr class="parts-detail-row"><td colspan="2" style="padding:8px;text-align:center;color:#aaa;font-size:calc(12px * var(--inv-fs));background:#faf5ff">部品構成データなし</td></tr>`;
             rHtml += `<tr class="parts-detail-row"><td colspan="${days+1}" style="background:#faf5ff"></td></tr>`;
           } else {
             // タイトル行
             lHtml += `<tr style="background:#f3e5ff">
-              <td colspan="2" style="padding:5px 10px;font-size:12px;font-weight:600;color:#6a1b9a;position:relative">
+              <td colspan="2" style="padding:5px 10px;font-size:calc(12px * var(--inv-fs));font-weight:600;color:#6a1b9a;position:relative">
                 🔩 部品使用数
                 <button class="parts-detail-close" data-inventory-detail="${escAttr(prod.id)}" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">✕ 閉じる</button>
               </td>
             </tr>`;
-            rHtml += `<tr style="background:#f3e5ff"><td colspan="${days+1}" style="padding:5px 8px;font-size:11px;color:#888">
+            rHtml += `<tr style="background:#f3e5ff"><td colspan="${days+1}" style="padding:5px 8px;font-size:calc(11px * var(--inv-fs));color:#888">
               ※ 計画ベースで計算（成形数確定後は出荷ベースに切替）
             </td></tr>`;
 
@@ -2522,8 +2521,8 @@ function renderTable() {
 
               // 左：部品整番・構成数
               lHtml += `<tr style="background:#faf5ff;border-bottom:1px solid #ede7f6">
-                <td style="padding:5px 8px;font-size:12px;font-weight:600;color:#4a1270;white-space:nowrap">${escH(partCode)}</td>
-                <td style="padding:5px 8px;text-align:right;font-size:12px;color:#888">×${escH(count)}</td>
+                <td style="padding:5px 8px;font-size:calc(12px * var(--inv-fs));font-weight:600;color:#4a1270;white-space:nowrap">${escH(partCode)}</td>
+                <td style="padding:5px 8px;text-align:right;font-size:calc(12px * var(--inv-fs));color:#888">×${escH(count)}</td>
               </tr>`;
 
               // 右：日別消費数（メインテーブルと同じ列幅）
@@ -2531,9 +2530,9 @@ function renderTable() {
               for (let d=1; d<=days; d++) {
                 const dt  = new Date(viewYear, viewMonth-1, d);
                 const dow = dt.getDay();
-                const we  = dow===0||dow===6;
+                const we  = dow===0;   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
                 const tdy = dt.getTime()===TODAY.getTime();
-                if (we) { rCells += `<td style="background:#f0f0f0;min-width:60px"></td>`; continue; }
+                if (we) { rCells += `<td style="background:#f0f0f0;min-width:calc(60px * var(--inv-fs))"></td>`; continue; }
                 // 新ロジック: 成形数あり→出荷ベース／成形数なし→計画ベース（なければ出荷）
                 const seikeiV  = mdata[`${prod.id}_seikei_${d}`];
                 const keikakuV = mdata[`${prod.id}_keikaku_${d}`];
@@ -2550,12 +2549,12 @@ function renderTable() {
                 const consume = (typeof count === 'number') ? base * count : 0;
                 total += consume;
                 const neg = consume < 0;
-                rCells += `<td style="text-align:right;padding:3px 5px;font-size:12px;min-width:60px;background:${tdy?'#e8f5e9':'#faf5ff'};${neg?'color:#c0392b;font-weight:700':''}${consume===0?';color:#ccc':''}">
+                rCells += `<td style="text-align:right;padding:3px 5px;font-size:calc(12px * var(--inv-fs));min-width:calc(60px * var(--inv-fs));background:${tdy?'#e8f5e9':'#faf5ff'};${neg?'color:#c0392b;font-weight:700':''}${consume===0?';color:#ccc':''}">
                   ${consume !== 0 ? consume.toLocaleString() : ''}
                 </td>`;
               }
               // 合計セル
-              rCells += `<td style="text-align:right;padding:5px 8px;font-size:12px;font-weight:700;color:#6a1b9a;background:#f3e5ff;border-left:2px solid #d1a0f0">${total!==0?total.toLocaleString():''}</td>`;
+              rCells += `<td style="text-align:right;padding:5px 8px;font-size:calc(12px * var(--inv-fs));font-weight:700;color:#6a1b9a;background:#f3e5ff;border-left:2px solid #d1a0f0">${total!==0?total.toLocaleString():''}</td>`;
               rHtml += `<tr style="background:#faf5ff;border-bottom:1px solid #ede7f6">${rCells}</tr>`;
             });
           }
@@ -2608,7 +2607,22 @@ function renderTableOnly() { renderTable(); checkWarnItems(); }
 //   保存のときに表全体を作り直すので、次のセルに移って打ち始めたところでセルが消えていた。
 let _restoringFocus_ = false;   // 作り直し・戻しの間は、フォーカスの出入り（編集中の表示の送信・保存）を数えない
 // ★2026-10-22 ↑↓キー・マウスのホイールで、選んでいるセルの数字が増えたり減ったりしないようにする（安田さん）
-function onCellKeyDown_(e) { if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault(); }
+// ★2026-10-22 Enter で下のセルへ、Shift+Enter で上のセルへ（同じ日の列。入力欄の無い行・土日は飛ばす。安田さん）
+function onCellKeyDown_(e) {
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); return; }
+  if (e.key !== 'Enter' || e.isComposing || e.keyCode === 229 || e.ctrlKey || e.altKey || e.metaKey) return;
+  const next = nextCellInColumn_(e.target, e.shiftKey ? -1 : 1);
+  if (!next) return;   // いちばん下（上）は動かない（数字の確定は今までどおり）
+  e.preventDefault();
+  next.focus();        // 離れたセルは change で保存される（Tab と同じ）
+  next.select();       // Tab と同じく、打つと置き換わる
+}
+function nextCellInColumn_(cur, step) {
+  const col = Array.from(document.querySelectorAll('#main-tbody input[data-pid]'))
+    .filter(i => i.dataset.d === cur.dataset.d && !i.disabled && !i.readOnly);
+  const k = col.indexOf(cur);
+  return k < 0 ? null : (col[k + step] || null);
+}
 function onCellWheel_(e) { if (document.activeElement === e.target) e.preventDefault(); }
 function cellFocusSnapshot_() {
   const a = document.activeElement;
@@ -2621,13 +2635,38 @@ function restoreCellFocus_(s) {
     .find(i => i.dataset.pid === s.pid && i.dataset.rt === s.rt && i.dataset.d === s.d);
   if (!n || n.disabled || n.readOnly) return;
   n.focus();
-  if (s.typed) { n.value = s.value; n.dataset.unsaved = '1'; }   // 打ちかけの数字は、離れたときに保存する（onCellBlur）
+  if (s.typed && s.value !== n.value) { n.value = s.value; n.dataset.unsaved = '1'; }   // 打ちかけの数字は、離れたときに保存する（onCellBlur）
+  else n.select();   // まだ打っていなければ、Tab・Enter で移ったときと同じく選んだ状態に（打つと置き換わる）
 }
 function renderTableKeepFocus_() {
   _restoringFocus_ = true;
   try { const s = cellFocusSnapshot_(); renderTableOnly(); restoreCellFocus_(s); }
   finally { _restoringFocus_ = false; }
 }
+
+// ★2026-10-22 在庫表の文字の大きさ・太さを画面で選べるように（安田さん：若い人からお年の方まで使うため）。
+//   大きさは CSS の --inv-fs（倍率）、太さは <html> の inv-bold。この端末（ブラウザ）に覚える。覚えられなくても表示はできる。
+const INV_FONT_KEY_ = 'inventory_font_v1';
+const INV_FONT_SIZES_ = [1, 1.15, 1.3, 1.5];   // 小（今までの大きさ）・中（はじめ）・大・特大
+let invFont_ = (() => {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(INV_FONT_KEY_) || 'null'); } catch (e) {}
+  return { fs: s && INV_FONT_SIZES_.includes(s.fs) ? s.fs : 1.15, bold: !!(s && s.bold === true) };
+})();
+function applyInvFont_() {
+  document.documentElement.style.setProperty('--inv-fs', String(invFont_.fs));
+  document.documentElement.classList.toggle('inv-bold', invFont_.bold);
+  document.querySelectorAll('#fontctl [data-fs]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.fs) === invFont_.fs)));
+  const bb = document.getElementById('fontctl-bold'); if (bb) bb.setAttribute('aria-pressed', String(invFont_.bold));
+}
+function setInvFont_(patch) {
+  invFont_ = Object.assign({}, invFont_, patch);
+  try { localStorage.setItem(INV_FONT_KEY_, JSON.stringify(invFont_)); } catch (e) {}
+  applyInvFont_();
+}
+document.querySelectorAll('#fontctl [data-fs]').forEach(b => b.addEventListener('click', () => setInvFont_({ fs: Number(b.dataset.fs) })));
+document.getElementById('fontctl-bold').addEventListener('click', () => setInvFont_({ bold: !invFont_.bold }));
+applyInvFont_();
 
 // ============================================================
 //  列固定：scrollイベントでtransformを使って強制固定
@@ -3119,7 +3158,7 @@ function checkWarnItems() {
     for (let d = 1; d <= days; d++) {
       const dt  = new Date(viewYear, viewMonth-1, d);
       const dow = dt.getDay();
-      if (dow === 0 || dow === 6) continue;
+      if (dow === 0) continue;   // ★2026-10-22 土曜日も平日と同じ（日曜日だけ休み。安田さん：土曜日の稼働・出荷）
 
       const stock = isPart ? calcPartStock(prod.id, d) : calcStock(prod.id, d);
       if (stock >= 0) continue;
