@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-9mt3B+Lw6/dR+PupDN5j/cIa+a4n42IAcLGb1xRqS88=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-PfGK9oI10g7BqfP6EgB6910lvyDrJm3HYkADrcYIVOA=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -1015,7 +1015,7 @@ function cellHistKey(pid, rt, d) { return `${pid}_${rt}_${d}`; }
 
 async function onCellFocus(e) {
   const { pid, rt, d } = e.target.dataset;
-  if (!currentUser || !selCid) return;
+  if (_restoringFocus_ || !currentUser || !selCid) return;   // 表の作り直しで同じセルに戻しただけのときは送らない
   _myFocusedCell = { pid, rt, d };
   try {
     await api({ action: 'setCellFocus', clientId: selCid, productId: pid, rowType: rt, day: d,
@@ -1025,7 +1025,12 @@ async function onCellFocus(e) {
 
 async function onCellBlur(e) {
   const { pid, rt, d } = e.target.dataset;
-  if (!currentUser || !selCid) return;
+  if (_restoringFocus_ || !currentUser || !selCid) return;
+  // ★2026-10-22 作り直しで戻した打ちかけの数字は、変更の知らせ（change）が来ないことがあるので、ここで保存する
+  const input = e.target;
+  if (input.dataset.unsaved === '1') setTimeout(() => {
+    if (input.dataset.unsaved === '1') { input.dataset.unsaved = ''; onCell({ target: input }); }
+  }, 0);
   _myFocusedCell = null;
   try {
     await api({ action: 'setCellFocus', clientId: selCid, productId: pid, rowType: rt, day: d,
@@ -1216,16 +1221,35 @@ async function api(params) {
     return j;
   } catch (error) {
     showLoad(false);
-    let notice = document.getElementById('inventory-api-error');
-    if (!notice) {
-      notice = document.createElement('div');
-      notice.id = 'inventory-api-error';
-      notice.setAttribute('role', 'alert');
-      document.body.prepend(notice);
-    }
-    notice.textContent = '処理に失敗しました。保存完了は確認できていません。再読み込みして状態を確認してください。 ' + error.message;
+    // ★2026-10-22 裏で数秒ごとに動く通信（編集中・最終更新者・オンラインの表示）の失敗では、赤い知らせを出さない
+    //   （保存とは関係ないのに「保存完了は確認できていません」と出て紛らわしかった）。保存の失敗と読み込みの失敗は文を分ける。
+    if (API_SILENT_ACTIONS_.includes(params.action)) { console.warn('[api] 裏の通信の失敗: ' + params.action + ' ' + error.message); throw error; }
+    showApiNotice_(API_WRITE_ACTIONS_.includes(params.action)
+      ? '保存に失敗しました。保存できたか確認できていません。再読み込みして、入れた数字が残っているか確認してください。 '
+      : '読み込みに失敗しました。再読み込みしてください。 ', error.message);
     throw error;
   }
+}
+const API_SILENT_ACTIONS_ = ['setOnlineStatus', 'getOnlineUsers', 'setCellFocus', 'getCellFocusList', 'getCellHistoryList'];
+const API_WRITE_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock', 'addClient', 'updateClient', 'deleteClient',
+  'addProduct', 'updateProduct', 'deleteProduct', 'addGroup', 'updateGroup', 'deleteGroup', 'swapProductOrder'];
+function showApiNotice_(text, detail) {
+  let notice = document.getElementById('inventory-api-error');
+  if (!notice) {
+    notice = document.createElement('div');
+    notice.id = 'inventory-api-error';
+    notice.setAttribute('role', 'alert');
+    notice.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 10px;background:#fde8e8;color:#9b1c1c;font-size:13px';
+    document.body.prepend(notice);
+  }
+  notice.replaceChildren();
+  const msg = document.createElement('span');
+  msg.style.flex = '1';
+  msg.textContent = text + (detail || '');
+  const close = document.createElement('button');
+  close.type = 'button'; close.textContent = '閉じる';
+  close.addEventListener('click', () => notice.remove());
+  notice.append(msg, close);
 }
 
 function mockApi(p) {
@@ -2559,6 +2583,28 @@ function renderTable() {
 
 function renderTableOnly() { renderTable(); checkWarnItems(); }
 
+// ★2026-10-22 表を作り直しても、今いるセル・打ちかけの数字を保つ（安田さん：保存のたびにセルから外れて選び直しになる）。
+//   保存のときに表全体を作り直すので、次のセルに移って打ち始めたところでセルが消えていた。
+let _restoringFocus_ = false;   // 作り直し・戻しの間は、フォーカスの出入り（編集中の表示の送信・保存）を数えない
+function cellFocusSnapshot_() {
+  const a = document.activeElement;
+  if (!a || !a.matches || !a.matches('#main-tbody input[data-pid]')) return null;
+  return { pid: a.dataset.pid, rt: a.dataset.rt, d: a.dataset.d, value: a.value, typed: a.value !== a.defaultValue };
+}
+function restoreCellFocus_(s) {
+  if (!s) return;
+  const n = Array.from(document.querySelectorAll('#main-tbody input[data-pid]'))
+    .find(i => i.dataset.pid === s.pid && i.dataset.rt === s.rt && i.dataset.d === s.d);
+  if (!n || n.disabled || n.readOnly) return;
+  n.focus();
+  if (s.typed) { n.value = s.value; n.dataset.unsaved = '1'; }   // 打ちかけの数字は、離れたときに保存する（onCellBlur）
+}
+function renderTableKeepFocus_() {
+  _restoringFocus_ = true;
+  try { const s = cellFocusSnapshot_(); renderTableOnly(); restoreCellFocus_(s); }
+  finally { _restoringFocus_ = false; }
+}
+
 // ============================================================
 //  列固定：scrollイベントでtransformを使って強制固定
 // ============================================================
@@ -2723,6 +2769,7 @@ async function onCell(e) {
   const { pid, rt, d } = e.target.dataset;
   const v   = e.target.value;
   const key = `${pid}_${rt}_${d}`;
+  e.target.dataset.unsaved = '';   // ★2026-10-22 保存するので「打ちかけ」の印を消す（onCellBlur で二重に保存しない）
 
   // 消費数セルの空入力 → 自動計算に戻す
   if (rt === 'part_shohi' && v === '') {
@@ -2730,7 +2777,7 @@ async function onCell(e) {
     await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
                 productId:pid, rowType:rt, day:parseInt(d), value:'' });
     delete mdata[key];
-    renderTableOnly();
+    renderTableKeepFocus_();
     showLoad(false);
     showToast('自動計算に戻しました');
     return;
@@ -2759,11 +2806,12 @@ async function onCell(e) {
   const saveVal = (v === '' || v === undefined) ? '' : parseFloat(v);
   console.log('[saveCell送信]', { productId:pid, rowType:rt, day:parseInt(d), value:saveVal });
   if (v === '') delete mdata[key]; else mdata[key] = parseFloat(v);
-  renderTableOnly();
+  // ★2026-10-22 作り直しは、次のセルへの移動が終わってから（今いるセル・打ちかけの数字を保つ）
+  setTimeout(renderTableKeepFocus_, 0);
   const saveRes = await api({ action:'saveCell', clientId:selCid, year:viewYear, month:viewMonth,
               productId:pid, rowType:rt, day:parseInt(d), value:saveVal });
   if (v === '') delete mdata[key]; else mdata[key] = parseFloat(v);
-  renderTableOnly();
+  renderTableKeepFocus_();
   console.log('[saveCell結果]', saveRes);
   showLoad(false);
   if (saveRes && saveRes.ok === false) {
