@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-gHdn+M9X/LxcEGDLC22uC/I1TPa0QKXLiOBHZpK312I=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-HWeqsQkI/iW3UY/eYW0W/cm04jB1ZPuEd5fEEld9bAc=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -216,6 +216,8 @@ tr.r-keikaku td.keikaku-excluded { background: #e0e0e0 !important; }
 .p-val  { font-size: calc(14px * var(--inv-fs)); color: #333; word-break: break-all; }
 .p-name { font-weight: 700; font-size: calc(15px * var(--inv-fs)); word-break: break-all; }
 .p-unit { color: #1D9E75; font-weight: 500; font-size: calc(13px * var(--inv-fs)); }
+.p-sub  { color: #555; font-size: calc(12px * var(--inv-fs)); word-break: break-all; }   /* ★2026-10-22 整番・色調 */
+.inv-bold #main-table .p-sub { font-weight: 700; }
 .p-btns { display: flex; gap: 4px; margin-top: 3px; }
 /* 最初の行（naiji/part_nyuuka_plan）のみフル表示、他の行は品番のみ小さく */
 td.c-prod.pcell-main  { border-bottom: none !important; }
@@ -318,7 +320,7 @@ td.tdy-col { background: #f5fcf9 !important; }
 .state .ico { font-size: 28px; }
 /* モーダル */
 .ov { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; z-index: 500; }
-.modal { background: #fff; border-radius: 10px; padding: 20px 24px; width: 340px; max-width: 92vw; }
+.modal { background: #fff; border-radius: 10px; padding: 20px 24px; width: 340px; max-width: 92vw; max-height: calc(100vh - 24px); overflow-y: auto; }   /* ★2026-10-22 欄が増えても、背の低い画面で保存ボタンが外に出ない */
 .modal h3  { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
 .modal label { font-size: 12px; color: #666; display: block; margin-bottom: 3px; }
 .modal input { width: 100%; font-size: 13px; border: 1px solid #ddd; border-radius: 6px; padding: 7px 9px; margin-bottom: 10px; }
@@ -610,18 +612,31 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
       </div>
     </div>
     <div id="step-confirm" style="display:none">
+      <!-- ★2026-10-22 順番＝品番・整番・名称・入数・色調・種別・グループ（安田さん） -->
       <div style="background:#f5faf7;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:13px">
-        <div style="display:flex;gap:8px;margin-bottom:4px">
+        <div style="display:flex;gap:8px;margin-bottom:6px">
           <span style="color:#888;min-width:52px;font-size:11px">品番</span>
           <span id="confirm-code" style="font-weight:500"></span>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:4px">
-          <span style="color:#888;min-width:52px;font-size:11px">製品名</span>
-          <span id="confirm-pname" style="color:#555;font-size:12px"></span>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span style="color:#888;min-width:52px;font-size:11px">整番</span>
+          <input id="ma-seiban" maxlength="100" placeholder="製品マスタにあれば自動で入ります" style="flex:1;margin-bottom:0;padding:5px 8px">
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:4px">
-          <span style="color:#888;min-width:52px;font-size:11px">箱入数</span>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:2px">
+          <span style="color:#888;min-width:52px;font-size:11px">名称</span>
+          <input id="ma-name" placeholder="例：51-14（大）（手入力）" style="flex:1;margin-bottom:0;padding:5px 8px">
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:6px">
+          <span style="min-width:52px"></span>
+          <span style="color:#888;font-size:11px">製品マスタの製品名：<span id="confirm-pname" style="color:#555"></span></span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:6px">
+          <span style="color:#888;min-width:52px;font-size:11px">入数</span>
           <span id="confirm-unit" style="color:#1D9E75;font-weight:500"></span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span style="color:#888;min-width:52px;font-size:11px">色調</span>
+          <input id="ma-color" maxlength="100" placeholder="例：黒" style="flex:1;margin-bottom:0;padding:5px 8px">
         </div>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
           <span style="color:#888;min-width:52px;font-size:11px">種別</span>
@@ -638,8 +653,6 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
           </select>
         </div>
       </div>
-      <label>名称 <span style="color:#888;font-size:11px">（手入力）</span></label>
-      <input id="ma-name" placeholder="例：51-14（大）">
       <div class="mbtns">
         <button class="btn" id="ma-back">← 戻る</button>
         <button class="btn" id="ma-cancel">キャンセル</button>
@@ -658,10 +671,14 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
     <h3>製品 / 部品を編集</h3>
     <label>品番コード <span style="color:#e24b4a">*</span></label>
     <input id="me-code" placeholder="例：55046-42020">
+    <label>整番 <span style="color:#888;font-size:11px">（製品マスタにあれば自動で入ります）</span></label>
+    <input id="me-seiban" maxlength="100" placeholder="例：S1234">
     <label>名称</label>
     <input id="me-name" placeholder="例：51-14（大）">
     <label>入数</label>
     <input id="me-unit" placeholder="例：6ヶ入り">
+    <label>色調</label>
+    <input id="me-color" maxlength="100" placeholder="例：黒">
     <label>種別</label>
     <select id="me-type" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:6px;padding:7px 9px;margin-bottom:10px;background:#fff">
       <option value="product">🟢 製品</option>
@@ -2250,8 +2267,10 @@ function renderTable() {
             lHtml += `<td class="c-prod pcell" rowspan="${partRows.length}">
               ${typeBadge}
               <div class="p-row"><span class="p-val">${escH(prod.code)}</span></div>
+              ${productSeibanRow_(prod)}
               <div class="p-row"><span class="p-val p-name">${escH(prod.name)}</span></div>
               <div class="p-row"><span class="p-val p-unit">${escH(prod.unit)}</span></div>
+              ${productColorRow_(prod)}
               <div class="p-btns">
                 <button class="btn-edit" data-edit="${escAttr(prod.id)}">編集</button>
                 <button class="btn-delp" data-del="${escAttr(prod.id)}">削除</button>
@@ -2404,8 +2423,10 @@ function renderTable() {
             lHtml += `<td class="c-prod pcell" rowspan="${allRows.length}">
               ${typeBadge}
               <div class="p-row"><span class="p-val">${escH(prod.code)}</span></div>
+              ${productSeibanRow_(prod)}
               <div class="p-row"><span class="p-val p-name">${escH(prod.name)}</span></div>
               <div class="p-row"><span class="p-val p-unit">${escH(prod.unit)}</span></div>
+              ${productColorRow_(prod)}
               ${partsHint}
               <div class="p-btns">
                 <button class="btn-edit" data-edit="${escAttr(prod.id)}">編集</button>
@@ -2901,6 +2922,8 @@ function openEditModal(pid) {
   document.getElementById('me-code').value  = p.code||'';
   document.getElementById('me-name').value  = p.name||'';
   document.getElementById('me-unit').value  = p.unit||'';
+  document.getElementById('me-seiban').value = p.seiban || masterSeiban_(p.code);
+  document.getElementById('me-color').value  = p.color||'';
   document.getElementById('me-type').value  = p.itemType||'product';
   document.getElementById('me-group').value = p.group||'';
   document.getElementById('me-pid').value   = pid;
@@ -2914,6 +2937,8 @@ document.getElementById('me-ok').addEventListener('click', async () => {
   if (!code) { document.getElementById('me-code').focus(); return; }
   const name     = document.getElementById('me-name').value.trim();
   const unit     = document.getElementById('me-unit').value.trim();
+  const seiban   = document.getElementById('me-seiban').value.trim();
+  const color    = document.getElementById('me-color').value.trim();
   const itemType = document.getElementById('me-type').value;
   const group    = document.getElementById('me-group').value;
   document.getElementById('modal-edit').style.display = 'none';
@@ -2921,8 +2946,8 @@ document.getElementById('me-ok').addEventListener('click', async () => {
   if (GAS_URL && selCid) {
     showLoad(true);
     try {
-      await api({ action:'updateProduct', clientId:selCid, productId:pid, name, unit, code, itemType, group });
-      if (p) { p.code=code; p.name=name; p.unit=unit; p.itemType=itemType; p.group=group; }
+      await api({ action:'updateProduct', clientId:selCid, productId:pid, name, unit, code, itemType, group, seiban, color });
+      if (p) { p.code=code; p.name=name; p.unit=unit; p.itemType=itemType; p.group=group; p.seiban=seiban; p.color=color; }
       renderAll();
       showToast('情報を更新しました');
     } catch(err) { showToast('保存失敗: '+err.message); }
@@ -2931,7 +2956,7 @@ document.getElementById('me-ok').addEventListener('click', async () => {
     showToast('未保存: ポータルから接続してください');
   }
 });
-['me-code','me-name','me-unit'].forEach(id => {
+['me-code','me-name','me-unit','me-seiban','me-color'].forEach(id => {
   document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('me-ok').click(); });
 });
 
@@ -2957,7 +2982,18 @@ function openAddModal() {
   document.getElementById('ma-search').focus();
 }
 
-function goConfirmStep(code, unit, name, itemType) {
+// ★2026-10-22 整番・色調：整番は製品マスタの対応表（品番→整番。開いたときに部品の計算用にもらっている）から引く
+function masterSeiban_(code) { return (window._seibanMap && window._seibanMap[code]) || ''; }
+// 在庫表の製品の欄：品番・整番・名称・入数・色調の順（★2026-10-22 安田さん）
+function productSeibanRow_(prod) {
+  const seiban = prod.seiban || masterSeiban_(prod.code);
+  return seiban ? `<div class="p-row"><span class="p-sub">整番 ${escH(seiban)}</span></div>` : '';
+}
+function productColorRow_(prod) {
+  return prod.color ? `<div class="p-row"><span class="p-sub">色調 ${escH(prod.color)}</span></div>` : '';
+}
+
+function goConfirmStep(code, unit, name, itemType, seiban) {
   pendingCode     = code;
   pendingUnit     = unit;
   pendingItemType = itemType || 'product';
@@ -2970,6 +3006,8 @@ function goConfirmStep(code, unit, name, itemType) {
   const grpSel = document.getElementById('confirm-group');
   if (grpSel) grpSel.value = (selGroupId !== 'all' && selGroupId !== 'unset') ? selGroupId : '';
   document.getElementById('ma-name').value='';
+  document.getElementById('ma-seiban').value = seiban || masterSeiban_(code);
+  document.getElementById('ma-color').value  = '';
   document.getElementById('step-search').style.display='none';
   document.getElementById('step-confirm').style.display='block';
   document.getElementById('step-search-btns').style.display='none';
@@ -3008,7 +3046,7 @@ async function doSearch() {
     results.innerHTML = items.map(p =>
       `<div class="search-result-item"
           data-code="${escAttr(p.code)}" data-unit="${escAttr(p.unit||'')}"
-          data-name="${escAttr(p.name||'')}">
+          data-name="${escAttr(p.name||'')}" data-seiban="${escAttr(p.seiban||'')}">
         <span style="flex:1;min-width:0">
           <span class="sr-code">${escH(p.code)}</span>
           ${p.name ? `<span class="sr-name">${escH(p.name)}</span>` : ''}
@@ -3021,7 +3059,7 @@ async function doSearch() {
     ).join('');
     results.querySelectorAll('.search-result-item').forEach(el => {
       el.addEventListener('click', () =>
-        goConfirmStep(el.dataset.code, el.dataset.unit, el.dataset.name, 'product'));
+        goConfirmStep(el.dataset.code, el.dataset.unit, el.dataset.name, 'product', el.dataset.seiban));
     });
   } catch(e) {
     status.textContent='検索失敗: '+e.message;
@@ -3053,15 +3091,19 @@ document.getElementById('ma-ok').addEventListener('click', async () => {
   // 確認画面のセレクトから種別を取得（ユーザーが変更可能）
   pendingItemType = document.getElementById('confirm-item-type').value;
   const pendingGroup = document.getElementById('confirm-group')?.value || '';
+  const seiban   = document.getElementById('ma-seiban').value.trim();
+  const color    = document.getElementById('ma-color').value.trim();
   document.getElementById('modal-add').style.display='none';
   showLoad(true);
   const res = await api({ action:'addProduct', clientId:selCid, name,
-                          unit:pendingUnit, code:pendingCode, sub:'', itemType:pendingItemType, group:pendingGroup });
-  products.push({ id:res.id, name, unit:pendingUnit, code:pendingCode, sub:'', itemType:pendingItemType, group:pendingGroup, order:res.order || 9999 });
+                          unit:pendingUnit, code:pendingCode, sub:'', itemType:pendingItemType, group:pendingGroup, seiban, color });
+  products.push({ id:res.id, name, unit:pendingUnit, code:pendingCode, sub:'', itemType:pendingItemType, group:pendingGroup, seiban, color, order:res.order || 9999 });
   products.sort((a, b) => (a.order || 9999) - (b.order || 9999));
   showLoad(false); renderAll(); showToast('追加しました');
 });
-document.getElementById('ma-name').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('ma-ok').click(); });
+['ma-name','ma-seiban','ma-color'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('ma-ok').click(); });
+});
 
 // ============================================================
 //  月切り替え
