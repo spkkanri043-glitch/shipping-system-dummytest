@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lltMuEiz09lcPNVMpMqbHl1Y0WHrJ7l/LLrdEQ5I2Og=' 'sha256-uFlRfOtqLEeH5Pv3yhlJFMMmSrQ8a1OxCdptdKq/TrY='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lltMuEiz09lcPNVMpMqbHl1Y0WHrJ7l/LLrdEQ5I2Og=' 'sha256-7C/hVP4jqqZcaZhF88za/acOYHf966k79Gs2yqlQcKw='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -252,6 +252,12 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
 .btn-portal-back{padding:5px 11px;font-size:11px;font-weight:600;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:6px;cursor:pointer;white-space:nowrap;display:none;}
 .btn-portal-back:hover{background:rgba(255,255,255,.2);}
 .btn-portal-back.show{display:inline-flex;align-items:center;gap:4px;}
+/* ★2026-10-23 1つ前の表示（期間・絞り込み・ページ）に戻る（安田さん） */
+.btn-view-back{padding:6px 12px;font-size:12px;font-weight:700;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.btn-view-back:hover:not(:disabled){background:rgba(255,255,255,.22);}
+.btn-view-back:disabled{opacity:.35;cursor:default;}
+.htitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+@media(max-width:480px){.header .hic{display:none;}}   /* スマホの幅では題名を1行に収める */
 .pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 0 4px;flex-wrap:wrap;}
 .page-btn{padding:5px 11px;font-size:12px;font-weight:600;border:1px solid var(--bd2);border-radius:6px;background:var(--sf);color:var(--tx2);cursor:pointer;}
 .page-btn.on{background:var(--pr);color:#fff;border-color:var(--pr);}
@@ -263,6 +269,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
 <body>
 
 <div class="header">
+  <button class="btn-view-back" id="btn-view-back" type="button" disabled title="1つ前の表示（期間・絞り込み・ページ）に戻ります">← 戻る</button>
   <div class="hic">📋</div>
   <div class="htitle">日報確認</div>
   <div class="header-right">
@@ -643,7 +650,66 @@ function applyFilter() {
   renderKpi();
   renderWorkerSummary();
   renderTable();
+  recordView_();
 }
+
+// ★2026-10-23 「← 戻る」：表示（期間・日付・絞り込み・ページ）が変わるたびに、変わる前を覚えて1つずつ戻す（安田さん）。
+//   ポータルからは新しいタブで開くので、ブラウザの「戻る」は使えない。
+const VIEW_HISTORY_MAX_ = 30;
+let viewHistory_ = [];
+let lastView_ = null;
+let restoringView_ = false;
+function currentView_() {
+  const period = ['today','7','30','0'].find(k => document.getElementById('p-'+k)?.classList.contains('on')) || '';
+  return {
+    from: document.getElementById('date-from').value, to: document.getElementById('date-to').value, period,
+    worker: document.getElementById('f-worker').value, part: document.getElementById('f-part').value,
+    sakugyo: document.getElementById('f-sakugyo').value, activeWorker, page: currentPage,
+  };
+}
+function sameView_(a, b) { return !!a && !!b && Object.keys(a).every(k => a[k] === b[k]); }
+function recordView_() {
+  const now = currentView_();
+  if (!restoringView_ && lastView_ && !sameView_(lastView_, now)) {
+    viewHistory_.push(lastView_);
+    if (viewHistory_.length > VIEW_HISTORY_MAX_) viewHistory_.shift();
+  }
+  lastView_ = now;
+  updateViewBackBtn_();
+}
+function updateViewBackBtn_() {
+  const b = document.getElementById('btn-view-back');
+  if (b) b.disabled = !viewHistory_.length || restoringView_;
+}
+function setSelectValue_(id, v) {
+  const sel = document.getElementById(id);
+  sel.value = v;
+  if (sel.value !== v) sel.value = '';   // その期間に無い選択肢なら「すべて」
+}
+async function goBackView_() {
+  const s = viewHistory_.pop();
+  if (!s || restoringView_) { updateViewBackBtn_(); return; }
+  restoringView_ = true;
+  updateViewBackBtn_();
+  try {
+    const reload = !lastView_ || s.from !== lastView_.from || s.to !== lastView_.to;
+    document.getElementById('date-from').value = s.from;
+    document.getElementById('date-to').value   = s.to;
+    ['today','7','30','0'].forEach(k => document.getElementById('p-'+k)?.classList.toggle('on', k === s.period));
+    activeWorker = s.activeWorker;
+    if (reload) await loadData();   // 期間が違えば取り直す（絞り込みの選択肢も作り直される）
+    setSelectValue_('f-worker', s.worker);
+    setSelectValue_('f-part', s.part);
+    setSelectValue_('f-sakugyo', s.sakugyo);
+    applyFilter();
+    if (s.page > 1) goPage(s.page);
+  } finally {
+    restoringView_ = false;
+    lastView_ = currentView_();
+    updateViewBackBtn_();
+  }
+}
+document.getElementById('btn-view-back').addEventListener('click', goBackView_);
 
 // KPI
 function renderKpi() {
@@ -791,6 +857,7 @@ function goPage(p) {
   if (p < 1 || p > totalPages) return;
   currentPage = p;
   renderTable();
+  recordView_();
   document.querySelector('.sec:last-child')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
