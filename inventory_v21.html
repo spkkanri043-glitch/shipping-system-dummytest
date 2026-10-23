@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-8W0t3mzyAi8LkRSW3eBKa6tMznBOOAhuQEiO4KI7mxo=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-pQ2igK6SaDWrsqB0+7YpRNWNHHvHtjeQIo8xz7Vjba0=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -316,6 +316,11 @@ td.tdy-col { background: #f5fcf9 !important; }
 .fontctl-lbl { font-size: 12px; color: #666; margin-right: 2px; white-space: nowrap; }
 .fontctl-btn[aria-pressed="true"] { background: #1D9E75; color: #fff; border-color: #1D9E75; }
 #fontctl-bold { font-weight: 700; }
+/* ★2026-10-23 セルの色（リーダー以上に出す） */
+.colorctl { display: none; align-items: center; gap: 4px; flex-wrap: wrap; }
+.colorctl.show { display: flex; }
+.color-btn { min-width: 34px; color: #333; border-color: #bbb; font-weight: 600; }
+.color-btn:hover { filter: brightness(.95); }
 .state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #bbb; gap: 8px; }
 .state .ico { font-size: 28px; }
 /* モーダル */
@@ -527,6 +532,15 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
     <button class="btn fontctl-btn" data-fs="1.3" aria-pressed="false">大</button>
     <button class="btn fontctl-btn" data-fs="1.5" aria-pressed="false">特大</button>
     <button class="btn fontctl-btn" id="fontctl-bold" aria-pressed="false">太字</button>
+  </div>
+  <div class="colorctl" id="colorctl" title="セルを選んでから色を押すと、そのセルに色が付きます（全員に同じ色で見えます）">
+    <span class="fontctl-lbl">色</span>
+    <button class="btn color-btn" data-color="#fff2a8" style="background:#fff2a8" title="選んだセルを黄にする">黄</button>
+    <button class="btn color-btn" data-color="#ffd0d0" style="background:#ffd0d0" title="選んだセルを赤にする">赤</button>
+    <button class="btn color-btn" data-color="#cfe3ff" style="background:#cfe3ff" title="選んだセルを青にする">青</button>
+    <button class="btn color-btn" data-color="#ccf0d6" style="background:#ccf0d6" title="選んだセルを緑にする">緑</button>
+    <button class="btn color-btn" data-color="#e0e0e0" style="background:#e0e0e0" title="選んだセルを灰にする">灰</button>
+    <button class="btn color-btn" data-color="" title="選んだセルの色を消す">消す</button>
   </div>
   <div class="tsp"></div>
   <button class="btn btn-purple" id="btn-parts-filter" data-csp-click="h0" data-csp-source-click="togglePartsFilter()">🔩 部品在庫</button>
@@ -901,6 +915,7 @@ function initAuth() {
       currentUser = { id: res.id, name: res.name || '', role: res.role || 'staff' };
       try { pageMemoryStorage.setItem(SK_USER, JSON.stringify(currentUser)); } catch(e) {}
       if (typeof updateUserBadge === 'function') updateUserBadge();
+      if (typeof updateColorCtl_ === 'function') updateColorCtl_();
     }
   }).catch(function () {});
   return true;
@@ -1253,7 +1268,7 @@ async function api(params) {
     }
   }
 }
-const API_RETRY_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock'];
+const API_RETRY_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock', 'saveCellColor'];
 const API_RETRY_ERRORS_ = ['server_error', 'busy', 'unavailable', '通信エラー', 'Failed to fetch', 'NetworkError', 'Load failed'];
 async function apiOnce_(params) {
   const token = getToken();
@@ -1286,7 +1301,7 @@ async function apiOnce_(params) {
   }
 }
 const API_SILENT_ACTIONS_ = ['setOnlineStatus', 'getOnlineUsers', 'setCellFocus', 'getCellFocusList', 'getCellHistoryList'];
-const API_WRITE_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock', 'addClient', 'updateClient', 'deleteClient',
+const API_WRITE_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock', 'saveCellColor', 'addClient', 'updateClient', 'deleteClient',
   'addProduct', 'updateProduct', 'deleteProduct', 'addGroup', 'updateGroup', 'deleteGroup', 'swapProductOrder'];
 function showApiNotice_(text, detail) {
   let notice = document.getElementById('inventory-api-error');
@@ -1598,6 +1613,7 @@ async function loadMonth() {
   products  = (pr.products || []).sort((a, b) => (a.order || 9999) - (b.order || 9999));
   mdata     = {};
   initStock = {};
+  cellColors = {}; lastCellForColor_ = null;   // ★2026-10-23 セルの色
 
   (mr.data || []).forEach(row => {
     // 製品月初在庫
@@ -1615,6 +1631,10 @@ async function loadMonth() {
     row.days.forEach((v, i) => {
       if (v !== '' && v !== null && v !== undefined)
         mdata[`${row.productId}_${row.rowType}_${i+1}`] = parseFloat(v);
+    });
+    (Array.isArray(row.colors) ? row.colors : []).forEach((c, i) => {
+      c = String(c || '').toLowerCase();
+      if (CELL_COLORS_.includes(c)) cellColors[`${row.productId}_${row.rowType}_${i+1}`] = c;
     });
   });
 
@@ -2601,8 +2621,8 @@ function renderTable() {
   }
   document.getElementById('main-tbody').innerHTML = mainHtml;
 
-  // 列固定初期化
-  requestAnimationFrame(initStickyColumns);
+  // 列固定：★2026-10-23 作り直すたびに左の列を固定の位置へ（前は最初の1回だけ＝入力中の作り直しで左の列が流れていた）
+  initStickyColumns();
 
   // イベント登録
   const mainTbody = document.getElementById('main-tbody');
@@ -2612,6 +2632,8 @@ function renderTable() {
     i.addEventListener('blur', onCellBlur);
     i.addEventListener('keydown', onCellKeyDown_);
     i.addEventListener('wheel', onCellWheel_, { passive: false });
+    i.addEventListener('focus', keepCellVisible_);
+    i.addEventListener('focus', rememberCellForColor_);
   });
   mainTbody.querySelectorAll('[data-del]').forEach(b  => b.addEventListener('click', () => openDeleteConfirm(b.dataset.del)));
   mainTbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEditModal(b.dataset.edit)));
@@ -2620,6 +2642,8 @@ function renderTable() {
   mainTbody.querySelectorAll('[data-unlock]').forEach(b => b.addEventListener('click', () => onUnlock(b.dataset.unlock)));
   mainTbody.querySelectorAll('[data-relock]').forEach(b => b.addEventListener('click', () => onRelock(b.dataset.relock)));
   applyCellEditBadges();
+  applyCellColors_();
+  updateColorCtl_();
 }
 
 function renderTableOnly() { renderTable(); checkWarnItems(); }
@@ -2689,33 +2713,71 @@ document.querySelectorAll('#fontctl [data-fs]').forEach(b => b.addEventListener(
 document.getElementById('fontctl-bold').addEventListener('click', () => setInvFont_({ bold: !invFont_.bold }));
 applyInvFont_();
 
+// ★2026-10-23 セルの色（リーダー以上・全員に同じ色）。GAS が月のシートのそのセルの背景色として保存する（スプレッドシートで見ても同じ）。
+//   セルを選んでから色を押す。決まった色だけ（薄い色＝数字が読める）。数字の値は変えない。
+const CELL_COLORS_ = ['#fff2a8', '#ffd0d0', '#cfe3ff', '#ccf0d6', '#e0e0e0'];   // 黄・赤・青・緑・灰（GAS と同じ）
+let cellColors = {};           // `${pid}_${rt}_${d}` → 色
+let lastCellForColor_ = null;  // 色を付けるセル（最後に選んだセル）
+function canColorCells_() { return !!currentUser && ['leader', 'admin', 'master'].includes(currentUser.role); }
+function updateColorCtl_() { document.getElementById('colorctl')?.classList.toggle('show', canColorCells_()); }
+function rememberCellForColor_(e) { const t = e.target.dataset; lastCellForColor_ = { pid: t.pid, rt: t.rt, d: t.d }; }
+function applyCellColors_() {
+  document.querySelectorAll('#main-tbody input[data-pid]').forEach(i => {
+    const c = cellColors[`${i.dataset.pid}_${i.dataset.rt}_${i.dataset.d}`];
+    if (c) i.closest('td').style.setProperty('background', c, 'important');
+  });
+}
+async function applyCellColor_(color) {
+  const a = document.activeElement;   // 今選んでいるセル（色のボタンは押してもセルから外れない）、無ければ最後に選んだセル
+  const c = (a && a.matches && a.matches('#main-tbody input[data-pid]')) ? { pid: a.dataset.pid, rt: a.dataset.rt, d: a.dataset.d } : lastCellForColor_;
+  if (!c) { showToast('色を付けるセルを先に選んでください'); return; }
+  const key = `${c.pid}_${c.rt}_${c.d}`, before = cellColors[key] || '';
+  if (before === color) return;
+  if (color) cellColors[key] = color; else delete cellColors[key];
+  renderTableKeepFocus_();
+  try {
+    await api({ action:'saveCellColor', clientId:selCid, year:viewYear, month:viewMonth, productId:c.pid, rowType:c.rt, day:parseInt(c.d), color });
+  } catch (e) {
+    if (before) cellColors[key] = before; else delete cellColors[key];
+    renderTableKeepFocus_();
+  }
+}
+document.querySelectorAll('#colorctl .color-btn').forEach(b => {
+  b.addEventListener('mousedown', e => e.preventDefault());   // 押してもセルから外れない（選んだセルのまま）
+  b.addEventListener('click', () => applyCellColor_(b.dataset.color));
+});
+
 // ============================================================
 //  列固定：scrollイベントでtransformを使って強制固定
 // ============================================================
 function initStickyColumns() {
   const scroll = document.querySelector('.tscroll');
-  if (!scroll || scroll._stickyBound) return;
-  scroll._stickyBound = true;
-
-  const PROD_W = 170; // c-prod列幅
-  const TYPE_W = 150; // c-type列幅
-
-  const fixCols = () => {
-    const sl = scroll.scrollLeft;
-    const table = document.getElementById('main-table');
-    if (!table) return;
-    // c-prod セル（左端に固定）
-    table.querySelectorAll('td.c-prod, th.c-prod').forEach(el => {
-      el.style.transform = `translateX(${sl}px)`;
-    });
-    // c-type セル（c-prodの右に固定）
-    table.querySelectorAll('td.c-type, th.c-type').forEach(el => {
-      el.style.transform = `translateX(${sl}px)`;
-    });
-  };
-
-  scroll.addEventListener('scroll', fixCols, { passive: true });
-  fixCols(); // 初期実行
+  if (!scroll) return;
+  if (!scroll._stickyBound) {
+    scroll._stickyBound = true;
+    scroll.addEventListener('scroll', fixStickyColumns_, { passive: true });
+  }
+  fixStickyColumns_();   // 表を作り直したあとも毎回あてる
+}
+function fixStickyColumns_() {
+  const scroll = document.querySelector('.tscroll');
+  const table = document.getElementById('main-table');
+  if (!scroll || !table) return;
+  const sl = scroll.scrollLeft;
+  // c-prod セル（左端に固定）・c-type セル（c-prodの右に固定）
+  table.querySelectorAll('td.c-prod, th.c-prod, td.c-type, th.c-type').forEach(el => {
+    el.style.transform = `translateX(${sl}px)`;
+  });
+}
+// ★2026-10-23 選んだセルが左の固定の列の下に隠れたら、見える所まで横に送る（Shift+Tab で左へ移ったときなど）
+function keepCellVisible_(e) {
+  const scroll = document.querySelector('.tscroll');
+  const prod = document.querySelector('#main-thead th.c-prod'), type = document.querySelector('#main-thead th.c-type');
+  const td = e.target.closest('td');
+  if (!scroll || !prod || !type || !td) return;
+  const fixedRight = scroll.getBoundingClientRect().left + prod.offsetWidth + type.offsetWidth;   // 固定の列の右端（動かし方に左右されない）
+  const hidden = fixedRight - td.getBoundingClientRect().left;
+  if (hidden > 0) scroll.scrollLeft = Math.max(0, scroll.scrollLeft - hidden - 4);
 }
 
 // 左右テーブルの行高さを同期
