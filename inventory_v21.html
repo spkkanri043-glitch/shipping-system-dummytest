@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-pQ2igK6SaDWrsqB0+7YpRNWNHHvHtjeQIo8xz7Vjba0=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-zhX19fgx1LmolxakPCp4kgA21BD/kLqdu7r24XE+am8=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -185,8 +185,8 @@ table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
 th, td { border-right: 1px solid #ebebeb; border-bottom: 1px solid #ebebeb; white-space: nowrap; }
 thead th { background: #f7f7f7; font-size: calc(14px * var(--inv-fs)); font-weight: 600; color: #444; padding: 9px 4px; text-align: center; position: sticky; top: 0; z-index: 10; }
 /* 左上角（ヘッダー×固定列）は両方向に固定 */
-thead th.c-prod { z-index: 20; text-align: left;  padding: 7px 8px; will-change: transform; }
-thead th.c-type { z-index: 20; text-align: right; will-change: transform; }
+thead th.c-prod { z-index: 20; text-align: left;  padding: 7px 8px; will-change: transform; position: sticky; top: 0; }
+thead th.c-type { z-index: 20; text-align: right; will-change: transform; position: sticky; top: 0; }   /* ★2026-10-23 上下にも固定 */
 thead th.we  { background: #efefef; color: #ccc; }
 thead th.tdy { background: #e0f5ec; color: #0a6644; font-weight: 700; }
 thead th.sat, thead th.sat span { color: #1565C0 !important; }   /* ★2026-10-22 土曜日（入力できる）は青い文字 */
@@ -321,6 +321,8 @@ td.tdy-col { background: #f5fcf9 !important; }
 .colorctl.show { display: flex; }
 .color-btn { min-width: 34px; color: #333; border-color: #bbb; font-weight: 600; }
 .color-btn:hover { filter: brightness(.95); }
+#main-tbody td.cell-colored input, #main-tbody td.cell-colored input.excluded-input { color: #1a1a1a !important; }
+#main-tbody td.cell-colored input.minus-val { color: #7a0000 !important; }   /* 赤の背景でも読めるマイナス */
 .state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #bbb; gap: 8px; }
 .state .ico { font-size: 28px; }
 /* モーダル */
@@ -535,11 +537,11 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
   </div>
   <div class="colorctl" id="colorctl" title="セルを選んでから色を押すと、そのセルに色が付きます（全員に同じ色で見えます）">
     <span class="fontctl-lbl">色</span>
-    <button class="btn color-btn" data-color="#fff2a8" style="background:#fff2a8" title="選んだセルを黄にする">黄</button>
-    <button class="btn color-btn" data-color="#ffd0d0" style="background:#ffd0d0" title="選んだセルを赤にする">赤</button>
-    <button class="btn color-btn" data-color="#cfe3ff" style="background:#cfe3ff" title="選んだセルを青にする">青</button>
-    <button class="btn color-btn" data-color="#ccf0d6" style="background:#ccf0d6" title="選んだセルを緑にする">緑</button>
-    <button class="btn color-btn" data-color="#e0e0e0" style="background:#e0e0e0" title="選んだセルを灰にする">灰</button>
+    <button class="btn color-btn" data-color="#ffd43b" style="background:#ffd43b" title="選んだセルを黄にする">黄</button>
+    <button class="btn color-btn" data-color="#ff8787" style="background:#ff8787" title="選んだセルを赤にする">赤</button>
+    <button class="btn color-btn" data-color="#74c0fc" style="background:#74c0fc" title="選んだセルを青にする">青</button>
+    <button class="btn color-btn" data-color="#69db7c" style="background:#69db7c" title="選んだセルを緑にする">緑</button>
+    <button class="btn color-btn" data-color="#adb5bd" style="background:#adb5bd" title="選んだセルを灰にする">灰</button>
     <button class="btn color-btn" data-color="" title="選んだセルの色を消す">消す</button>
   </div>
   <div class="tsp"></div>
@@ -2220,6 +2222,7 @@ function renderInitPanel() {
 function toggleInitPanel() {
   initPanelCollapsed = !initPanelCollapsed;
   document.getElementById('init-panel').classList.toggle('collapsed', initPanelCollapsed);
+  fitTableHeight_();
 }
 document.getElementById('init-panel-hd').addEventListener('click', toggleInitPanel);
 
@@ -2715,7 +2718,7 @@ applyInvFont_();
 
 // ★2026-10-23 セルの色（リーダー以上・全員に同じ色）。GAS が月のシートのそのセルの背景色として保存する（スプレッドシートで見ても同じ）。
 //   セルを選んでから色を押す。決まった色だけ（薄い色＝数字が読める）。数字の値は変えない。
-const CELL_COLORS_ = ['#fff2a8', '#ffd0d0', '#cfe3ff', '#ccf0d6', '#e0e0e0'];   // 黄・赤・青・緑・灰（GAS と同じ）
+const CELL_COLORS_ = ['#ffd43b', '#ff8787', '#74c0fc', '#69db7c', '#adb5bd'];   // 黄・赤・青・緑・灰（GAS と同じ。10/23 濃く）
 let cellColors = {};           // `${pid}_${rt}_${d}` → 色
 let lastCellForColor_ = null;  // 色を付けるセル（最後に選んだセル）
 function canColorCells_() { return !!currentUser && ['leader', 'admin', 'master'].includes(currentUser.role); }
@@ -2724,7 +2727,10 @@ function rememberCellForColor_(e) { const t = e.target.dataset; lastCellForColor
 function applyCellColors_() {
   document.querySelectorAll('#main-tbody input[data-pid]').forEach(i => {
     const c = cellColors[`${i.dataset.pid}_${i.dataset.rt}_${i.dataset.d}`];
-    if (c) i.closest('td').style.setProperty('background', c, 'important');
+    if (!c) return;
+    const td = i.closest('td');
+    td.style.setProperty('background', c, 'important');
+    td.classList.add('cell-colored');
   });
 }
 async function applyCellColor_(color) {
@@ -2750,6 +2756,14 @@ document.querySelectorAll('#colorctl .color-btn').forEach(b => {
 // ============================================================
 //  列固定：scrollイベントでtransformを使って強制固定
 // ============================================================
+// ★2026-10-23 表の高さを画面に収める（月初在庫を開いた・画面が低いときも、ページごと送らずに表の中で送れる＝日付の行がいつも見える）
+function fitTableHeight_() {
+  const sc = document.querySelector('.tscroll');
+  if (!sc) return;
+  const top = sc.getBoundingClientRect().top + window.scrollY;
+  sc.style.maxHeight = Math.max(320, Math.floor(window.innerHeight - top - 20)) + 'px';
+}
+window.addEventListener('resize', fitTableHeight_);
 function initStickyColumns() {
   const scroll = document.querySelector('.tscroll');
   if (!scroll) return;
@@ -2758,6 +2772,7 @@ function initStickyColumns() {
     scroll.addEventListener('scroll', fixStickyColumns_, { passive: true });
   }
   fixStickyColumns_();   // 表を作り直したあとも毎回あてる
+  fitTableHeight_();
 }
 function fixStickyColumns_() {
   const scroll = document.querySelector('.tscroll');
@@ -3320,6 +3335,7 @@ function checkWarnItems() {
   } else {
     banner.style.display = 'none';
   }
+  fitTableHeight_();
 }
 
 async function boot() {
