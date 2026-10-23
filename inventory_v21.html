@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-+/lZ8kLauczWZEyICpWoo0zykwpOyU51KgNCkR/o2lo=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-P8ZkS/2trvX/Tw+kAu58aNuXQHUNnvvocJvSJOMucaM=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -419,6 +419,9 @@ td.nc input.minus-val { color: #c0392b !important; font-weight: 700; }
 .gtab-add:hover { color:#1D9E75;border-color:#1D9E75; }
 .gtab-edit-btn { font-size:9px;color:#bbb;cursor:pointer;padding:1px 3px;border-radius:3px; }
 .gtab-edit-btn:hover { color:#e24b4a;background:#fff0f0; }
+/* ★2026-10-23 グループの並び：長押しで持ち上げて左右に動かす */
+.gtab { -webkit-touch-callout: none; }
+.gtab.dragging { background:#e3f6ed; color:#0a6644; border-radius:6px 6px 0 0; box-shadow:0 2px 10px rgba(0,0,0,.2); cursor:grabbing; }
 /* グループ管理モーダル */
 .group-modal { width:360px; }
 /* 取引先管理モーダル */
@@ -1273,7 +1276,7 @@ async function api(params) {
     }
   }
 }
-const API_RETRY_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock', 'saveCellColor'];
+const API_RETRY_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock', 'saveCellColor', 'reorderGroups'];
 const API_RETRY_ERRORS_ = ['server_error', 'busy', 'unavailable', '通信エラー', 'Failed to fetch', 'NetworkError', 'Load failed'];
 async function apiOnce_(params) {
   const token = getToken();
@@ -1307,7 +1310,7 @@ async function apiOnce_(params) {
 }
 const API_SILENT_ACTIONS_ = ['setOnlineStatus', 'getOnlineUsers', 'setCellFocus', 'getCellFocusList', 'getCellHistoryList'];
 const API_WRITE_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock', 'saveCellColor', 'addClient', 'updateClient', 'deleteClient',
-  'addProduct', 'updateProduct', 'deleteProduct', 'addGroup', 'updateGroup', 'deleteGroup', 'swapProductOrder'];
+  'addProduct', 'updateProduct', 'deleteProduct', 'addGroup', 'updateGroup', 'deleteGroup', 'reorderGroups', 'swapProductOrder'];
 function showApiNotice_(text, detail) {
   let notice = document.getElementById('inventory-api-error');
   if (!notice) {
@@ -1539,6 +1542,7 @@ function renderGroupTabBar() {
   });
   bar.querySelectorAll('.gtab[data-gid]').forEach(el => {
     el.addEventListener('click', () => {
+      if (suppressGtabClick_) return;   // 長押しで並べ替えたあとは開かない
       selGroupId = el.dataset.gid;
       renderGroupTabBar();
       renderTableOnly();
@@ -1547,6 +1551,68 @@ function renderGroupTabBar() {
     });
   });
   renderGroupTabOnlineBadges();
+  bindGroupTabDrag_(bar);
+}
+
+// ★2026-10-23 グループの並び（リーダー以上・全員に同じ並び）。グループのタブを長押し（0.5秒）すると持ち上がり、左右に動かして離すとその位置へ。
+//   短く押せば今までどおり開く。「全表示」「未分類」は動かない。並びは GAS がグループシートの「並び順」に保存する。
+const GTAB_HOLD_MS_ = 500;
+let gtabDrag_ = null;
+let suppressGtabClick_ = false;
+function canReorderGroups_() { return !!currentUser && ['leader', 'admin', 'master'].includes(currentUser.role); }
+function bindGroupTabDrag_(bar) {
+  if (!canReorderGroups_()) return;
+  bar.querySelectorAll('.gtab[data-gid]').forEach(el => {
+    if (el.dataset.gid === 'all' || el.dataset.gid === 'unset') return;
+    el.title = '長押しして左右に動かすと並べ替えできます';
+    el.addEventListener('pointerdown', e => {
+      if (e.button !== 0 || e.target.closest('.gtab-edit-btn')) return;
+      const d = gtabDrag_ = { el, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, active: false, before: groups.map(g => g.id) };
+      d.timer = setTimeout(() => {
+        d.active = true;
+        el.classList.add('dragging');
+        try { el.setPointerCapture(d.pointerId); } catch (_) {}
+      }, GTAB_HOLD_MS_);
+    });
+    el.addEventListener('contextmenu', e => { if (gtabDrag_ && gtabDrag_.el === el) e.preventDefault(); });
+  });
+}
+document.addEventListener('pointermove', e => {
+  const d = gtabDrag_;
+  if (!d || e.pointerId !== d.pointerId) return;
+  if (!d.active) {   // 長押しになる前に動いた＝ふつうの横の送り・クリック
+    if (Math.abs(e.clientX - d.startX) > 8 || Math.abs(e.clientY - d.startY) > 8) { clearTimeout(d.timer); gtabDrag_ = null; }
+    return;
+  }
+  const bar = d.el.parentElement;
+  const others = Array.from(bar.querySelectorAll('.gtab[data-gid]')).filter(t => t !== d.el && t.dataset.gid !== 'all' && t.dataset.gid !== 'unset');
+  const next = others.find(t => { const r = t.getBoundingClientRect(); return e.clientX < r.left + r.width / 2; });
+  if (next) { if (d.el.nextElementSibling !== next) bar.insertBefore(d.el, next); }
+  else if (others.length && others[others.length - 1].nextElementSibling !== d.el) others[others.length - 1].after(d.el);
+});
+document.getElementById('group-tab-bar').addEventListener('touchmove', e => { if (gtabDrag_ && gtabDrag_.active) e.preventDefault(); }, { passive: false });
+document.addEventListener('pointerup', endGroupTabDrag_);
+document.addEventListener('pointercancel', endGroupTabDrag_);
+async function endGroupTabDrag_(e) {
+  const d = gtabDrag_;
+  if (!d || (e && e.pointerId !== d.pointerId)) return;
+  clearTimeout(d.timer);
+  gtabDrag_ = null;
+  if (!d.active) return;   // 短く押しただけ＝今までどおり開く
+  d.el.classList.remove('dragging');
+  suppressGtabClick_ = true;
+  setTimeout(() => { suppressGtabClick_ = false; }, 0);
+  const ids = Array.from(d.el.parentElement.querySelectorAll('.gtab[data-gid]')).map(t => t.dataset.gid).filter(x => x !== 'all' && x !== 'unset');
+  if (ids.join('|') === d.before.join('|')) return;
+  const before = groups.slice();
+  groups.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+  renderGroupTabBar(); updateGroupSelects();
+  try {
+    await api({ action:'reorderGroups', clientId:selCid, groupIds:ids });
+    showToast('グループの並びを保存しました');
+  } catch (err) {
+    groups = before; renderGroupTabBar(); updateGroupSelects();
+  }
 }
 
 function updateGroupSelects() {
