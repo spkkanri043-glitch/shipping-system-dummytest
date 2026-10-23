@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-zhX19fgx1LmolxakPCp4kgA21BD/kLqdu7r24XE+am8=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-+/lZ8kLauczWZEyICpWoo0zykwpOyU51KgNCkR/o2lo=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -177,6 +177,9 @@ td.cell-being-edited { outline: 2px solid #ff6b6b !important; outline-offset: -1
 /* テーブル */
 .tcard-wrap { background: #fff; border: 2px solid #bbb; border-radius: 8px; overflow: hidden; }
 .tscroll { overflow: auto; max-height: calc(100vh - 280px); }
+/* ★2026-10-23 上下に送ると製品1つ分ずつ止まる（製品の1行目が見出しのすぐ下に来る。見出しの高さ・止まり方は updateRowSnap_） */
+.tscroll { scroll-snap-type: y mandatory; }
+#main-tbody tr.divider, #main-tbody tr.divider-part { scroll-snap-align: start; }
 /* ── 分割テーブルレイアウト ── */
 /* 1テーブル方式 */
 #main-table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
@@ -2706,6 +2709,7 @@ function applyInvFont_() {
   document.documentElement.classList.toggle('inv-bold', invFont_.bold);
   document.querySelectorAll('#fontctl [data-fs]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.fs) === invFont_.fs)));
   const bb = document.getElementById('fontctl-bold'); if (bb) bb.setAttribute('aria-pressed', String(invFont_.bold));
+  fitTableHeight_();
 }
 function setInvFont_(patch) {
   invFont_ = Object.assign({}, invFont_, patch);
@@ -2762,6 +2766,20 @@ function fitTableHeight_() {
   if (!sc) return;
   const top = sc.getBoundingClientRect().top + window.scrollY;
   sc.style.maxHeight = Math.max(320, Math.floor(window.innerHeight - top - 20)) + 'px';
+  updateRowSnap_();
+}
+// ★2026-10-23 製品1つ分ずつ止める。止まる位置は見出しのすぐ下（scroll-padding-top＝見出しの高さ）。
+//   製品1つが表の高さより高いとき（部品構成を開いた・特大の文字・低い画面）は、途中も見られるよう「近いときだけ合わせる」にする。
+function updateRowSnap_() {
+  const sc = document.querySelector('.tscroll'), head = document.getElementById('main-thead'), table = document.getElementById('main-table');
+  if (!sc || !head || !table) return;
+  const headH = head.offsetHeight;
+  sc.style.scrollPaddingTop = headH + 'px';
+  const tops = Array.from(document.querySelectorAll('#main-tbody tr.divider, #main-tbody tr.divider-part')).map(r => r.offsetTop);
+  tops.push(table.offsetHeight);
+  let tallest = 0;
+  for (let k = 1; k < tops.length; k++) tallest = Math.max(tallest, tops[k] - tops[k - 1]);
+  sc.style.scrollSnapType = tallest > sc.clientHeight - headH ? 'y proximity' : 'y mandatory';
 }
 window.addEventListener('resize', fitTableHeight_);
 function initStickyColumns() {
