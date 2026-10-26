@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-QopNxRJyvtK3/AC8PW4REf7Ia4n5kZAUG8VZ9Eg+OiE=' 'sha256-OkNarVlONa2gjAMOdIVGLZvVnXNtCdqc7BFZ38wmP4Q='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-QopNxRJyvtK3/AC8PW4REf7Ia4n5kZAUG8VZ9Eg+OiE=' 'sha256-rRWxLBkIMhV5UVsLcGQf6wKo2muSj9qT14dKdnNW2RE='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { closeTab()
@@ -312,11 +312,8 @@ textarea.improve-note { width: 100%; min-height: 70px; margin-top: 10px; padding
       <div class="fg"><label class="fl">巡回担当者</label>
         <input class="fi" type="text" id="f-inspector" placeholder="ログイン後に自動入力されます" readonly>
       </div>
-      <div class="fg">
-        <label class="fl" for="f-worker-id">作業者社員ID</label>
-        <input class="fi" type="text" id="f-worker-id" list="dl-employee-ids" autocomplete="off">
-        <datalist id="dl-employee-ids"></datalist>
-      </div>
+      <!-- ★2026-10-26 安田さん：社員IDの欄は出さない（みんなにIDが見えるため）。「作業者名を登録」の本人のIDだけ裏で渡す。名前だけのときは GAS が名前から本人を探す -->
+      <input type="hidden" id="f-worker-id">
       <div class="fg">
         <label class="fl">作業者名</label>
         <div class="row-inline">
@@ -819,8 +816,6 @@ function loadEmployeeMaster() {
     if (res && res.ok) {
       employees = res.data;
       dl.innerHTML = employees.map(e => `<option value="${escapeAttr(e.name)}">`).join('');
-      document.getElementById('dl-employee-ids').innerHTML = employees.map(e =>
-        `<option value="${escapeAttr(e.id)}">${escapeHtml(e.name)}</option>`).join('');
     }
   }).catch(err => console.error('従業員マスター取得エラー:', err));
 }
@@ -875,10 +870,6 @@ function clearWorker_() {
   document.getElementById('f-worker-id').value = '';
 }
 
-document.getElementById('f-worker-id').addEventListener('input', function() {
-  const matches = employees.filter(e => e.id === this.value);
-  document.getElementById('f-worker').value = matches.length === 1 ? matches[0].name : '';
-});
 document.getElementById('f-worker').addEventListener('input', function() {
   document.getElementById('f-worker-id').value = '';
 });
