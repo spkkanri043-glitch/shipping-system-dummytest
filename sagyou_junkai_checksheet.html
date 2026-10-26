@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-QopNxRJyvtK3/AC8PW4REf7Ia4n5kZAUG8VZ9Eg+OiE=' 'sha256-QmFdDWu/MmQbQjpx7mWPc1PiTDBbyzZzIES/vNls+e0='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-QopNxRJyvtK3/AC8PW4REf7Ia4n5kZAUG8VZ9Eg+OiE=' 'sha256-OkNarVlONa2gjAMOdIVGLZvVnXNtCdqc7BFZ38wmP4Q='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { closeTab()
@@ -788,6 +788,7 @@ function handleUnauthorized_() {
   try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) {}
   AUTH_TOKEN = '';
   currentUser = null;
+  try { productMaster = []; } catch (e) {}   // ★2026-10-26 P0：前の利用者の製品の候補を残さない
   showToast('認証が無効です。業務管理ポータルから入り直してください。', 'error');
 }
 
@@ -824,11 +825,8 @@ function loadEmployeeMaster() {
   }).catch(err => console.error('従業員マスター取得エラー:', err));
 }
 
-// 製品マスタ(製品マスタ管理アプリ)から品番の候補を取得
-// 製品マスタ(製品マスタ管理アプリ)から品番の候補を取得
-// 作業報告書アプリと同じ方式: ブラウザから直接、製品マスタのGASにfetchする
-// (自分のGAS経由にすると UrlFetchApp の権限承認が必要になるため)
-const PRODUCT_MASTER_GAS_URL = 'https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec';
+// 製品マスタから品番の候補を取得
+// ★2026-10-26 P0：巡回GAS（getProductsLite・認証付き）から。製品マスタGASの認証なしの一覧は閉じた（ブラウザから直接は取らない）
 
 // ==============================================================
 // 通知：★ブラウザからの直呼びは廃止（通知マスタ第2部）。
@@ -841,15 +839,17 @@ function findEmployeeByName(name) {
 }
 let productMaster = [];
 function loadProductMaster() {
-  fetch(PRODUCT_MASTER_GAS_URL + '?action=getProducts')
-    .then(res => res.json())
+  if (!AUTH_TOKEN) return; // 未認証時は製品の候補を取得しない
+  const token = AUTH_TOKEN;
+  gasGet('getProductsLite')
     .then(res => {
+      if (AUTH_TOKEN !== token) return;   // 途中で利用者が変わった応答は使わない
       if (res && res.ok) {
         productMaster = (res.data || []).map(p => ({ code: p['品番'], client: p['基本取引先'] })).filter(p => p.code);
         document.getElementById('dl-products').innerHTML =
           productMaster.map(p => `<option value="${escapeAttr(p.code)}">`).join('');
         if (!productMaster.length) showToast('製品マスタが0件でした', '');
-      } else {
+      } else if (res) {   // null＝ログイン切れ（知らせは handleUnauthorized_ が出す）
         showToast('製品マスタ取得エラー: ' + ((res && res.message) || '不明'), 'error');
         console.error('製品マスタ取得エラー:', res);
       }

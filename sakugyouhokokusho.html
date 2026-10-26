@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-f5B46kvKXpIRFyjOufe70c0zNLTamB4c7gS/MenRzWQ=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-ebNWfgBaooGsTJAIw2FFuiDAkmbgoY2HISC9xqe8mho=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -809,14 +809,13 @@ clearBrowserBusinessData_();
 // GAS URL — 各GASのURLを取得
 // ポータルGAS   : URLパラメータ gas_url     or localStorage（ログイン・addLog用）
 // 作業報告書GAS : URLパラメータ report_url  or localStorage（saveReport用）
-// 製品マスタGAS : URLパラメータ product_url or localStorage（getProducts・searchProduct用）
+// 製品の一覧も作業報告書GAS（getProductsLite・認証付き）。★2026-10-26 P0：製品マスタGASの認証なしの一覧は閉じた
 // ============================================================
 
 // ▼▼▼ デプロイ後に各GASのURLをここに入力してください（固定。URLパラメータ差し替えは廃止）▼▼▼
 //   セキュリティ改修：?gas_url= 等での接続先差し替え・localStorage保持を撤去。
 //   任意サーバへトークンを送られる経路を塞ぐため、接続先は必ずこの定数のみを使う。
 const REPORT_GAS_URL  = 'https://script.google.com/macros/s/AKfycbyykHdr2GCV9IIDQ5bdCD5tPKV2S5VRF_ZYtcQWAUdyFz4QGgVRFCFl1OHsS_17Nc9M/exec';   // 作業報告書GAS（saveReport・getReports）
-const PRODUCT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec';  // 製品マスタGAS（getProducts・searchProduct／現状は匿名読取）
 
 // ============================================================
 // SSOトークン（ポータルが #sso= で受け渡す署名トークン）
@@ -948,8 +947,7 @@ function showPortalRequired_() {
 // GAS通信 — actionごとに送り先GASを振り分け
 // ============================================================
 function resolveGasUrl(action) {
-  // 製品マスタ参照のみ製品GAS。それ以外（saveReport/getReports等）は作業報告書GAS。
-  if (action === 'getProducts') return PRODUCT_GAS_URL;
+  // すべて作業報告書GAS（製品の一覧も getProductsLite で。★2026-10-26 P0）
   return REPORT_GAS_URL;
 }
 
@@ -957,6 +955,7 @@ function resolveGasUrl(action) {
 function handleUnauthorized_() {
   clearPrivatePhotoViews_();
   photos = [];
+  try { products = []; } catch (e) {}   // ★2026-10-26 P0：前の利用者の製品一覧を残さない
   clearBrowserBusinessData_();
   try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
   AUTH_TOKEN = '';
@@ -969,7 +968,7 @@ function handleUnauthorized_() {
 
 async function gasPost(action, data) {
   const url  = resolveGasUrl(action);
-  // トークンは全リクエストに添付（匿名の製品GASでは無視される）。
+  // トークンは全リクエストに添付。
   const body = JSON.stringify({ ...data, action, token: AUTH_TOKEN });
   const res  = await fetch(url, {
     method: 'POST',
@@ -980,16 +979,6 @@ async function gasPost(action, data) {
   const json = await res.json();
   if (json && json.error === 'unauthorized') { handleUnauthorized_(); throw new Error('認証が無効です。ポータルから入り直してください。'); }
   if (!json || typeof json !== 'object' || json.ok === false || json.error) throw new Error('処理に失敗しました');
-  return json;
-}
-
-async function gasGet(params) {
-  if (!params || params.action !== 'getProducts') throw new Error('公開一覧以外のGETは利用できません');
-  // Public projection only. Never send the report token to the product service.
-  const res = await fetch(PRODUCT_GAS_URL + '?action=getProducts', { redirect: 'follow' });
-  if (!res.ok) throw new Error('通信エラー ' + res.status);
-  const json = await res.json();
-  if (!json || json.ok !== true || !Array.isArray(json.data)) throw new Error('製品一覧の取得に失敗しました');
   return json;
 }
 
@@ -1092,7 +1081,10 @@ function enterMain() {
 // ============================================================
 async function loadProducts() {
   try {
-    const res = await gasGet({ action: 'getProducts' });
+    // ★2026-10-26 P0：作業報告書GASから認証付きで（製品マスタGASの認証なしの一覧は使わない・失敗しても戻さない）
+    const token = AUTH_TOKEN;
+    const res = await gasPost('getProductsLite', {});
+    if (AUTH_TOKEN !== token) return false;   // 途中で利用者が変わった応答は使わない
     if (res.ok !== true || !Array.isArray(res.data) || res.data.some(p => !p || typeof p !== 'object' || Array.isArray(p))) throw new Error('不正な製品一覧');
     products = res.data.map(p => ({
       '品番': p['品番'], '製品名': p['製品名'], '基本取引先': p['基本取引先'], '箱入数': p['箱入数']

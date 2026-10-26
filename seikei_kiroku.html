@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-M8l/vYr2FJXNmBQI+42Dxfzo9zRN7GpHJCnEwbQE/Ls=' 'sha256-PwzoEkAli4YnGocFkT6HGacyZS8eOv8IK5q5n3SQXLc='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-M8l/vYr2FJXNmBQI+42Dxfzo9zRN7GpHJCnEwbQE/Ls=' 'sha256-qkGXA1xcyi952ftIOzC2AQ/1gaNQrWQxpz/W7/1m6KQ='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://translate.googleapis.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { onLangChange()
@@ -509,14 +509,15 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 
 /* ── 品番サジェスト ── */
 .pn-suggest-wrap{ position:relative; }
-.pn-suggest{ position:absolute; left:0; right:0; top:100%; z-index:50; background:#fff; border:1px solid var(--blue2); border-top:none; border-radius:0 0 5px 5px; max-height:220px; overflow-y:auto; box-shadow:0 6px 16px rgba(0,0,0,.18); display:none; }
+.pn-suggest{ position:absolute; left:0; right:0; top:100%; z-index:50; min-width:min(300px, 90vw); background:#fff; border:1px solid var(--blue2); border-top:none; border-radius:0 0 5px 5px; max-height:220px; overflow-y:auto; box-shadow:0 6px 16px rgba(0,0,0,.18); display:none; }
 .pn-suggest.show{ display:block; }
 .pn-sg-item{ padding:7px 10px; font-size:12px; cursor:pointer; border-bottom:1px solid var(--sec); }
 .pn-sg-item:last-child{ border-bottom:none; }
 .pn-sg-item:hover, .pn-sg-item.active{ background:var(--sec); }
-.pn-sg-no{ font-weight:bold; color:var(--blue); }
-.pn-sg-name{ font-size:10px; color:var(--tx2); margin-top:1px; }
-.pn-sg-sb{ font-size:9.5px; font-weight:bold; color:#fff; background:var(--blue2); border-radius:3px; padding:1px 6px; margin-left:6px; vertical-align:1px; }
+/* 2026-10-20 整番の札が途中で折り返さないよう、品番と札を並べ、入りきらないときは札ごと次の行へ */
+.pn-sg-no{ font-weight:bold; color:var(--blue); display:flex; flex-wrap:wrap; align-items:center; gap:3px 6px; word-break:break-all; }
+.pn-sg-name{ font-size:10.5px; color:var(--tx2); margin-top:2px; }
+.pn-sg-sb{ font-size:10.5px; font-weight:bold; line-height:1.5; color:#fff; background:var(--blue2); border-radius:3px; padding:1px 7px; white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
 .pn-sg-empty{ padding:9px 10px; font-size:11px; color:var(--tx3); }
 
 /* ═══ 印刷スタイル ═══ */
@@ -1325,7 +1326,7 @@ select.on.ng{background:#fadbd8;color:#c0392b;font-weight:bold;}
 // ══════════════════════════════════════════════
 // セキュリティ改修：接続先は固定（?seikei_gas_url= 等の差し替えを撤去）。
 const GAS_URL         = 'https://script.google.com/macros/s/AKfycbwq2iPvBY26qD7zdCFI5nKu87ZKde55cXZg4phNRLKBgGfrBWrG5xbNY4aahAXVNTB4/exec';
-const PRODUCT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyXt-XOooLKLAK3xEyMgUbbH7uN0mx4jNQSIfNM4S6FRJZjsnBtYAJhAjnCWY64MuJIQQ/exec'; // 製品マスタ（現状は匿名読取）
+// ★2026-10-26 P0：製品の一覧は成形記録GAS（getProductsLite・認証付き）から。製品マスタGASの認証なしの一覧は閉じた
 
 // ══ SSO署名トークン（ポータルが #sso= で受け渡す） ══
 const AUTH_TOKEN_KEY = 'kpk_seikei_token';
@@ -1346,6 +1347,7 @@ function handleUnauthorized_() {
   clearSeikeiPrivatePhotos_();
   try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
   AUTH_TOKEN = '';
+  try { PRODUCT_CACHE = null; PRODUCT_CACHE_TOKEN = ''; } catch (e) {}   // ★2026-10-26 P0：前の利用者の製品一覧を残さない
   try { showToast && showToast('認証が無効です。ポータルから入り直してください'); } catch(e) {}
 }
 
@@ -3079,6 +3081,7 @@ function printForm() {
 // 製品マスタ連携
 // ══════════════════════════════════════════════
 let PRODUCT_CACHE = null;
+let PRODUCT_CACHE_TOKEN = '';   // ★2026-10-26 P0：一覧を覚えたときのトークン（別の利用者の一覧を使わない）
 
 // ============================================================
 // 製品マスタから「整番」を取り出す
@@ -3114,22 +3117,29 @@ function productColumns(products) {
 }
 
 async function fetchProductMasterAll() {
-  if (PRODUCT_CACHE) return PRODUCT_CACHE;
-  if (!PRODUCT_GAS_URL) {
-    toast('製品マスタURLが未設定です（ポータルから開き直してください）', 'warn');
+  // ★2026-10-26 P0：覚えた一覧は同じ利用者（同じトークン）のときだけ使う。取るのは成形記録GASから認証付きで
+  if (PRODUCT_CACHE && PRODUCT_CACHE_TOKEN === AUTH_TOKEN) return PRODUCT_CACHE;
+  PRODUCT_CACHE = null;
+  if (!AUTH_TOKEN) {
+    toast('ポータルから開き直してください', 'warn');
     return null;
   }
+  const token = AUTH_TOKEN;
   try {
-    const r = await fetch(PRODUCT_GAS_URL + '?action=getProducts', {credentials:'omit'});
-    if (!r.ok) throw new Error('HTTP error');
-    const d = await r.json();
+    const d = await gasCall_('getProductsLite', {});
+    if (AUTH_TOKEN !== token) return null;   // 途中で利用者が変わった応答は使わない
+    // ★2026-10-20 数字だけの品番は製品マスタのシートで数値になり、数値で届く（本番 723件中5件）。
+    //   1件でも数値があると一覧ごと捨てて「製品マスタに接続できません」になっていた → 数値も受け付けて文字に直す。
     if (!d || d.ok !== true || !Array.isArray(d.data) || d.data.length > 20000 ||
         d.data.some(item => !item || typeof item !== 'object' || Array.isArray(item) ||
-          typeof item['品番'] !== 'string')) throw new Error('invalid public product list');
+          (typeof item['品番'] !== 'string' && !(typeof item['品番'] === 'number' && Number.isFinite(item['品番']))))) throw new Error('invalid public product list');
     PRODUCT_CACHE = d.data.map(item => ({
-      '品番':item['品番'], '製品名':String(item['製品名'] || ''),
-      '基本取引先':String(item['基本取引先'] || ''), '箱入数':item['箱入数']
+      '品番':String(item['品番']), '製品名':String(item['製品名'] || ''),
+      '基本取引先':String(item['基本取引先'] || ''), '箱入数':item['箱入数'],
+      // ★2026-10-20 整番（製品マスタの公開の列に追加）。数値で届くこともあるので文字に直す。無い版の製品マスタでは空
+      '整番':item['整番'] == null ? '' : String(item['整番'])
     }));
+    PRODUCT_CACHE_TOKEN = token;
     return PRODUCT_CACHE;
   } catch(e) {
     console.warn('製品マスタ取得失敗:', e);
