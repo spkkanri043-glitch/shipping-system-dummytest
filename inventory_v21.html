@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-P8ZkS/2trvX/Tw+kAu58aNuXQHUNnvvocJvSJOMucaM=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-jV46GYXQuU8eiw4nFo7uV15KRD7ZiXyCtCbXxJS15L8=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -168,6 +168,11 @@ td.cell-being-edited { outline: 2px solid #ff6b6b !important; outline-offset: -1
 .init-summary { font-size: calc(11px * var(--inv-fs)); color: #999; font-weight: 400; }
 .init-item  { display: flex; flex-direction: column; gap: 2px; }
 .init-item label { font-size: calc(10px * var(--inv-fs)); color: #999; }
+/* ★2026-10-26 安田さん：月初在庫の品番を押すと、表のその製品の所へ送る（製品を探す手間を省く）。押せると分かる色・下線。送った先の製品の欄を少し光らせる */
+.init-item label.init-jump { cursor: pointer; color: #1565C0; text-decoration: underline dotted; text-underline-offset: 2px; }
+.init-item label.init-jump:hover { color: #0d47a1; text-decoration-style: solid; }
+td.c-prod.jump-hl { animation: invJumpHl 1.8s ease-out; }
+@keyframes invJumpHl { 0%, 45% { background-color: #e1f5ee; box-shadow: inset 0 0 0 3px #1D9E75, 3px 0 5px rgba(0,0,0,.15); } 100% { box-shadow: inset 0 0 0 0 rgba(29,158,117,0), 3px 0 5px rgba(0,0,0,.15); } }
 .init-val   { display: flex; align-items: center; gap: 4px; }
 .init-item input { width: calc(80px * var(--inv-fs)); font-size: calc(12px * var(--inv-fs)); text-align: right; border: 1px solid #ddd; border-radius: 5px; padding: 3px 6px; -moz-appearance: textfield; }
 .init-item input::-webkit-outer-spin-button, .init-item input::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -2254,7 +2259,7 @@ function renderInitPanel() {
       ? `<span class="init-part-badge">🔩 部品</span>`
       : `<span class="init-auto-badge">前月末</span>`;
     item.innerHTML = `
-      <label>${escH(p.code)} ${escH(p.name)}</label>
+      <label class="init-jump" data-jump="${escAttr(p.id)}" title="表のこの製品の所へ移動">${escH(p.code)} ${escH(p.name)}</label>
       <div class="init-val">
         <input type="number" value="${escAttr(v)}" data-pid="${escAttr(p.id)}" data-item-type="${escAttr(p.itemType||'product')}">
         ${badge}
@@ -2294,6 +2299,44 @@ function toggleInitPanel() {
   fitTableHeight_();
 }
 document.getElementById('init-panel-hd').addEventListener('click', toggleInitPanel);
+
+// ★2026-10-26 安田さん：月初在庫の品番を押すと、表のその製品の1行目を見出しのすぐ下へ送る（製品を探す手間を省く）。
+//   今のタブ・部品の絞り込みで表に出ていないときは、絞り込みを外し、その製品のグループのタブ（無ければ未分類・全表示）に切り替えてから送る。
+//   保存・並べ替えなどはしない（見る位置を変えるだけ）。
+function productFirstCell_(pid) {
+  const btn = Array.from(document.querySelectorAll('#main-tbody [data-edit]')).find(b => b.dataset.edit === pid);
+  return btn ? btn.closest('td') : null;
+}
+function selectGroupTab_(gid) {
+  selGroupId = gid;
+  renderGroupTabBar();
+  renderTableOnly();
+  sendOnlineStatus('active');
+  refreshOnlineUsers();
+}
+function jumpToProduct_(pid) {
+  const prod = products.find(p => p.id === pid);
+  if (!prod) return;
+  if (!productFirstCell_(pid) && partsFilterActive) togglePartsFilter();
+  if (!productFirstCell_(pid)) {
+    const own = prod.group && groups.some(g => g.id === prod.group) ? prod.group : (!prod.group ? 'unset' : 'all');
+    selectGroupTab_(own);
+    if (!productFirstCell_(pid)) selectGroupTab_('all');
+  }
+  const cell = productFirstCell_(pid);
+  const sc = document.querySelector('.tscroll'), head = document.getElementById('main-thead');
+  if (!cell || !sc || !head) return;
+  document.querySelector('.tcard-wrap').scrollIntoView({ block: 'nearest' });   // 表が画面に見えるように
+  sc.scrollTop = Math.max(0, cell.closest('tr').offsetTop - head.offsetHeight);   // 一度で移す（なめらかに送る動きは、表の作り直しや端末によって途中で止まることがある）
+  cell.classList.remove('jump-hl');
+  void cell.offsetWidth;   // 続けて押しても光り直す
+  cell.classList.add('jump-hl');
+  setTimeout(() => cell.classList.remove('jump-hl'), 2000);
+}
+document.getElementById('init-items').addEventListener('click', e => {
+  const lbl = e.target.closest('[data-jump]');
+  if (lbl) jumpToProduct_(lbl.dataset.jump);
+});
 
 function resetInitPanel() {
   document.getElementById('init-items').innerHTML = '';
