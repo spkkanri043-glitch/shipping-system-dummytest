@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-jV46GYXQuU8eiw4nFo7uV15KRD7ZiXyCtCbXxJS15L8=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-TLsTksN74+dPM/zWJAWe2URbujhq4A0mwgIL/wnQzxE=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -193,21 +193,22 @@ table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
 th, td { border-right: 1px solid #ebebeb; border-bottom: 1px solid #ebebeb; white-space: nowrap; }
 thead th { background: #f7f7f7; font-size: calc(14px * var(--inv-fs)); font-weight: 600; color: #444; padding: 9px 4px; text-align: center; position: sticky; top: 0; z-index: 10; }
 /* 左上角（ヘッダー×固定列）は両方向に固定 */
-thead th.c-prod { z-index: 20; text-align: left;  padding: 7px 8px; will-change: transform; position: sticky; top: 0; }
-thead th.c-type { z-index: 20; text-align: right; will-change: transform; position: sticky; top: 0; }   /* ★2026-10-23 上下にも固定 */
+thead th.c-prod { z-index: 20; text-align: left;  padding: 7px 8px; position: sticky; top: 0; left: 0; }
+thead th.c-type { z-index: 20; text-align: right; position: sticky; top: 0; left: var(--inv-prod-w, calc(190px * var(--inv-fs))); }   /* ★2026-10-23 上下にも固定 */
 thead th.we  { background: #efefef; color: #ccc; }
 thead th.tdy { background: #e0f5ec; color: #0a6644; font-weight: 700; }
 thead th.sat, thead th.sat span { color: #1565C0 !important; }   /* ★2026-10-22 土曜日（入力できる）は青い文字 */
-.c-prod { width: calc(190px * var(--inv-fs)); min-width: calc(190px * var(--inv-fs)); max-width: calc(190px * var(--inv-fs)); background: #fff; vertical-align: top; position: relative; z-index: 6; }
-.c-type { width: calc(170px * var(--inv-fs)); min-width: calc(170px * var(--inv-fs)); max-width: calc(170px * var(--inv-fs)); background: #fff; text-align: right; position: relative; z-index: 5; }
+.c-prod { width: calc(190px * var(--inv-fs)); min-width: calc(190px * var(--inv-fs)); max-width: calc(190px * var(--inv-fs)); background: #fff; vertical-align: top; position: sticky; left: 0; z-index: 6; }
+.c-type { width: calc(170px * var(--inv-fs)); min-width: calc(170px * var(--inv-fs)); max-width: calc(170px * var(--inv-fs)); background: #fff; text-align: right; position: sticky; left: var(--inv-prod-w, calc(190px * var(--inv-fs))); z-index: 5; }
+/* ★2026-10-27 左の2列（製品・区分）はブラウザの sticky で固定（携帯で横に送ると、scroll のあとに追いかける形では列が揺れたため）。区分の left＝製品の列の幅（fixStickyColumns_ が測る） */
 /* 合計列（右端固定） */
 .c-total { width: calc(82px * var(--inv-fs)); min-width: calc(82px * var(--inv-fs)); max-width: calc(82px * var(--inv-fs)); background: #f0f4f8 !important; border-left: 2px solid #bbb !important; text-align: right; padding: 6px 10px; font-size: calc(14px * var(--inv-fs)); font-weight: 700; color: #222; white-space: nowrap; }
 .c-total.neg  { color: #c0392b; font-weight: 800; font-size: calc(15px * var(--inv-fs)); }
 .c-total.zero { color: #bbb; font-weight: 400; }
 thead .c-total { z-index: 15; font-size: calc(11px * var(--inv-fs)); font-weight: 500; color: #666; text-align: center; background: #f7f7f7 !important; }
 thead .c-prod, thead .c-type { z-index: 10; background: #f7f7f7; }
-td.c-prod { background: #fff; overflow: hidden; box-shadow: 3px 0 5px rgba(0,0,0,.15); will-change: transform; }
-td.c-type { background: #fff; text-align: right; padding: 8px 12px; color: #444; font-size: calc(14px * var(--inv-fs)); font-weight: 600; white-space: normal; overflow: visible; line-height: 1.5; box-shadow: 2px 0 3px rgba(0,0,0,.06); will-change: transform; }
+td.c-prod { background: #fff; overflow: hidden; box-shadow: 3px 0 5px rgba(0,0,0,.15); }
+td.c-type { background: #fff; text-align: right; padding: 8px 12px; color: #444; font-size: calc(14px * var(--inv-fs)); font-weight: 600; white-space: normal; overflow: visible; line-height: 1.5; box-shadow: 2px 0 3px rgba(0,0,0,.06); }
 td.c-type.lbl-seikei   { color: #1565C0; }
 td.c-type.lbl-keikaku  { color: #6A1B9A; }
 td.c-type.lbl-nyuuka   { color: #1D9E75; font-weight: 600; }
@@ -218,7 +219,7 @@ td.keikaku-excluded { background: #e8e8e8 !important; }
 tr.r-keikaku td.keikaku-excluded { background: #e0e0e0 !important; }
 .excluded-input { color: #aaa !important; }
 /* 製品セル */
-.pcell  { padding: 6px 8px; vertical-align: middle; position: relative; }
+.pcell  { padding: 6px 8px; vertical-align: middle; }   /* ★2026-10-27 position は .c-prod の sticky（relative で上書きすると左に固定されない） */
 .p-row  { display: flex; align-items: baseline; gap: 3px; margin-bottom: 1px; flex-wrap: wrap; }
 .p-lbl  { font-size: 9px; color: #aaa; white-space: nowrap; min-width: 0; display: none; }
 .p-val  { font-size: calc(14px * var(--inv-fs)); color: #333; word-break: break-all; }
@@ -2867,12 +2868,13 @@ document.querySelectorAll('#colorctl .color-btn').forEach(b => {
 });
 
 // ============================================================
-//  列固定：scrollイベントでtransformを使って強制固定
+//  列固定：左の2列は CSS の sticky（★2026-10-27 前は scroll のあとに transform で追いかけていた＝携帯で列が揺れた）
 // ============================================================
 // ★2026-10-23 表の高さを画面に収める（月初在庫を開いた・画面が低いときも、ページごと送らずに表の中で送れる＝日付の行がいつも見える）
 function fitTableHeight_() {
   const sc = document.querySelector('.tscroll');
   if (!sc) return;
+  fixStickyColumns_();   // ★2026-10-27 文字の大きさを変えたときも、区分の列を製品の列のすぐ右に
   const top = sc.getBoundingClientRect().top + window.scrollY;
   sc.style.maxHeight = Math.max(320, Math.floor(window.innerHeight - top - 20)) + 'px';
   updateRowSnap_();
@@ -2888,28 +2890,120 @@ function updateRowSnap_() {
   tops.push(table.offsetHeight);
   let tallest = 0;
   for (let k = 1; k < tops.length; k++) tallest = Math.max(tallest, tops[k] - tops[k - 1]);
-  sc.style.scrollSnapType = tallest > sc.clientHeight - headH ? 'y proximity' : 'y mandatory';
+  sc._snapMode = tallest > sc.clientHeight - headH ? 'y proximity' : 'y mandatory';
+  sc.style.scrollSnapType = sc._touchBusy ? 'none' : sc._snapMode;   // ★2026-10-27 指で送っている間・離したあとの惰性の間は止めない（終わってから合わせる）
 }
 window.addEventListener('resize', fitTableHeight_);
 function initStickyColumns() {
   const scroll = document.querySelector('.tscroll');
   if (!scroll) return;
-  if (!scroll._stickyBound) {
-    scroll._stickyBound = true;
-    scroll.addEventListener('scroll', fixStickyColumns_, { passive: true });
+  if (!scroll._touchBound) {
+    scroll._touchBound = true;
+    bindTouchAxisLock_(scroll);
   }
-  fixStickyColumns_();   // 表を作り直したあとも毎回あてる
-  fitTableHeight_();
+  fitTableHeight_();   // 表を作り直したあとも毎回あてる（区分の列の位置・表の高さ・止まり方）
 }
+// 区分の列は製品の列のすぐ右に固定する＝製品の列の幅（文字の大きさで変わる）を測って、区分の列の left にあてる
 function fixStickyColumns_() {
-  const scroll = document.querySelector('.tscroll');
-  const table = document.getElementById('main-table');
-  if (!scroll || !table) return;
-  const sl = scroll.scrollLeft;
-  // c-prod セル（左端に固定）・c-type セル（c-prodの右に固定）
-  table.querySelectorAll('td.c-prod, th.c-prod, td.c-type, th.c-type').forEach(el => {
-    el.style.transform = `translateX(${sl}px)`;
-  });
+  const table = document.getElementById('main-table'), prod = document.querySelector('#main-thead th.c-prod');
+  if (!table || !prod) return;
+  table.style.setProperty('--inv-prod-w', prod.getBoundingClientRect().width + 'px');
+}
+// ★2026-10-27 安田さん：携帯（iPhone・Android）で表を横に送ると、指が少し上下にずれて斜めに動き、製品ごとに止まる働きで次の製品へ寄ってしまう。
+//   指を動かし始めた最初の少し（TOUCH_LOCK_PX_）で横か縦かを決め、指を離すまでその向きだけに送る。離したあとの惰性も同じ向きだけ。
+//   縦は今までどおり製品1つ分ずつ止める（離したあとで、勢いの先にいちばん近い製品の1行目へ寄せる）。表の上下の端から先はページを送る。
+//   2本指（拡大・縮小）・拡大して見ているとき・入力中の欄から始めたとき・マウス・ホイールは今までどおり（ブラウザに任せる）。
+const TOUCH_LOCK_PX_ = 6;      // この距離を動くまでは向きを決めない（ブラウザが自分で送り始める距離より短く）
+const TOUCH_DECEL_ = 0.998;    // 離したあとの惰性の減り方（1ms あたり）
+function bindTouchAxisLock_(sc) {
+  let g = null, anim = 0;
+  const maxOf = axis => axis === 'x' ? sc.scrollWidth - sc.clientWidth : sc.scrollHeight - sc.clientHeight;
+  const clamp = (v, axis) => Math.max(0, Math.min(maxOf(axis), v));
+  const posOf = axis => axis === 'x' ? sc.scrollLeft : sc.scrollTop;
+  const put = (axis, v) => { if (axis === 'x') sc.scrollLeft = v; else sc.scrollTop = v; };
+  const done = () => { anim = 0; sc._touchBusy = false; updateRowSnap_(); };
+  const stop = () => { if (anim) { cancelAnimationFrame(anim); done(); } };
+  // 惰性：速さ v（px/ms）から少しずつ遅くして止まる。ほかの操作（品番から製品へ・入力の欄へ送る等）で表が動いたらやめる
+  const glide = (axis, v) => {
+    let pos = posOf(axis), last = performance.now();
+    const step = now => {
+      if (Math.abs(posOf(axis) - pos) > 2) return done();
+      const dt = Math.min(48, Math.max(0, now - last)); last = now;
+      pos = clamp(pos + v * dt, axis); put(axis, pos);
+      v *= Math.pow(TOUCH_DECEL_, dt);
+      if (Math.abs(v) < 0.02 || pos <= 0 || pos >= maxOf(axis)) return done();
+      anim = requestAnimationFrame(step);
+    };
+    anim = requestAnimationFrame(step);
+  };
+  // 縦：勢いで止まるはずの所に、いちばん近い製品の1行目（見出しのすぐ下）へ寄せる。はっきり弾いたときは、その向きの製品から選ぶ
+  const settleY = v => {
+    const head = document.getElementById('main-thead'), headH = head ? head.offsetHeight : 0;
+    const tops = Array.from(document.querySelectorAll('#main-tbody tr.divider, #main-tbody tr.divider-part')).map(r => clamp(r.offsetTop - headH, 'y'));
+    const from = sc.scrollTop;
+    if (!tops.length) return done();
+    const aim = from + v / -Math.log(TOUCH_DECEL_);
+    let cands = tops;
+    if (Math.abs(v) > 0.5) { const ahead = tops.filter(y => v > 0 ? y > from + 1 : y < from - 1); if (ahead.length) cands = ahead; }
+    const to = cands.reduce((a, b) => Math.abs(b - aim) < Math.abs(a - aim) ? b : a), dist = to - from;
+    if (Math.abs(dist) < 1) { sc.scrollTop = to; return done(); }
+    const dur = Math.min(600, 220 + Math.abs(dist) * 0.4), t0 = performance.now();
+    let pos = from;
+    const step = now => {
+      if (Math.abs(sc.scrollTop - pos) > 2) return done();
+      const k = Math.min(1, Math.max(0, now - t0) / dur);
+      pos = from + dist * (1 - Math.pow(1 - k, 3)); sc.scrollTop = pos;
+      if (k >= 1) return done();
+      anim = requestAnimationFrame(step);
+    };
+    anim = requestAnimationFrame(step);
+  };
+  sc.addEventListener('touchstart', e => {
+    stop();   // 惰性の途中で触ったら止める
+    g = null;
+    if (e.touches.length !== 1) return;
+    if (window.visualViewport && window.visualViewport.scale > 1.05) return;
+    const el = e.target;
+    if (el === document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;   // 入力中の欄の中（文字の位置を動かす等）
+    const p = e.touches[0];
+    g = { x: p.clientX, y: p.clientY, sl: sc.scrollLeft, st: sc.scrollTop, wy: window.scrollY, axis: '', pts: [] };
+  }, { passive: true });
+  sc.addEventListener('touchmove', e => {
+    if (!g) return;
+    if (e.touches.length !== 1) { const a = g.axis; g = null; if (a) done(); return; }   // 2本指になった＝ブラウザに任せる
+    const p = e.touches[0], dx = p.clientX - g.x, dy = p.clientY - g.y;
+    if (!g.axis) {
+      if (Math.hypot(dx, dy) < TOUCH_LOCK_PX_) return;
+      g.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      sc._touchBusy = true; sc.style.scrollSnapType = 'none';
+      if (g.axis === 'x') sc.scrollTop = g.st; else sc.scrollLeft = g.sl;   // 向きを決める前にずれた分を戻す
+    }
+    e.preventDefault();
+    const now = performance.now();
+    if (g.axis === 'x') {
+      sc.scrollLeft = clamp(g.sl - dx, 'x');
+      g.pts.push([now, p.clientX]);
+    } else {
+      const want = g.st - dy, got = clamp(want, 'y'), pageY = Math.max(0, g.wy + want - got);
+      sc.scrollTop = got;
+      if (Math.abs(window.scrollY - pageY) >= 1) window.scrollTo(window.scrollX, pageY);
+      g.pts.push([now, p.clientY]);
+    }
+    while (g.pts.length > 2 && now - g.pts[0][0] > 100) g.pts.shift();
+  }, { passive: false });
+  const end = e => {
+    if (!g || e.touches.length) return;
+    const a = g; g = null;
+    if (!a.axis) return;
+    if (e.type === 'touchend' && e.cancelable) e.preventDefault();   // 送ったあとに、指を離した所の欄が選ばれない
+    const first = a.pts[0], last = a.pts[a.pts.length - 1];
+    let v = 0;
+    if (e.type === 'touchend' && last && last[0] > first[0] && performance.now() - last[0] < 80) v = -(last[1] - first[1]) / (last[0] - first[0]);
+    if (a.axis === 'x' || sc._snapMode === 'y proximity') { if (Math.abs(v) > 0.05) glide(a.axis, v); else done(); }
+    else settleY(v);
+  };
+  sc.addEventListener('touchend', end, { passive: false });
+  sc.addEventListener('touchcancel', end, { passive: true });
 }
 // ★2026-10-23 選んだセルが左の固定の列の下に隠れたら、見える所まで横に送る（Shift+Tab で左へ移ったときなど）
 function keepCellVisible_(e) {
