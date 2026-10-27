@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-gTeOE+1aAio3HOceXPR6naTUN0xMY09rfzcSe8sM3p4='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-71RJ5WlPy+NHsFW/waIWsP4wZG9Hq7Xrku5oICv4FCM=' 'sha256-+h3CBA/xCPmNvH6Dd/hF8IUn1mWrOk1tjo18JSFWOQY='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -549,7 +549,7 @@ async function loadDriveFiles() {
         const lcls = lbl.includes('前倒し') ? 'label-mae' : lbl.includes('後ろ倒し') ? 'label-ato' : 'label-pending';
         html += `<div class="file-item" data-id="${escHtml(f.id)}" data-name="${escHtml(f.name)}" data-csp-click="h24" data-csp-source-click="toggleFileSelect(this)">
           <input type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);flex-shrink:0" data-csp-click="h25" data-csp-source-click="event.stopPropagation();toggleFileSelect(this.closest('.file-item'))">
-          <div style="flex:1;min-width:0"><div class="file-name">${escHtml(f.name)}</div><div class="file-date">${escHtml(f.updated)}</div></div>
+          <div style="flex:1;min-width:0"><div class="file-name">${escHtml(f.name)}</div><div class="file-date">${escHtml(jstTime_(f.updated))}</div></div>
           <span class="file-label ${lcls}">${escHtml(lbl)}</span>
         </div>`;
       });
@@ -559,7 +559,7 @@ async function loadDriveFiles() {
       source.forEach(f => {
         html += `<div class="file-item" data-id="${escHtml(f.id)}" data-name="${escHtml(f.name)}" data-csp-click="h26" data-csp-source-click="toggleFileSelect(this)">
           <input type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);flex-shrink:0" data-csp-click="h27" data-csp-source-click="event.stopPropagation();toggleFileSelect(this.closest('.file-item'))">
-          <div style="flex:1;min-width:0"><div class="file-name">${escHtml(f.name)}</div><div class="file-date">${escHtml(f.updated)}</div></div>
+          <div style="flex:1;min-width:0"><div class="file-name">${escHtml(f.name)}</div><div class="file-date">${escHtml(jstTime_(f.updated))}</div></div>
           <span class="file-label label-new">🆕 新規</span>
         </div>`;
       });
@@ -567,6 +567,17 @@ async function loadDriveFiles() {
     list.innerHTML = html;
     document.getElementById('adj-status').style.display = 'none';
   } catch(err) { showStatus('err', '❌ ' + err.message); }
+}
+
+// ★2026-10-27 安田さん：一覧の日時を日本時間で出す（台帳は世界標準時の ISO＝末尾が Z。カナモリの出荷照合の jstTime_ と同じ形）。
+//   時差の書いていない日時（GAS が日本時間で作った「2026/10/27 08:23」など）・読めない値はそのまま出す。
+function jstTime_(iso) {
+  const d = new Date(iso);
+  if (!iso || !/(Z|[+-]\d{2}:?\d{2})$/.test(String(iso)) || isNaN(d.getTime())) return String(iso || '');
+  const p = {};
+  new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(d).forEach(function(x) { p[x.type] = x.value; });
+  return p.year + '/' + p.month + '/' + p.day + ' ' + p.hour + ':' + p.minute;
 }
 
 function toggleFileSelect(item) {
