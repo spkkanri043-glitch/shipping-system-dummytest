@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-pz0nN5lRr0nLEGgYOFFust26TF0eARr1v6dZNjOv/uA=' 'sha256-f03NjqRfDLX+y6ml0Y0+fLWHktiCWQyRSD5ow5Bdg8I='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-pz0nN5lRr0nLEGgYOFFust26TF0eARr1v6dZNjOv/uA=' 'sha256-ylkW8ycHUn69mSqBPJnuo6kGv0LRu0UrXHbxydtTq28='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { showTab('list')
@@ -497,6 +497,35 @@ function checkProductRows_(rows){
   });
   return problems;
 }
+// ★2026-10-29 部品構成も、送る前に製品マスタ GAS と同じ決まりで確かめて、だめな行を番号と理由で出す（安田さん：子製番が空の2行で invalid_data になった）。
+//   同じ行かどうかは整番＋子整番で見分ける（数字だけの値は先頭の0を除いて比べる）。列の名前は、CSV の見出しが違えば添える（子整番（CSV の「子製番」）など）。
+function checkPartsRows_(rows,colMap){
+  const problems=[],seen=new Map();
+  const name=h=>{const csv=colMap&&colMap[h]!==undefined?String(partsCsvHeaders[colMap[h]]||'').trim():'';return csv&&csv!==h?h+'（CSV の「'+csv+'」）':h};
+  const norm=v=>/^\d+$/.test(v)?v.replace(/^0+(?=\d)/,''):v;
+  rows.forEach((r,i)=>{
+    const line=i+2;   // 見出しを1行目として数えた行
+    const s=String(r['整番']??''),k=String(r['子整番']??'');
+    let keyOk=true;
+    [['整番',s],['子整番',k]].forEach(([h,v])=>{
+      if(!v.trim()){problems.push(line+'行目：'+name(h)+'が空');keyOk=false;}
+      else if(v.length>128){problems.push(line+'行目：'+name(h)+'が128文字を超えています');keyOk=false;}
+    });
+    if(keyOk){
+      const key=JSON.stringify([norm(s.trim()),norm(k.trim())]);
+      if(seen.has(key))problems.push(line+'行目：整番＋'+name('子整番')+'が'+seen.get(key)+'行目と同じ');
+      else seen.set(key,line);
+    }
+    const c=String(r['構成数']??'').trim();
+    if(!/^(?:\d+\.?\d*|\.\d+)$/.test(c)||!(Number(c)>0))problems.push(line+'行目：'+name('構成数')+'が0より大きい数になっていません'+(c?'（「'+c+'」）':'（空）'));
+    ['成形時在庫減少','出荷時在庫減少'].forEach(h=>{if(Object.prototype.hasOwnProperty.call(r,h)&&['','0','1'].indexOf(String(r[h]))<0)problems.push(line+'行目：'+name(h)+'は空・0・1のどれかにしてください（「'+r[h]+'」）');});
+    Object.keys(r).forEach(h=>{const v=String(r[h]??'');
+      if(/^\s*=/.test(v))problems.push(line+'行目・'+name(h)+'：「=」で始まっています');
+      else if(v.length>10000)problems.push(line+'行目・'+name(h)+'：1万文字を超えています');
+      else if(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v))problems.push(line+'行目・'+name(h)+'：見えない文字が入っています');});
+  });
+  return problems;
+}
 const RECOMMENDED_COLS = ['製品コード','整番','品番','製品名','金型コード','サイクル','共取区分','ワンショット重量','取数','単重','製品種別','単位','基本取引先','成形先','箱入数','在庫管理区分','材料コード','発注材料コード','色コード','材料種別コード','新材料使用率','材料ロットＮＯ','材料ロット履歴','マスタバッチコード','マスタバッチ使用率','成形区分','成形周期','ショット数入力不可','在庫確認周期','次回在庫確認日','平均出荷数','現品票色','背番号','現品票納入先','現品票出荷元','現品票工程名１','現品票取消区分１','現品票工程名２','現品票取消区分２','現品票工程名３','現品票取消区分３','現品票工程名４','現品票取消区分４','現品票工程名５','現品票取消区分５','単価','外注仕入単価','外注払出単価','小数丸め区分','ドキュメント名称１','ドキュメントファイル名１','ドキュメント名称２','ドキュメントファイル名２','ドキュメント名称３','ドキュメントファイル名３','ドキュメント名称４','ドキュメントファイル名４','ドキュメント名称５','ドキュメントファイル名５','ドキュメント名称６','ドキュメントファイル名６','ドキュメント名称７','ドキュメントファイル名７','ドキュメント名称８','ドキュメントファイル名８','売掛借方科目コード','売掛借方補助コード','売掛貸方科目コード','売掛貸方補助コード','売掛課税区分','払出借方科目コード','払出借方補助コード','払出貸方科目コード','払出貸方補助コード','払出課税区分','受入借方科目コード','受入借方補助コード','受入貸方科目コード','受入貸方補助コード','受入課税区分','サンプル提出区分','参考サンプル入手区分','設計通知書区分','製造仕様書＿作業標準書区分','有人区分','アッシー区分','単品検査区分','予備区分１','予備区分２','予備長１','予備長２','備考','削除区分'];
 const PARTS_KEY_COLS = ['製品コード','整番','子製品コード','子整番'];
 const PARTS_ALL_COLS = ['製品コード','整番','子製品コード','子整番','構成数','成形時在庫減少','出荷時在庫減少','区分'];
@@ -610,7 +639,7 @@ function failText_(res,isSave){
     case 'unauthorized':return 'ログインの期限が切れたか、使えない入場券です。ポータルから開き直してください。'+notSaved;
     case 'unavailable':return 'いまログインの確認ができません（一時的）。少し待ってからやり直してください。'+notSaved;
     case 'busy':return '混み合っています。少し待ってからやり直してください。'+notSaved;
-    case 'invalid_data':return 'invalid_data：取り込めない行があります（製品コードの空・重なり、「=」で始まるセル など）。差分更新のときは、今のシートの行も確かめてください。'+notSaved;
+    case 'invalid_data':return 'invalid_data：取り込めない行があります（見分けの列の空・重なり〈製品は製品コード、部品は整番＋子整番〉、「=」で始まるセル など）。CSV の行は送る前に確かめているので、差分更新のときは、今のシートの行を確かめてください。'+notSaved;
     case 'limit_exceeded':return '件数または量が上限を超えています。'+notSaved;
     case 'sheet_unavailable':case 'schema_mismatch':return 'シートが見つからないか、列が想定と違います（管理者に連絡してください）。'+notSaved;
     default:return isSave?SAVE_UNKNOWN_TEXT_:'取得できませんでした。もう一度取得してください。';
@@ -967,6 +996,8 @@ function partsStartUpload(){
     const cols=PARTS_ALL_COLS.filter(h=>colIndexMap[h]!==undefined);
     const rows=partsCsvRows.map(row=>{const obj={};cols.forEach(h=>{obj[h]=row[colIndexMap[h]]||''});return obj});
     if(!rows.length||rows.length>50000)throw new Error('部品CSVは1〜50,000件で指定してください。');
+    const problems=checkPartsRows_(rows,colIndexMap);
+    if(problems.length)throw new Error('取り込めない行があります（'+problems.length+'件・保存はしていません）：'+problems.slice(0,10).join('／')+(problems.length>10?'／…ほか'+(problems.length-10)+'件':''));
     const payload={rowsJson:JSON.stringify(rows),mode:partsUpdateMode,isFirst:true,isLast:true,total:rows.length};
     const tooBig=sendSizeError_('importParts',payload);if(tooBig)throw new Error(tooBig);
     snap=Object.freeze({kind:'parts',fn:'importParts',version:inputVersion,fileName:currentFile.name,mode:partsUpdateMode,cols:Object.freeze(cols),count:rows.length,payload:Object.freeze(payload)});
