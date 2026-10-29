@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-pz0nN5lRr0nLEGgYOFFust26TF0eARr1v6dZNjOv/uA=' 'sha256-ylkW8ycHUn69mSqBPJnuo6kGv0LRu0UrXHbxydtTq28='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-pz0nN5lRr0nLEGgYOFFust26TF0eARr1v6dZNjOv/uA=' 'sha256-LE7qi2+LbL+SB7vq08lNBEcKNeXhndgJ7uMImHzG81Y='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { showTab('list')
@@ -374,6 +374,8 @@ body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(
       <div class="panel-header"><div class="panel-title">👁 Step 2 — 部品構成データ確認</div><div style="font-size:12px;color:var(--tx2)" id="p-preview-count">0件</div></div>
       <div class="panel-body">
         <div class="stats-bar" id="p-preview-stats"></div>
+        <!-- ★2026-10-29 CSV を読んだらすぐ確かめて、取り込めない行を出す（保存を押す前に分かるように） -->
+        <div id="p-check-notice" class="hid" style="margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#fdecea;color:#c0392b;border:1px solid #f5b7b1;font-size:13px;font-weight:600;line-height:1.6;white-space:pre-wrap"></div>
         <div class="preview-wrap" id="p-preview-wrap"></div>
         <div class="btn-row" style="margin-top:16px">
           <button class="btn" id="p-btn-back-s1" data-csp-click="h20" data-csp-source-click="clearFile()">← 戻る</button>
@@ -807,7 +809,7 @@ function importBlocker_(kind){
   if(kind==='products'?!csvRows.length:!partsCsvRows.length)return 'CSVの中身がありません。';
   return '';
 }
-function showSaveError_(kind,msg){const p=kind==='parts';setStep(4);document.getElementById(p?'p-panel-step4':'panel-step4').classList.remove('hid');document.getElementById(p?'p-result-body':'result-body').innerHTML=`<div class="result-box error"><div class="result-icon">❌</div><div class="result-title">保存に失敗しました</div><div class="result-detail">${escHtml(msg)}</div></div>`;showToast('エラー: '+msg,'error')}
+function showSaveError_(kind,msg){const p=kind==='parts';setStep(4);const panel=document.getElementById(p?'p-panel-step4':'panel-step4');panel.classList.remove('hid');document.getElementById(p?'p-result-body':'result-body').innerHTML=`<div class="result-box error"><div class="result-icon">❌</div><div class="result-title">保存に失敗しました</div><div class="result-detail">${escHtml(msg)}</div></div>`;showToast('エラー: '+msg,'error');setTimeout(()=>panel.scrollIntoView({block:'center'}),50)}   // ★2026-10-29 エラーの欄まで画面を動かす（下のほうに出て見えなかった）。なめらかに送ると端末や裏の画面で途中で止まるので一度で移す
 function startUpload(){
   if(uploadInProgress)return;
   const blocked=importBlocker_('products');if(blocked){showSaveError_('products',blocked);return}
@@ -912,7 +914,24 @@ function partsOnFileSelect(file){if(!file)return;document.getElementById('p-fs-n
 // ★2026-10-28 PM14：部品の「別のCSVを取り込む」も、共通のクリア（ファイル・製品と部品の両方の表・読み込みの世代・確認）を使う
 function partsClearFile(){clearFile()}
 function partsReadCSV(file){partsCsvHeaders=[];partsCsvRows=[];const reader=new FileReader();reader.onload=function(e){try{let text;if(partsEncoding==='sjis'){text=decodeSJIS(new Uint8Array(e.target.result))}else{text=e.target.result}const{headers,rows}=parseCSVText(text);partsCsvHeaders=headers;partsCsvRows=rows;partsBuildStep2();partsSetStep(2)}catch(err){showToast('CSV読み込みエラー: '+err.message,'error')}};if(partsEncoding==='sjis')reader.readAsArrayBuffer(file);else reader.readAsText(file,'UTF-8')}
-function partsBuildStep2(){document.getElementById('p-panel-step2').classList.remove('hid');document.getElementById('p-preview-count').textContent=partsCsvRows.length.toLocaleString()+'件';document.getElementById('p-preview-stats').innerHTML=`<div class="stat-chip green"><div><div class="stat-val">${partsCsvRows.length.toLocaleString()}</div><div class="stat-lbl">総件数</div></div></div><div class="stat-chip"><div><div class="stat-val">${partsCsvHeaders.length}</div><div class="stat-lbl">列数</div></div></div>`;partsRenderPreview()}
+function partsBuildStep2(){document.getElementById('p-panel-step2').classList.remove('hid');document.getElementById('p-preview-count').textContent=partsCsvRows.length.toLocaleString()+'件';document.getElementById('p-preview-stats').innerHTML=`<div class="stat-chip green"><div><div class="stat-val">${partsCsvRows.length.toLocaleString()}</div><div class="stat-lbl">総件数</div></div></div><div class="stat-chip"><div><div class="stat-val">${partsCsvHeaders.length}</div><div class="stat-lbl">列数</div></div></div>`;partsRenderPreview();renderPartsCheck_()}
+// ★2026-10-29 部品構成 CSV から送る行を作る（CSV に無い列は送らない）。読んだときの確かめと保存で同じものを使う
+function partsRowsForSend_(colIndexMap){
+  const cols=PARTS_ALL_COLS.filter(h=>colIndexMap[h]!==undefined);
+  return {cols,rows:partsCsvRows.map(row=>{const obj={};cols.forEach(h=>{obj[h]=row[colIndexMap[h]]||''});return obj})};
+}
+// ★2026-10-29 読んだらすぐ確かめて、取り込めない行を Step 2 の上に赤い枠で出す（保存のときにも同じ確かめで止める）
+function renderPartsCheck_(){
+  const box=document.getElementById('p-check-notice');if(!box)return;
+  const colIndexMap=getPartsColIndexMap();
+  const missing=['整番','子整番','構成数'].filter(h=>colIndexMap[h]===undefined);
+  let msg='';
+  if(missing.length)msg='部品構成CSVに必要な列がありません：'+missing.join('・')+'。';
+  else{const problems=checkPartsRows_(partsRowsForSend_(colIndexMap).rows,colIndexMap);
+    if(problems.length)msg='このCSVには取り込めない行があります（'+problems.length+'件）。CSV を直して、読み込み直してください。\n'+problems.slice(0,10).join('\n')+(problems.length>10?'\n…ほか'+(problems.length-10)+'件':'');}
+  box.textContent=msg?'⚠ '+msg:'';
+  box.classList.toggle('hid',!msg);
+}
 function getPartsColIndexMap(){
   const COL_ALIASES={
     '製品コード':['製品コード','製品ｺｰﾄﾞ'],
@@ -993,8 +1012,7 @@ function partsStartUpload(){
     const colIndexMap=getPartsColIndexMap();
     const missing=['整番','子整番','構成数'].filter(h=>colIndexMap[h]===undefined);
     if(missing.length)throw new Error('部品構成CSVに必要な列がありません：'+missing.join('・')+'。保存はしていません。');
-    const cols=PARTS_ALL_COLS.filter(h=>colIndexMap[h]!==undefined);
-    const rows=partsCsvRows.map(row=>{const obj={};cols.forEach(h=>{obj[h]=row[colIndexMap[h]]||''});return obj});
+    const {cols,rows}=partsRowsForSend_(colIndexMap);
     if(!rows.length||rows.length>50000)throw new Error('部品CSVは1〜50,000件で指定してください。');
     const problems=checkPartsRows_(rows,colIndexMap);
     if(problems.length)throw new Error('取り込めない行があります（'+problems.length+'件・保存はしていません）：'+problems.slice(0,10).join('／')+(problems.length>10?'／…ほか'+(problems.length-10)+'件':''));
