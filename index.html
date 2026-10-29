@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-0HTC/27HrzjBXcFzxHxKSNzLVLC645elaqFfiNRvFno='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-cnLXIrju8wrgOTeblEktw8UYzEwU93Vx7MJB0cMoc/4='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -600,7 +600,7 @@ async function runCloudSave_() {
   saveInFlight_ = true;
   try {
     const data = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr(), batchId: sourceFileName || '' });
-    if (!data || !data.ok) throw new Error((data && data.message) || '保存に失敗しました');
+    if (!data || !data.ok) throw new Error((data && (data.message || data.error)) || '保存に失敗しました');
     savedSeq_ = Math.max(savedSeq_, seq);
     if (savedSeq_ >= saveSeq_) clearSaveProblem_();
     const el = document.getElementById('save-indicator');
@@ -1406,7 +1406,8 @@ function friendlyError_(msg) {
     // ★2026-10-29 保存できないときの理由（赤い知らせ・書き出し・追加で使う）
     BATCH_BUSY: '前の出荷の締め（客先CSVの作成）が終わっていません。10分ほどたっても消えないときは管理者に連絡してください',
     STALE_SCAN_STATE: 'ほかの端末で消し込んだ分が、この画面に入っていません。管理者に連絡してください',
-    BATCH_NOT_WRITABLE: 'この出荷は締めに進んでいるため、保存できません'
+    BATCH_NOT_WRITABLE: 'この出荷は締めに進んでいるため、保存できません',
+    busy: '混み合っていました。少しして、もう一度ためしてください'
   };
   for (const k of Object.keys(map)) if (m.indexOf(k) >= 0) return map[k] + '（' + k + '）';
   return m;
@@ -1545,11 +1546,21 @@ async function loadSelectedCanonicalBatch_() {
 
 // ★2026-10-29 閉じたときの対策①：開いたとき（画面に出荷が無いとき）、📦 取り込み済みの出荷を知らせて、ボタン1つで続きを開く。
 //   消し込みはクラウドに保存してあるので、開くとそこまでの済みが戻る（「ファイル一覧を取得」の📦から開くのと同じ getBatch）。
-//   件数は出荷ごとに getBatch で確かめる（新しい順に3つまで）。確かめられないときは件数なしで出す。
+//   件数は出荷ごとに getBatch で確かめる（新しい順に3つまで・1つずつ順に。同時に送ると GAS のロック待ちで断られる）。
+//   確かめられないときは理由を出す。出荷を開いたら、残りの件数は読まない。
 //   サーバーから来た文字は textContent で入れる（innerHTML にしない）。
 function countRecords_(list) {
   const active = list.filter(function(r) { return !isCancelled(r); });
   return { total: active.length, done: active.filter(isDone).length, pending: active.filter(isPending).length };
+}
+
+// GAS は入場券を確かめるとき、ほかの処理のロックを5秒だけ待つ。重なって busy で断られたら、少し待って読み直す（2回まで）。
+async function getBatchRetry_(batchId) {
+  for (let i = 0; ; i++) {
+    const b = await gasCall('getBatch', { batchId: batchId });
+    if (b && b.ok === false && (b.error === 'busy' || b.code === 'BUSY') && i < 2) { await new Promise(function(r) { setTimeout(r, 1500); }); continue; }
+    return b;
+  }
 }
 
 function hideResumeBox_() {
@@ -1572,6 +1583,7 @@ async function checkResumeBatches_() {
   sub.style.cssText = 'font-size:12px;color:#8a6d3b;margin-bottom:6px';
   sub.textContent = '消し込みはクラウドに保存してあります。続ける出荷の「続きを開く」を押してください。';
   box.replaceChildren(head, sub);
+  const metas = [];
   files.forEach(function(f) {
     const title = f.sourceName ? sourceDisplayName_(f.sourceName) : f.name;
     const row = document.createElement('div');
@@ -1592,13 +1604,20 @@ async function checkResumeBatches_() {
     btn.addEventListener('click', function() { openResumeBatch_(f.batchId, title, btn); });
     row.append(info, btn);
     box.appendChild(row);
-    gasCall('getBatch', { batchId: f.batchId }).then(function(b) {
-      if (!b || !b.ok || !Array.isArray(b.records)) throw new Error('');
-      const c = countRecords_(b.records);
-      meta.textContent = jstTime_(f.updated) + ' 取り込み・済 ' + c.done + '／全 ' + c.total + '（未 ' + c.pending + '）';
-    }).catch(function() { meta.textContent = jstTime_(f.updated) + ' 取り込み'; });
+    metas.push({ f: f, meta: meta });
   });
   if (!records.length) box.style.display = 'block';
+  for (const it of metas) {
+    if (records.length) return;
+    try {
+      const b = await getBatchRetry_(it.f.batchId);
+      if (!b || !b.ok || !Array.isArray(b.records)) throw new Error(b && (b.message || b.error) || '読めませんでした');
+      const c = countRecords_(b.records);
+      it.meta.textContent = jstTime_(it.f.updated) + ' 取り込み・済 ' + c.done + '／全 ' + c.total + '（未 ' + c.pending + '）';
+    } catch (e) {
+      it.meta.textContent = jstTime_(it.f.updated) + ' 取り込み・件数を確かめられません（' + friendlyError_(e && e.message) + '）';
+    }
+  }
 }
 
 async function openResumeBatch_(batchId, title, btn) {
@@ -1606,8 +1625,8 @@ async function openResumeBatch_(batchId, title, btn) {
   btn.disabled = true;
   btn.textContent = '開いています…';
   try {
-    const data = await gasCall('getBatch', { batchId: batchId });
-    if (!data || !data.ok) throw new Error(data && data.message || '読込失敗');
+    const data = await getBatchRetry_(batchId);
+    if (!data || !data.ok) throw new Error(data && (data.message || data.error) || '読込失敗');
     if (records.length) { hideResumeBox_(); return; }
     records=data.records;sourceFileName=data.batchId;loadedFiles=[data.batchId+'.csv'];logEntries=[];
     updateStats();renderList();renderHinbanFilter();updateChips();
