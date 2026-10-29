@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-6c4kdhqIQHj2fB5kyolvEmxCKF34TpQlXv5Me3YKTUA='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-0HTC/27HrzjBXcFzxHxKSNzLVLC645elaqFfiNRvFno='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -303,6 +303,13 @@ select,input[type=date]{width:100%;padding:10px;border:1px solid #ccc;border-rad
 
 
 <div class="container">
+  <!-- ★2026-10-29 閉じたときの対策②：クラウドに保存できていないときの知らせ（消えずに残り、自動でやり直す） -->
+  <div id="save-alert" style="display:none;position:sticky;top:0;z-index:60;margin-bottom:10px;padding:10px 12px;border-radius:8px;background:#c0392b;color:#fff;font-size:13px;font-weight:600;line-height:1.6;box-shadow:0 2px 8px rgba(0,0,0,.25)">
+    <div id="save-alert-text" style="white-space:pre-wrap"></div>
+    <button type="button" id="save-alert-retry" style="margin-top:8px;padding:8px 14px;background:#fff;color:#c0392b;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">今すぐ保存し直す</button>
+  </div>
+  <!-- ★2026-10-29 閉じたときの対策①：開いたときに途中の出荷（📦 取り込み済み）を知らせて、ボタン1つで続きを開く -->
+  <div id="resume-box" style="display:none;margin-bottom:12px;padding:12px;border:2px solid #e8a000;border-radius:10px;background:#fff8ec"></div>
   <div id="file-chips-wrap" class="file-chips-wrap" style="display:none">
     <div class="section-title">読み込み済みCSV</div>
     <div id="chip-list"></div>
@@ -435,6 +442,15 @@ let cloudSaveTimer   = null;
 let autoRefreshTimer = null;
 let autoRefreshInterval = 300;
 let autoRefreshEnabled  = false;
+// ★2026-10-29 閉じたときの対策②：画面の変更の番号（autoSave のたびに +1）と、クラウドに保存できた番号。
+//   保存できた番号が追いつくまでは「保存できていない消し込み」がある＝閉じる・リセット・ログアウトの前に確かめる。
+let saveSeq_          = 0;
+let savedSeq_         = 0;
+let saveInFlight_     = false;
+let saveRetryTimer_   = null;
+let leavingConfirmed_ = false;   // 確認の画面で「閉じる」を選んだあとは、ブラウザの確認を重ねて出さない
+const SAVE_RETRY_MS_  = 30000;
+const UNSAVED_WARNING_ = 'まだクラウドに保存できていない消し込みがあります。\nこのまま進むと、その消し込みは消えます。';
 
 function getBaseFileName(filename) {
   var name = filename.replace(/\.(csv|CSV)$/i, '');
@@ -562,32 +578,72 @@ document.addEventListener('DOMContentLoaded', function() {
 // 自動保存・復元
 // ============================================================
 function autoSave() {
+  saveSeq_++;
   const el = document.getElementById('save-indicator');
   if (el) { el.textContent = '未保存（この画面のみ）'; el.style.opacity = '1'; }
   saveToCloud();
 }
 
-async function saveToCloud() {
+async function saveToCloud(delay) {
   if (!GAS_DEPLOY_URL || GAS_DEPLOY_URL.includes('YOUR_DEPLOY_URL')) return;
   clearTimeout(cloudSaveTimer);
-  cloudSaveTimer = setTimeout(async () => {
-    try {
-      const data = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr(), batchId: sourceFileName || '' });
-      if (!data || !data.ok) throw new Error((data && data.message) || '保存に失敗しました');
-      if (data && data.code === 'BATCH_BUSY') { showFB('warn', data.message || '別バッチの処理が未完了です'); return; }
-      if (data.ok) {
-        const el = document.getElementById('save-indicator');
-        if (el) { el.textContent = '☁️ クラウド保存済 ' + nowStr().slice(11,16); el.style.opacity='1'; setTimeout(()=>el.style.opacity='.4',3000); }
-        // 区間B②：クライアントが全件完了と見なした時だけ、サーバー側の完了判定を依頼する。
-        //   ・判定の根拠はサーバー側（元CSV突合）。ここは「評価してほしい」合図にすぎない。
-        //   ・客先CSV生成はここでは呼ばない（時間主導トリガーが分離実行 §6-3/§7-1）。
-        if (sourceFileName && records.length && records.every(function(r){ return isDone(r); })) {
-          try { await gasCall('evaluateCompletion', { batchId: sourceFileName }); }
-          catch(e) { console.warn('evaluateCompletion失敗:', e); }
-        }
-      }
-    } catch(e) { showFB('err', 'クラウド未保存: ' + e.message); }
-  }, 1500);
+  cloudSaveTimer = setTimeout(runCloudSave_, delay === undefined ? 1500 : delay);
+}
+
+// ★2026-10-29 閉じたときの対策②：保存は1つずつ送る（前の保存の返事を待ってから次を送る）。
+//   失敗したら赤い知らせを出したままにして、30秒ごとに自動でやり直す（保存は毎回、画面の全部の行を送るので、
+//   1回通れば、それまでの消し込みが全部クラウドに入る）。前の出荷の締め待ち（BATCH_BUSY）も、締めが進めば通る。
+async function runCloudSave_() {
+  if (saveInFlight_) { saveToCloud(1000); return; }
+  if (savedSeq_ >= saveSeq_) return;
+  const seq = saveSeq_;
+  saveInFlight_ = true;
+  try {
+    const data = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr(), batchId: sourceFileName || '' });
+    if (!data || !data.ok) throw new Error((data && data.message) || '保存に失敗しました');
+    savedSeq_ = Math.max(savedSeq_, seq);
+    if (savedSeq_ >= saveSeq_) clearSaveProblem_();
+    const el = document.getElementById('save-indicator');
+    if (el) { el.textContent = '☁️ クラウド保存済 ' + nowStr().slice(11,16); el.style.opacity='1'; setTimeout(()=>el.style.opacity='.4',3000); }
+    // 区間B②：クライアントが全件完了と見なした時だけ、サーバー側の完了判定を依頼する。
+    //   ・判定の根拠はサーバー側（元CSV突合）。ここは「評価してほしい」合図にすぎない。
+    //   ・客先CSV生成はここでは呼ばない（時間主導トリガーが分離実行 §6-3/§7-1）。
+    if (sourceFileName && records.length && records.every(function(r){ return isDone(r); })) {
+      try { await gasCall('evaluateCompletion', { batchId: sourceFileName }); }
+      catch(e) { console.warn('evaluateCompletion失敗:', e); }
+    }
+  } catch(e) {
+    if (savedSeq_ < saveSeq_) showSaveProblem_(e && e.message);
+  } finally {
+    saveInFlight_ = false;
+  }
+}
+
+function hasUnsavedChanges_() { return records.length > 0 && savedSeq_ < saveSeq_; }
+
+function showSaveProblem_(msg) {
+  clearTimeout(saveRetryTimer_);
+  saveRetryTimer_ = setTimeout(function() { saveRetryTimer_ = null; saveToCloud(0); }, SAVE_RETRY_MS_);
+  const m = String(msg || '');
+  const reason = /failed to fetch|load failed|networkerror/i.test(m) ? '通信できませんでした（電波・回線を確かめてください）' : friendlyError_(m);
+  const next = new Date(Date.now() + SAVE_RETRY_MS_);
+  const box = document.getElementById('save-alert');
+  const text = document.getElementById('save-alert-text');
+  if (text) text.textContent = '⚠ クラウドに保存できていません：' + reason +
+    '\n閉じると、ここまでの消し込みが消えます（作業は続けられます）。' +
+    pad(next.getHours()) + ':' + pad(next.getMinutes()) + ':' + pad(next.getSeconds()) + ' に自動で保存し直します。';
+  if (box) box.style.display = 'block';
+  const el = document.getElementById('save-indicator');
+  if (el) { el.textContent = '⚠ クラウド未保存'; el.style.opacity = '1'; el.style.color = '#ffb3a7'; }
+}
+
+function clearSaveProblem_() {
+  clearTimeout(saveRetryTimer_);
+  saveRetryTimer_ = null;
+  const box = document.getElementById('save-alert');
+  if (box) box.style.display = 'none';
+  const el = document.getElementById('save-indicator');
+  if (el) el.style.color = 'rgba(255,255,255,0.4)';
 }
 
 async function loadFromCloud() {
@@ -642,7 +698,8 @@ function updateChips() {
 }
 
 function clearAll() {
-  if (!confirm('未保存データを破棄して画面をリセットしますか？')) return;
+  if (!confirm(hasUnsavedChanges_() ? UNSAVED_WARNING_ + '\n\nそれでも画面をリセットしますか？' : '未保存データを破棄して画面をリセットしますか？')) return;
+  leavingConfirmed_ = true;
   location.reload();
 }
 
@@ -738,6 +795,7 @@ function updateStats() {
   document.getElementById('s-done').textContent   = done;
   document.getElementById('s-remain').textContent = active.filter(r=>isPending(r)).length;
   document.getElementById('prog').style.width     = (total > 0 ? Math.round(done/total*100) : 0) + '%';
+  if (records.length) hideResumeBox_();   // ★2026-10-29 出荷を開いたら「途中の出荷があります」は消す
 }
 
 // ============================================================
@@ -843,9 +901,12 @@ async function exportCSVByStatus() {
       // ★担当者名は送らない。サーバーがトークンの中の名前を使う
       //   （ブラウザから渡すと、他人の名前で書き出せてしまうため）
       clearTimeout(cloudSaveTimer);
+      const seq = saveSeq_;
       const saved = await gasCall('saveShippingData', {records, batchId: sourceFileName});
       if (!saved.ok) throw new Error(saved.message || '保存失敗');
       savedOk = true;
+      savedSeq_ = Math.max(savedSeq_, seq);
+      if (savedSeq_ >= saveSeq_) clearSaveProblem_();
       const resData = await gasCall('saveCSVByStatus', { records: records, today: today, baseName: baseName, batchId: sourceFileName });
       const resText = JSON.stringify(resData);
       let data;
@@ -859,7 +920,10 @@ async function exportCSVByStatus() {
       });
       const notificationFailed = (data.notifications || []).some(n => !n.ok);
       showFB(notificationFailed ? 'warn' : 'ok', '☁️ Googleドライブに保存しました\n' + msgs.join('\n') + (notificationFailed ? '\n通知は未完了です。送信結果を確認してください。' : ''));
-    } catch(err) { showFB('err', '書き出し失敗: ' + err.message); }
+    } catch(err) {
+      showFB('err', '書き出し失敗: ' + friendlyError_(err.message));
+      if (hasUnsavedChanges_()) saveToCloud();   // ★2026-10-29 止めた自動保存を戻す（失敗なら赤い知らせ・自動でやり直し）
+    }
     // ★v3.3 書き出しの前の保存で、サーバーの状態は「保存済み（要再判定）」に戻る。
     //   全件済みなら完了判定をやり直す（しないと客先CSVの自動作成〈processCompletedBatches_〉の対象にならない）。
     if (savedOk && sourceFileName && records.length && records.every(function(r){ return isDone(r); })) {
@@ -969,6 +1033,7 @@ function showMainScreen(user) {
   const nameEl = document.getElementById('user-name-display');
   if (nameEl) nameEl.textContent = '👤 ' + ((user && user.name) || '') + ' さん';
   restoreData();
+  checkResumeBatches_();   // ★2026-10-29 閉じたときの対策①
 }
 
 function notifyOfflineShipping() {
@@ -985,11 +1050,23 @@ function notifyOfflineShipping() {
     }
   } catch(e) {}
 }
-window.addEventListener('beforeunload', notifyOfflineShipping);
+// ★2026-10-29 保存できていない消し込みがあるときは、ブラウザの「このサイトを離れますか？」を出す
+//   （iPhone の Safari など、出ない端末もある＝赤い知らせと自動のやり直しが本筋）。
+//   離れるのをやめたときにオフライン扱いにならないよう、そのときは離脱の知らせを pagehide（本当に離れたとき）に任せる。
+window.addEventListener('beforeunload', function(e) {
+  if (leavingConfirmed_ || !hasUnsavedChanges_()) { notifyOfflineShipping(); return; }
+  e.preventDefault();
+  e.returnValue = '';
+  saveToCloud(0);
+});
 window.addEventListener('pagehide',     notifyOfflineShipping);
+// ★2026-10-29 画面が裏に回ったら（アプリの切り替え・画面を消す）、待たずに保存する
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden' && hasUnsavedChanges_()) saveToCloud(0);
+});
 
 function doLogout() {
-  if (!confirm('ログアウトしますか？')) return;
+  if (!confirm(hasUnsavedChanges_() ? UNSAVED_WARNING_ + '\n\nそれでもログアウトしますか？' : 'ログアウトしますか？')) return;
   notifyOfflineShipping();
   clearSession();
   stopAutoRefresh();
@@ -1018,6 +1095,8 @@ function safePortalUrl_(raw) {
 }
 
 function closeTab() {
+  if (hasUnsavedChanges_() && !confirm(UNSAVED_WARNING_ + '\n\nそれでも閉じますか？')) return;
+  leavingConfirmed_ = true;
   notifyOfflineShipping();
   try { window.close(); } catch(e) {}
   // window.close()が効かない場合（タブがスクリプト経由で開かれていない等）のフォールバック
@@ -1255,8 +1334,10 @@ async function appendInboxCsv_(fileId, name) {
     let snap = await gasCall('getBatch', { batchId: sourceFileName });
     if (!snap || !snap.ok) { retryable = false; throw new Error(snap && snap.message || '今の出荷を確認できません'); }
     if (scanStateDiffers_(records, snap.records)) {
+      const seq = saveSeq_;
       const saved = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr(), batchId: sourceFileName });
       if (!saved || !saved.ok || saved.code === 'BATCH_BUSY') { retryable = false; throw new Error('今の出荷を保存できません: ' + (saved && saved.message || '')); }
+      savedSeq_ = Math.max(savedSeq_, seq);
       logEntries = [];
       snap = await gasCall('getBatch', { batchId: sourceFileName });
       if (!snap || !snap.ok) throw new Error(snap && snap.message || '今の出荷を確認できません');
@@ -1275,6 +1356,7 @@ async function appendInboxCsv_(fileId, name) {
     showFB('ok', '追加注文を足しました: ' + name);
   } catch (e) {
     showUrlFb('追加できませんでした: ' + friendlyError_(e.message) + (retryable ? '\n同じファイルをもう一度選ぶと、続きから再開します。' : ''), 'err');
+    if (hasUnsavedChanges_()) saveToCloud();   // ★2026-10-29 止めた自動保存を戻す
   } finally { inboxImportBusy_ = false; }
 }
 
@@ -1320,7 +1402,11 @@ function friendlyError_(msg) {
     STALE_OR_INCOMPLETE_SNAPSHOT: 'ほかの端末で今の出荷が更新されています。「クラウド復元」をしてから、もう一度選んでください',
     APPEND_TOO_MANY_ROWS: '足すと1つの出荷が1,500行を超えます',
     SOURCE_ALREADY_APPENDED: 'このCSVは別の出荷に足してあります',
-    SOURCE_NOT_ACTIVE: '今の出荷は、出荷調整などで別の版になっています。一覧から開き直してください'
+    SOURCE_NOT_ACTIVE: '今の出荷は、出荷調整などで別の版になっています。一覧から開き直してください',
+    // ★2026-10-29 保存できないときの理由（赤い知らせ・書き出し・追加で使う）
+    BATCH_BUSY: '前の出荷の締め（客先CSVの作成）が終わっていません。10分ほどたっても消えないときは管理者に連絡してください',
+    STALE_SCAN_STATE: 'ほかの端末で消し込んだ分が、この画面に入っていません。管理者に連絡してください',
+    BATCH_NOT_WRITABLE: 'この出荷は締めに進んでいるため、保存できません'
   };
   for (const k of Object.keys(map)) if (m.indexOf(k) >= 0) return map[k] + '（' + k + '）';
   return m;
@@ -1456,6 +1542,92 @@ async function loadSelectedCanonicalBatch_() {
     showUrlFb('読込完了: '+records.length+'件','ok');
   }catch(e){showUrlFb(e.message,'err');}
 }
+
+// ★2026-10-29 閉じたときの対策①：開いたとき（画面に出荷が無いとき）、📦 取り込み済みの出荷を知らせて、ボタン1つで続きを開く。
+//   消し込みはクラウドに保存してあるので、開くとそこまでの済みが戻る（「ファイル一覧を取得」の📦から開くのと同じ getBatch）。
+//   件数は出荷ごとに getBatch で確かめる（新しい順に3つまで）。確かめられないときは件数なしで出す。
+//   サーバーから来た文字は textContent で入れる（innerHTML にしない）。
+function countRecords_(list) {
+  const active = list.filter(function(r) { return !isCancelled(r); });
+  return { total: active.length, done: active.filter(isDone).length, pending: active.filter(isPending).length };
+}
+
+function hideResumeBox_() {
+  const box = document.getElementById('resume-box');
+  if (box && box.style.display !== 'none') { box.style.display = 'none'; box.replaceChildren(); }
+}
+
+async function checkResumeBatches_() {
+  if (records.length) return;
+  let data;
+  try { data = await gasCall('getFileList', {}); } catch (e) { return; }
+  if (!data || !data.ok || records.length) return;
+  const files = (data.files || []).slice().sort(function(a, b) { return new Date(b.updated) - new Date(a.updated); }).slice(0, 3);
+  const box = document.getElementById('resume-box');
+  if (!files.length || !box) return;
+  const head = document.createElement('div');
+  head.style.cssText = 'font-size:14px;font-weight:700;color:#8a5200;margin-bottom:4px';
+  head.textContent = '📦 途中の出荷があります';
+  const sub = document.createElement('div');
+  sub.style.cssText = 'font-size:12px;color:#8a6d3b;margin-bottom:6px';
+  sub.textContent = '消し込みはクラウドに保存してあります。続ける出荷の「続きを開く」を押してください。';
+  box.replaceChildren(head, sub);
+  files.forEach(function(f) {
+    const title = f.sourceName ? sourceDisplayName_(f.sourceName) : f.name;
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid #f0e0b8';
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:180px';
+    const name = document.createElement('div');
+    name.style.cssText = 'font-size:13px;font-weight:700;word-break:break-all';
+    name.textContent = title;
+    const meta = document.createElement('div');
+    meta.style.cssText = 'font-size:11px;color:#888;margin-top:2px';
+    meta.textContent = jstTime_(f.updated) + ' 取り込み・件数を確かめています…';
+    info.append(name, meta);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = '続きを開く';
+    btn.style.cssText = 'padding:10px 18px;background:#e8a000;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer';
+    btn.addEventListener('click', function() { openResumeBatch_(f.batchId, title, btn); });
+    row.append(info, btn);
+    box.appendChild(row);
+    gasCall('getBatch', { batchId: f.batchId }).then(function(b) {
+      if (!b || !b.ok || !Array.isArray(b.records)) throw new Error('');
+      const c = countRecords_(b.records);
+      meta.textContent = jstTime_(f.updated) + ' 取り込み・済 ' + c.done + '／全 ' + c.total + '（未 ' + c.pending + '）';
+    }).catch(function() { meta.textContent = jstTime_(f.updated) + ' 取り込み'; });
+  });
+  if (!records.length) box.style.display = 'block';
+}
+
+async function openResumeBatch_(batchId, title, btn) {
+  if (records.length) { hideResumeBox_(); return; }
+  btn.disabled = true;
+  btn.textContent = '開いています…';
+  try {
+    const data = await gasCall('getBatch', { batchId: batchId });
+    if (!data || !data.ok) throw new Error(data && data.message || '読込失敗');
+    if (records.length) { hideResumeBox_(); return; }
+    records=data.records;sourceFileName=data.batchId;loadedFiles=[data.batchId+'.csv'];logEntries=[];
+    updateStats();renderList();renderHinbanFilter();updateChips();
+    const c = countRecords_(records);
+    showFB('ok', '続きを開きました: ' + title + '（済 ' + c.done + '／全 ' + c.total + '）');
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = '続きを開く';
+    showFB('err', '開けませんでした: ' + friendlyError_(e.message));
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const retry = document.getElementById('save-alert-retry');
+  if (retry) retry.addEventListener('click', function() {
+    const text = document.getElementById('save-alert-text');
+    if (text) text.textContent = '保存し直しています…';
+    saveToCloud(0);
+  });
+});
 </script>
 </body>
 </html>
