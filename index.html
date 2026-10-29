@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-cnLXIrju8wrgOTeblEktw8UYzEwU93Vx7MJB0cMoc/4='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-pO+3KFV3/rbE3YzPiM2LlDGxRERnK6OF02jnNdMQAbQ='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -308,6 +308,8 @@ select,input[type=date]{width:100%;padding:10px;border:1px solid #ccc;border-rad
     <div id="save-alert-text" style="white-space:pre-wrap"></div>
     <button type="button" id="save-alert-retry" style="margin-top:8px;padding:8px 14px;background:#fff;color:#c0392b;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">今すぐ保存し直す</button>
   </div>
+  <!-- ★2026-10-29 全部済んだのに出荷の締め（完了の判定）ができなかったときの知らせ（締まらないと次の出荷を保存できないため） -->
+  <div id="complete-alert" style="display:none;margin-bottom:10px;padding:10px 12px;border-radius:8px;background:#b56e00;color:#fff;font-size:13px;font-weight:600;line-height:1.6;white-space:pre-wrap"></div>
   <!-- ★2026-10-29 閉じたときの対策①：開いたときに途中の出荷（📦 取り込み済み）を知らせて、ボタン1つで続きを開く -->
   <div id="resume-box" style="display:none;margin-bottom:12px;padding:12px;border:2px solid #e8a000;border-radius:10px;background:#fff8ec"></div>
   <div id="file-chips-wrap" class="file-chips-wrap" style="display:none">
@@ -449,7 +451,9 @@ let savedSeq_         = 0;
 let saveInFlight_     = false;
 let saveRetryTimer_   = null;
 let leavingConfirmed_ = false;   // 確認の画面で「閉じる」を選んだあとは、ブラウザの確認を重ねて出さない
+let unsavedSince_     = 0;       // 保存を送っていない変更が最初にできた時刻（続けて読んでいても最長10秒で保存を送る）
 const SAVE_RETRY_MS_  = 30000;
+const SAVE_MAX_WAIT_MS_ = 10000;
 const UNSAVED_WARNING_ = 'まだクラウドに保存できていない消し込みがあります。\nこのまま進むと、その消し込みは消えます。';
 
 function getBaseFileName(filename) {
@@ -579,15 +583,19 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 function autoSave() {
   saveSeq_++;
+  if (!unsavedSince_) unsavedSince_ = Date.now();
   const el = document.getElementById('save-indicator');
   if (el) { el.textContent = '未保存（この画面のみ）'; el.style.opacity = '1'; }
   saveToCloud();
 }
 
+// ふだんは読み取りが1.5秒止まってから保存を送る。続けて読んでいても、最初の未保存から10秒たったら送る。
 async function saveToCloud(delay) {
   if (!GAS_DEPLOY_URL || GAS_DEPLOY_URL.includes('YOUR_DEPLOY_URL')) return;
+  let wait = delay === undefined ? 1500 : delay;
+  if (unsavedSince_) wait = Math.max(0, Math.min(wait, unsavedSince_ + SAVE_MAX_WAIT_MS_ - Date.now()));
   clearTimeout(cloudSaveTimer);
-  cloudSaveTimer = setTimeout(runCloudSave_, delay === undefined ? 1500 : delay);
+  cloudSaveTimer = setTimeout(runCloudSave_, wait);
 }
 
 // ★2026-10-29 閉じたときの対策②：保存は1つずつ送る（前の保存の返事を待ってから次を送る）。
@@ -598,6 +606,7 @@ async function runCloudSave_() {
   if (savedSeq_ >= saveSeq_) return;
   const seq = saveSeq_;
   saveInFlight_ = true;
+  unsavedSince_ = 0;   // ここまでの変更はこの保存に入る（このあとの変更から、また10秒を数える）
   try {
     const data = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr(), batchId: sourceFileName || '' });
     if (!data || !data.ok) throw new Error((data && (data.message || data.error)) || '保存に失敗しました');
@@ -609,14 +618,53 @@ async function runCloudSave_() {
     //   ・判定の根拠はサーバー側（元CSV突合）。ここは「評価してほしい」合図にすぎない。
     //   ・客先CSV生成はここでは呼ばない（時間主導トリガーが分離実行 §6-3/§7-1）。
     if (sourceFileName && records.length && records.every(function(r){ return isDone(r); })) {
-      try { await gasCall('evaluateCompletion', { batchId: sourceFileName }); }
-      catch(e) { console.warn('evaluateCompletion失敗:', e); }
+      await requestCompletion_(sourceFileName);
     }
   } catch(e) {
     if (savedSeq_ < saveSeq_) showSaveProblem_(e && e.message);
   } finally {
     saveInFlight_ = false;
   }
+}
+
+// ★2026-10-29 出荷の締め（完了の判定 evaluateCompletion）。混み合い・通信の失敗で断られたら、少し待って3回まで頼み直す。
+//   一度でも抜けると、その出荷は「保存済み（要再判定）」のまま締まらず、次の出荷の保存が全部断られる（BATCH_BUSY）。
+//   頼み直しても締まらないときは、理由を知らせて「📤 CSV書き出し」をもう一度押してもらう（判定は何度頼んでも同じ結果になる）。
+async function requestCompletion_(batchId) {
+  let reason = '';
+  for (let i = 0; i < 3; i++) {
+    if (i) await new Promise(function(r) { setTimeout(r, 2000 * i); });
+    try {
+      const res = await gasCall('evaluateCompletion', { batchId: batchId });
+      if (res && res.ok) {
+        clearCompletionProblem_();
+        const el = document.getElementById('save-indicator');
+        if (el) { el.textContent = '✅ 全件そろい、締めに進みました ' + nowStr().slice(11,16); el.style.opacity = '1'; }
+        return true;
+      }
+      reason = (res && (res.message || res.error || res.state)) || '判定できませんでした';
+    } catch (e) {
+      if (e && e.message === 'unauthorized') return false;
+      reason = (e && e.message) || '判定できませんでした';
+    }
+  }
+  showCompletionProblem_(reason);
+  return false;
+}
+
+function showCompletionProblem_(msg) {
+  const m = String(msg || '');
+  const reason = /failed to fetch|load failed|networkerror/i.test(m) ? '通信できませんでした（電波・回線を確かめてください）' : friendlyError_(m);
+  const box = document.getElementById('complete-alert');
+  if (!box) return;
+  box.textContent = '⚠ 全部済みましたが、出荷の締め（完了の判定）ができませんでした：' + reason +
+    '\nこのままだと、次の出荷を保存できません。「📤 CSV書き出し」をもう一度押してください。続くときは管理者に連絡してください。';
+  box.style.display = 'block';
+}
+
+function clearCompletionProblem_() {
+  const box = document.getElementById('complete-alert');
+  if (box) box.style.display = 'none';
 }
 
 function hasUnsavedChanges_() { return records.length > 0 && savedSeq_ < saveSeq_; }
@@ -901,6 +949,7 @@ async function exportCSVByStatus() {
       // ★担当者名は送らない。サーバーがトークンの中の名前を使う
       //   （ブラウザから渡すと、他人の名前で書き出せてしまうため）
       clearTimeout(cloudSaveTimer);
+      while (saveInFlight_) await new Promise(function(r) { setTimeout(r, 300); });   // ★2026-10-29 自動保存と重ねて送らない
       const seq = saveSeq_;
       const saved = await gasCall('saveShippingData', {records, batchId: sourceFileName});
       if (!saved.ok) throw new Error(saved.message || '保存失敗');
@@ -927,8 +976,7 @@ async function exportCSVByStatus() {
     // ★v3.3 書き出しの前の保存で、サーバーの状態は「保存済み（要再判定）」に戻る。
     //   全件済みなら完了判定をやり直す（しないと客先CSVの自動作成〈processCompletedBatches_〉の対象にならない）。
     if (savedOk && sourceFileName && records.length && records.every(function(r){ return isDone(r); })) {
-      try { await gasCall('evaluateCompletion', { batchId: sourceFileName }); }
-      catch(e) { console.warn('evaluateCompletion失敗:', e); }
+      await requestCompletion_(sourceFileName);
     }
   } else {
     const pending   = records.filter(function(r) { return isPending(r); });
