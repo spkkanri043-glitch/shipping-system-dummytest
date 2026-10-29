@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-pz0nN5lRr0nLEGgYOFFust26TF0eARr1v6dZNjOv/uA=' 'sha256-LE7qi2+LbL+SB7vq08lNBEcKNeXhndgJ7uMImHzG81Y='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-pz0nN5lRr0nLEGgYOFFust26TF0eARr1v6dZNjOv/uA=' 'sha256-XyqCBuc2EhrCOW+qfmIQ5LWhWXKSQHu3pj0dEhrdQT0='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { showTab('list')
@@ -481,10 +481,12 @@ const KEY_COLS = ['品番','整番','製品名','基本取引先','箱入数','�
 const MASTER_COLS_ = ['製品コード','整番','品番','製品名','金型コード','サイクル','共取区分','ワンショット重量','取数','単重','製品種別','単位','基本取引先','成形先','箱入数','在庫管理区分','材料コード','発注材料コード','色コード','材料種別コード','新材料使用率','材料ロットＮＯ','材料ロット履歴','マスタバッチコード','マスタバッチ使用率','成形区分','成形周期','ショット数入力不可','在庫確認周期','次回在庫確認日','平均出荷数','現品票色','背番号','現品票納入先','現品票出荷元','現品票工程名１','現品票取消区分１','現品票工程名２','現品票取消区分２','現品票工程名３','現品票取消区分３','現品票工程名４','現品票取消区分４','現品票工程名５','現品票取消区分５','単価','外注仕入単価','外注払出単価','小数丸め区分','ドキュメント名称１','ドキュメントファイル名１','ドキュメント名称２','ドキュメントファイル名２','ドキュメント名称３','ドキュメントファイル名３','ドキュメント名称４','ドキュメントファイル名４','ドキュメント名称５','ドキュメントファイル名５','ドキュメント名称６','ドキュメントファイル名６','ドキュメント名称７','ドキュメントファイル名７','ドキュメント名称８','ドキュメントファイル名８','売掛借方科目コード','売掛借方補助コード','売掛貸方科目コード','売掛貸方補助コード','売掛課税区分','払出借方科目コード','払出借方補助コード','払出貸方科目コード','払出貸方補助コード','払出課税区分','受入借方科目コード','受入借方補助コード','受入貸方科目コード','受入貸方補助コード','受入課税区分','サンプル提出区分','参考サンプル入手区分','設計通知書区分','製造仕様書＿作業標準書区分','有人区分','アッシー区分','単品検査区分','予備区分１','予備区分２','予備長１','予備長２','備考','削除区分'];
 // ★2026-10-23 送る前に、製品マスタ GAS と同じ決まりで確かめて、だめな行を番号と理由で出す（安田さん：invalid_data だけでは分からない）。
 //   同じ製品かどうかは製品コードで見分ける（品番は空・同じ品番の別製品がある）。
+// ★2026-10-30 行の番号は見出しを除いて数える（見出しの次の行が1行目＝確認の表の上からの順。安田さん：見出しも1行と数えると分かりにくい）
+const ROW_NO_NOTE_='行の番号は見出しを除いて数えています';
 function checkProductRows_(rows){
   const problems=[],seen=new Map();
   rows.forEach((r,i)=>{
-    const line=i+2;   // 見出しを1行目として数えた行
+    const line=i+1;   // 見出しを除いて数えた行
     const code=String(r['製品コード']??'').trim();
     // ★2026-10-28 PM11：GAS と同じ決まりで見分ける（数字だけのコードは先頭の0を除いて比べる＝0007 と 7 は同じ製品）
     const key=/^\d+$/.test(code)?code.replace(/^0+(?=\d)/,''):code;
@@ -506,7 +508,7 @@ function checkPartsRows_(rows,colMap){
   const name=h=>{const csv=colMap&&colMap[h]!==undefined?String(partsCsvHeaders[colMap[h]]||'').trim():'';return csv&&csv!==h?h+'（CSV の「'+csv+'」）':h};
   const norm=v=>/^\d+$/.test(v)?v.replace(/^0+(?=\d)/,''):v;
   rows.forEach((r,i)=>{
-    const line=i+2;   // 見出しを1行目として数えた行
+    const line=i+1;   // 見出しを除いて数えた行
     const s=String(r['整番']??''),k=String(r['子整番']??'');
     let keyOk=true;
     [['整番',s],['子整番',k]].forEach(([h,v])=>{
@@ -819,7 +821,7 @@ function startUpload(){
     const rows=csvRows.map(row=>{const obj={};activeCols.forEach(h=>{const idx=csvHeaders.indexOf(h);obj[h]=idx>=0?(row[idx]||''):''});return obj});
     if(!rows.length||rows.length>20000)throw new Error('製品CSVは1〜20,000件で指定してください。');
     const problems=checkProductRows_(rows);
-    if(problems.length)throw new Error('取り込めない行があります（'+problems.length+'件・保存はしていません）：'+problems.slice(0,10).join('／')+(problems.length>10?'／…ほか'+(problems.length-10)+'件':''));
+    if(problems.length)throw new Error('取り込めない行があります（'+problems.length+'件・保存はしていません。'+ROW_NO_NOTE_+'）：'+problems.slice(0,10).join('／')+(problems.length>10?'／…ほか'+(problems.length-10)+'件':''));
     const payload={rowsJson:JSON.stringify(rows),mode:updateMode,isFirst:true,isLast:true,total:rows.length};
     const tooBig=sendSizeError_('importProducts',payload);if(tooBig)throw new Error(tooBig);
     snap=Object.freeze({kind:'products',fn:'importProducts',version:inputVersion,fileName:currentFile.name,mode:updateMode,colCount:activeCols.length,count:rows.length,payload:Object.freeze(payload)});
@@ -928,7 +930,7 @@ function renderPartsCheck_(){
   let msg='';
   if(missing.length)msg='部品構成CSVに必要な列がありません：'+missing.join('・')+'。';
   else{const problems=checkPartsRows_(partsRowsForSend_(colIndexMap).rows,colIndexMap);
-    if(problems.length)msg='このCSVには取り込めない行があります（'+problems.length+'件）。CSV を直して、読み込み直してください。\n'+problems.slice(0,10).join('\n')+(problems.length>10?'\n…ほか'+(problems.length-10)+'件':'');}
+    if(problems.length)msg='このCSVには取り込めない行があります（'+problems.length+'件）。CSV を直して、読み込み直してください。（'+ROW_NO_NOTE_+'）\n'+problems.slice(0,10).join('\n')+(problems.length>10?'\n…ほか'+(problems.length-10)+'件':'');}
   box.textContent=msg?'⚠ '+msg:'';
   box.classList.toggle('hid',!msg);
 }
@@ -1015,7 +1017,7 @@ function partsStartUpload(){
     const {cols,rows}=partsRowsForSend_(colIndexMap);
     if(!rows.length||rows.length>50000)throw new Error('部品CSVは1〜50,000件で指定してください。');
     const problems=checkPartsRows_(rows,colIndexMap);
-    if(problems.length)throw new Error('取り込めない行があります（'+problems.length+'件・保存はしていません）：'+problems.slice(0,10).join('／')+(problems.length>10?'／…ほか'+(problems.length-10)+'件':''));
+    if(problems.length)throw new Error('取り込めない行があります（'+problems.length+'件・保存はしていません。'+ROW_NO_NOTE_+'）：'+problems.slice(0,10).join('／')+(problems.length>10?'／…ほか'+(problems.length-10)+'件':''));
     const payload={rowsJson:JSON.stringify(rows),mode:partsUpdateMode,isFirst:true,isLast:true,total:rows.length};
     const tooBig=sendSizeError_('importParts',payload);if(tooBig)throw new Error(tooBig);
     snap=Object.freeze({kind:'parts',fn:'importParts',version:inputVersion,fileName:currentFile.name,mode:partsUpdateMode,cols:Object.freeze(cols),count:rows.length,payload:Object.freeze(payload)});
