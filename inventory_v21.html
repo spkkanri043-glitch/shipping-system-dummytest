@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-yLjSRmffaEja8qpGIJGxWWmZHwrLBjuK+dHRSErrMq4=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-IRtA9o3P1R/cdJWMDTfqC4JZ+8Lspk1SCVHc1ng8XEc=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -471,6 +471,18 @@ tr.parts-detail-row td { padding:0 !important; background:#faf5ff !important; bo
 .pp-add:hover { background:#f3e5ff; }
 .pp-none { font-size:calc(10px * var(--inv-fs)); color:#999; }
 .pp-count { font-size:calc(10px * var(--inv-fs)); font-weight:500; color:#8e5bb0; margin-left:4px; }
+/* ★2026-10-29 部品の行に「使う製品」（作業者の要望：どの製品の部品か分かるように） */
+.pp-parents { margin-top:4px; padding:4px 6px; border-radius:6px; background:#f3e5ff; white-space:normal; }
+.pp-plabel { display:block; font-size:calc(10px * var(--inv-fs)); font-weight:700; color:#6a1b9a; margin-bottom:1px; }
+.pp-parent { display:block; font-size:calc(11px * var(--inv-fs)); line-height:1.55; color:#4a1270; cursor:pointer; }
+.pp-parent b { font-weight:700; }
+.pp-parent small { color:#8e5bb0; margin-left:3px; }
+.pp-parent .pp-pname { color:#666; font-size:calc(10px * var(--inv-fs)); margin-left:4px; }
+.pp-parent:hover b { text-decoration:underline; }
+.pp-parent.off { color:#9a9a9a; cursor:default; }
+.pp-parent.off:hover b { text-decoration:none; }
+.pp-pmore { display:inline-block; margin-top:1px; font-size:calc(10px * var(--inv-fs)); color:#6a1b9a; cursor:pointer; font-weight:600; }
+td[data-pp-code].jump-hl { animation: invJumpHl 1.8s ease-out; }
 .parts-detail-table { border-collapse:collapse;font-size:11px;width:100%; }
 .parts-detail-table th { background:#f3e5ff;color:#4a1270;font-weight:600;padding:5px 8px;text-align:center;border-bottom:1px solid #d1a0f0;white-space:nowrap; }
 .parts-detail-table th.pdt-left { text-align:left; }
@@ -1805,6 +1817,13 @@ async function loadPartsRel() {
         if (!partsRelMap[key].includes(rel.partSeiban)) partsRelMap[key].push(rel.partSeiban);
       });
     });
+    // ★2026-10-29 部品 → 使う製品（親）の逆引き。部品の行に「使う製品」を出すため（同じ親は1つにまとめる）
+    window._partParentsMap = {};
+    pr.parts.forEach(rel => {
+      const list = window._partParentsMap[rel.partSeiban] || (window._partParentsMap[rel.partSeiban] = []);
+      if (list.some(x => x.seiban === rel.parentSeiban)) return;
+      list.push({ seiban: rel.parentSeiban, hinban: seibanToHinban[rel.parentSeiban] || rel.parentSeiban, count: rel.count });
+    });
     partsRelLoaded = true;
   } catch(e) { throw e; }
 }
@@ -1923,6 +1942,32 @@ function partMarkHtml_(code, parent) {
   if (!canAddProduct_()) return `<div class="pp-mark"><span class="pp-none">未登録</span></div>`;
   return `<div class="pp-mark"><button class="pp-add" data-part-add="${escAttr(code)}" data-part-parent="${escAttr(parent.id)}">＋ この部品を登録</button></div>`;
 }
+// ★2026-10-29 部品の行に「使う製品」：製品マスタの部品構成から、この部品を使う製品を出す。
+//   この取引先に登録してある製品は押せる（その製品の行へ移り、部品構成を開いて、この部品の行を光らせる）。
+//   登録していない製品は灰色で品番だけ。4つ以上あるときは2つと「ほか N件 ▼」。
+let partParentsOpenId_ = null;
+function partParentsHtml_(part) {
+  if (!partsRelLoaded) return '';
+  const rels = (window._partParentsMap || {})[part.code] || [];
+  if (!rels.length) return `<div class="pp-parents"><span class="pp-plabel">使う製品</span><span class="pp-none">部品構成にありません</span></div>`;
+  const items = rels.map(r => ({ r, hit: products.find(p => p.itemType !== 'part' && (partsRelMap[p.code] || []).includes(part.code) &&
+      (p.code === r.hinban || (window._seibanMap || {})[p.code] === r.seiban)) || null }))
+    .sort((a, b) => (b.hit ? 1 : 0) - (a.hit ? 1 : 0));
+  const open = partParentsOpenId_ === part.id;
+  const shown = open || items.length <= 3 ? items : items.slice(0, 2);
+  const line = ({ r, hit }) => hit
+    ? `<span class="pp-parent" data-parent-jump="${escAttr(hit.id)}" data-parent-part="${escAttr(part.code)}" title="押すとこの製品の行へ移り、部品構成を開きます">▸ <b>${escH(hit.code)}</b><small>×${escH(r.count)}</small><span class="pp-pname">${escH(hit.name)}</span></span>`
+    : `<span class="pp-parent off" title="この取引先には登録していない製品です">▸ <b>${escH(r.hinban)}</b><small>×${escH(r.count)}・この取引先に未登録</small></span>`;
+  const more = items.length > 3 ? `<span class="pp-pmore" data-parent-more="${escAttr(part.id)}">${open ? '▲ 閉じる' : `ほか ${items.length - 2}件 ▼`}</span>` : '';
+  return `<div class="pp-parents"><span class="pp-plabel">使う製品（${items.length}）</span>${shown.map(line).join('')}${more}</div>`;
+}
+function jumpToParent_(parentId, partCode) {
+  partsDetailProdId = parentId;
+  renderTableOnly();
+  jumpToProduct_(parentId);
+  const row = Array.from(document.querySelectorAll('[data-pp-code]')).find(td => td.dataset.ppCode === partCode);
+  if (row) { row.classList.remove('jump-hl'); void row.offsetWidth; row.classList.add('jump-hl'); setTimeout(() => row.classList.remove('jump-hl'), 2000); }
+}
 function openAddPartFromParts_(code, parentId) {
   if (partRegistered_(code)) { showToast('この部品はもう登録されています'); renderTableOnly(); return; }
   const parent = products.find(p => p.id === parentId);
@@ -1954,7 +1999,11 @@ document.addEventListener('click', event => {
   const add = event.target.closest('[data-part-add]');
   if (add) { openAddPartFromParts_(add.dataset.partAdd, add.dataset.partParent); return; }
   const jump = event.target.closest('[data-part-jump]');
-  if (jump) jumpToProduct_(jump.dataset.partJump);
+  if (jump) { jumpToProduct_(jump.dataset.partJump); return; }
+  const pj = event.target.closest('[data-parent-jump]');
+  if (pj) { jumpToParent_(pj.dataset.parentJump, pj.dataset.parentPart); return; }
+  const pm = event.target.closest('[data-parent-more]');
+  if (pm) { partParentsOpenId_ = partParentsOpenId_ === pm.dataset.parentMore ? null : pm.dataset.parentMore; renderTableOnly(); }
 });
 
 // unlock/relock ハンドラ
@@ -2465,6 +2514,7 @@ function renderTable() {
               <div class="p-row"><span class="p-val p-name">${escH(prod.name)}</span></div>
               <div class="p-row"><span class="p-val p-unit">${escH(prod.unit)}</span></div>
               ${productColorRow_(prod)}
+              ${partParentsHtml_(prod)}
               <div class="p-btns">
                 <button class="btn-edit" data-edit="${escAttr(prod.id)}">編集</button>
                 <button class="btn-delp" data-del="${escAttr(prod.id)}">削除</button>
@@ -2736,7 +2786,7 @@ function renderTable() {
 
               // 左：部品整番・構成数
               lHtml += `<tr style="background:#faf5ff;border-bottom:1px solid #ede7f6">
-                <td style="padding:5px 8px;font-size:calc(12px * var(--inv-fs));font-weight:600;color:#4a1270;white-space:nowrap">${escH(partCode)}${partMarkHtml_(partCode, prod)}</td>
+                <td data-pp-code="${escAttr(partCode)}" style="padding:5px 8px;font-size:calc(12px * var(--inv-fs));font-weight:600;color:#4a1270;white-space:nowrap">${escH(partCode)}${partMarkHtml_(partCode, prod)}</td>
                 <td style="padding:5px 8px;text-align:right;font-size:calc(12px * var(--inv-fs));color:#888">×${escH(count)}</td>
               </tr>`;
 
