@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-IRtA9o3P1R/cdJWMDTfqC4JZ+8Lspk1SCVHc1ng8XEc=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-jwGfhHZAyt9tF/CCkSmdiN3nvPgauutyEi8Ztp+OYDc=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -393,6 +393,7 @@ td.nc input.minus-val { color: #c0392b !important; font-weight: 700; }
   border-radius: 50%; animation: spin .7s linear infinite;
 }
 .page-loading-msg { font-size: 13px; color: #888; }
+.page-loading-time { font-size: 13px; font-weight: 600; color: #555; min-height: 1.4em; margin-top: -8px; padding: 0 16px; text-align: center; }
 
 /* ── 削除確認パスワードダイアログ ── */
 .del-modal { width: 340px; }
@@ -609,6 +610,7 @@ td[data-pp-code].jump-hl { animation: invJumpHl 1.8s ease-out; }
 <div class="page-loading hidden" id="page-loading">
   <div class="page-loading-spinner"></div>
   <div class="page-loading-msg" id="page-loading-msg">読み込み中...</div>
+  <div class="page-loading-time" id="page-loading-time"></div>
 </div>
 
 <div class="content">
@@ -2330,11 +2332,12 @@ function renderTabs() {
       partsRelLoaded = false; partsRelMap = {};
       groups = []; selGroupId = 'all';
       // ページローディング表示（グループタブ等は隠したまま）
-      showPageLoad(clients.find(c=>c.id===t.dataset.cid)?.name + ' を読み込み中...');
+      showPageLoad(clients.find(c=>c.id===t.dataset.cid)?.name + ' を読み込み中...', 'c:' + t.dataset.cid);
       try {
         await Promise.all([loadMonth(), loadGroups(), loadPartsRel()]);
         resetInitPanel();
         renderAll();
+        markPageLoadOk_();
         sendOnlineStatus('active');
         refreshOnlineUsers();
       } finally {
@@ -3570,12 +3573,52 @@ document.getElementById('btn-back').addEventListener('click', () => {
 // ============================================================
 function showLoad(v) { document.getElementById('save-ind').style.display=v?'flex':'none'; }
 
-function showPageLoad(msg) {
+// ★2026-11-04 読み込みの目安（安田さん）：この端末で前に測った時間を「約◯秒」で出す（直近3回の真ん中。1回だけ遅かったときに引っぱられない）。
+//   端末に残すのは読み込みの種類（開いたとき・取引先の ID）と秒数だけ。記録が無ければ経過だけ出す。失敗した読み込みは記録しない。
+const LOAD_TIMES_KEY_ = 'inventory_load_times_v1';
+let pageLoadTimer_ = null, pageLoadKey_ = '', pageLoadStart_ = 0, pageLoadEstimate_ = 0, pageLoadOk_ = false;
+function readLoadTimes_() {
+  try {
+    const o = JSON.parse(localStorage.getItem(LOAD_TIMES_KEY_) || 'null');
+    return o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  } catch (e) { return {}; }
+}
+function estimateLoadSec_(key) {
+  const list = readLoadTimes_()[key];
+  const v = (Array.isArray(list) ? list : []).filter(n => typeof n === 'number' && n > 0 && n < 3600).sort((a, b) => a - b);
+  return v.length ? Math.max(1, Math.round(v[Math.floor(v.length / 2)])) : 0;
+}
+function saveLoadTime_(key, sec) {
+  try {
+    const o = readLoadTimes_();
+    o[key] = (Array.isArray(o[key]) ? o[key] : []).concat(Math.round(sec * 10) / 10).slice(-3);
+    localStorage.setItem(LOAD_TIMES_KEY_, JSON.stringify(o));
+  } catch (e) {}
+}
+function pageLoadTimeText_(sec) {
+  if (!pageLoadEstimate_) return '経過 ' + sec + '秒（次から目安の秒数を出します）';
+  if (sec > pageLoadEstimate_) return '約' + pageLoadEstimate_ + '秒の見込みですが、少し長くかかっています（経過 ' + sec + '秒）';
+  return '約' + pageLoadEstimate_ + '秒（経過 ' + sec + '秒）';
+}
+function drawPageLoadTime_() {
+  document.getElementById('page-loading-time').textContent = pageLoadKey_ ? pageLoadTimeText_(Math.floor((performance.now() - pageLoadStart_) / 1000)) : '';
+}
+function showPageLoad(msg, key) {
   document.getElementById('page-loading-msg').textContent = msg || '読み込み中...';
   document.getElementById('page-loading').classList.remove('hidden');
+  clearInterval(pageLoadTimer_);
+  pageLoadKey_ = key || ''; pageLoadStart_ = performance.now(); pageLoadOk_ = false;
+  pageLoadEstimate_ = pageLoadKey_ ? estimateLoadSec_(pageLoadKey_) : 0;
+  drawPageLoadTime_();
+  pageLoadTimer_ = pageLoadKey_ ? setInterval(drawPageLoadTime_, 1000) : null;
 }
+function markPageLoadOk_() { pageLoadOk_ = true; }
 function hidePageLoad() {
   document.getElementById('page-loading').classList.add('hidden');
+  clearInterval(pageLoadTimer_);
+  pageLoadTimer_ = null;
+  if (pageLoadOk_ && pageLoadKey_) saveLoadTime_(pageLoadKey_, (performance.now() - pageLoadStart_) / 1000);
+  pageLoadOk_ = false; pageLoadKey_ = '';
 }
 function escH(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 // 属性値専用。HTMLの実体参照はJavaScript文字列の保護には使わない。
@@ -3672,11 +3715,12 @@ function checkWarnItems() {
 }
 
 async function boot() {
-  showPageLoad('在庫データを読み込み中...');
+  showPageLoad('在庫データを読み込み中...', 'boot');
   try {
     await loadClients();
     await Promise.all([loadMonth(), loadGroups(), loadPartsRel()]);
     renderAll();
+    markPageLoadOk_();
     checkWarnItems();
     if (warnItems.length) openWarnModal();
     startOnlineHeartbeat();
