@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-jwGfhHZAyt9tF/CCkSmdiN3nvPgauutyEi8Ztp+OYDc=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uVq8H05NjZL31TZuNZrdkIxoSpbk4ZmYVpbWhSJdCk=' 'sha256-KJb8jlwkSsa8ewzWn0+QNt7o63wZnDdgQpeMLmfUHNQ=' https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { togglePartsFilter()
@@ -205,6 +205,7 @@ thead th.sat, thead th.sat span { color: #1565C0 !important; }   /* ★2026-10-2
 .c-total { width: calc(82px * var(--inv-fs)); min-width: calc(82px * var(--inv-fs)); max-width: calc(82px * var(--inv-fs)); background: #f0f4f8 !important; border-left: 2px solid #bbb !important; text-align: right; padding: 6px 10px; font-size: calc(14px * var(--inv-fs)); font-weight: 700; color: #222; white-space: nowrap; }
 .c-total.neg  { color: #c0392b; font-weight: 800; font-size: calc(15px * var(--inv-fs)); }
 .c-total.zero { color: #bbb; font-weight: 400; }
+.c-total.pending { color: #999; font-weight: 400; font-size: calc(11px * var(--inv-fs)); }
 thead .c-total { z-index: 15; font-size: calc(11px * var(--inv-fs)); font-weight: 500; color: #666; text-align: center; background: #f7f7f7 !important; }
 thead .c-prod, thead .c-type { z-index: 10; background: #f7f7f7; }
 td.c-prod { background: #fff; overflow: hidden; box-shadow: 3px 0 5px rgba(0,0,0,.15); }
@@ -320,7 +321,7 @@ td.tdy-col { background: #f5fcf9 !important; }
 .inv-bold #main-table td.nc input, .inv-bold #main-table .p-val, .inv-bold .init-item input { font-weight: 700; }
 .inv-bold #main-table td.c-type, .inv-bold #main-table thead th, .inv-bold #main-table thead th span { font-weight: 800 !important; }
 .inv-bold #main-table .p-name, .inv-bold #main-table td.zc, .inv-bold #main-table td.c-total { font-weight: 800; }
-.inv-bold #main-table td.zc.zero, .inv-bold #main-table td.c-total.zero { font-weight: 400; }
+.inv-bold #main-table td.zc.zero, .inv-bold #main-table td.c-total.zero, .inv-bold #main-table td.c-total.pending { font-weight: 400; }
 .fontctl { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .fontctl-lbl { font-size: 12px; color: #666; margin-right: 2px; white-space: nowrap; }
 .fontctl-btn[aria-pressed="true"] { background: #1D9E75; color: #fff; border-color: #1D9E75; }
@@ -1248,6 +1249,11 @@ let partsRelMap = {};          // productCode → [partCode,...] ホバー表示
 let partsRelLoaded = false;
 // 部品の自動消費数キャッシュ: `${pid}_${day}` → value
 let autoConsumeCache = {};
+// ★2026-11-04 読み込みの短縮（安田さん）：部品の自動消費数は時間がかかるうえ、普段使うのは消費数の月合計の列だけ（日ごとの数字と在庫は画面の計算）。
+//   待たずに表を先に出し、届いたら月合計のセルだけ書き換える（入力中の欄をじゃましない）。届くまでは「計算中」、読めなければ「－」（途中の合計は出さない）。
+//   取引先や月を切り替えたあとに届いた古い返事は捨てる。
+let partsConsumeState_ = 'ok';   // 'loading'＝届くのを待っている／'ok'＝届いた（部品が無いときも）／'failed'＝読めなかった
+let partsConsumeSeq_ = 0;
 // 廃棄ダイアログ
 let discardPending = null;
 let discardChoice  = 'consume';
@@ -1338,7 +1344,7 @@ async function apiOnce_(params) {
     return j;
   }
 }
-const API_SILENT_ACTIONS_ = ['setOnlineStatus', 'getOnlineUsers', 'setCellFocus', 'getCellFocusList', 'getCellHistoryList'];
+const API_SILENT_ACTIONS_ = ['setOnlineStatus', 'getOnlineUsers', 'setCellFocus', 'getCellFocusList', 'getCellHistoryList', 'getPartsStock'];
 const API_WRITE_ACTIONS_ = ['saveCell', 'saveInitStock', 'savePartsInitStock', 'saveCellColor', 'addClient', 'updateClient', 'deleteClient',
   'addProduct', 'updateProduct', 'deleteProduct', 'addGroup', 'updateGroup', 'deleteGroup', 'reorderGroups', 'swapProductOrder'];
 function showApiNotice_(text, detail) {
@@ -1706,6 +1712,7 @@ async function loadMonth() {
   if (!selCid) return;
   loadSat();
   autoConsumeCache = {};
+  partsConsumeSeq_++; partsConsumeState_ = 'loading';
 
   const [pr, mr] = await Promise.all([
     api({ action:'getProducts',  clientId:selCid }),
@@ -1757,17 +1764,19 @@ async function loadMonth() {
     Object.fromEntries(_seikeiKeys.map(k => [k, mdata[k]]))
   ));
 
-  // 部品の自動消費数をGASから取得
-  await loadPartsAutoConsume();
+  // 部品の自動消費数をGASから取得（★2026-11-04 待たずに先へ進む）
+  loadPartsAutoConsume();
 }
 
 // 部品自動消費数をGASから非同期取得してキャッシュ
 async function loadPartsAutoConsume() {
   const partItems = products.filter(p => p.itemType === 'part');
-  if (!partItems.length) return;
+  if (!partItems.length) { partsConsumeState_ = 'ok'; return; }
+  const seq = partsConsumeSeq_, clientId = selCid, year = viewYear, month = viewMonth;
+  const isCurrent = () => seq === partsConsumeSeq_ && clientId === selCid && year === viewYear && month === viewMonth;
   try {
-    const r = await api({ action:'getPartsStock', clientId:selCid, year:viewYear, month:viewMonth });
-    if (!r.ok || !r.stocks) return;
+    const r = await api({ action:'getPartsStock', clientId, year, month });
+    if (!isCurrent()) return;
     r.stocks.forEach(s => {
       // マッチング優先順:
       // 1. GASが返したssProductId（在庫管理SS側の製品ID）
@@ -1783,7 +1792,42 @@ async function loadPartsAutoConsume() {
           autoConsumeCache[`${prod.id}_${i+1}`] = v;
       });
     });
-  } catch(e) { throw e; }
+    partsConsumeState_ = 'ok';
+  } catch(e) {
+    if (!isCurrent()) return;
+    partsConsumeState_ = 'failed';
+    if (getToken()) showApiNotice_('消費数の月合計を読み込めませんでした（日ごとの数字と在庫はそのまま使えます）。再読み込みすると、もう一度読み込みます。 ', String(e && e.message || e));
+  }
+  updatePartShohiTotals_();
+}
+
+// 部品の行の月合計（入荷予定・入荷・消費）。消費は自動計算分も足すので、届くまでは出さない。
+function partRowTotal_(pid, rtKey, days) {
+  if (rtKey === 'part_shohi' && partsConsumeState_ === 'loading') return { text:'計算中', cls:' pending', title:'消費数の月合計を計算しています。日ごとの数字と在庫はもう使えます。' };
+  if (rtKey === 'part_shohi' && partsConsumeState_ === 'failed')  return { text:'－', cls:' pending', title:'消費数の月合計を読み込めませんでした。再読み込みしてください。' };
+  let sum = 0;
+  let hasVal = false;
+  for (let d = 1; d <= days; d++) {
+    const v = mdata[`${pid}_${rtKey}_${d}`];
+    if (v !== undefined && v !== '') { sum += parseFloat(v) || 0; hasVal = true; }
+    // 消費数は自動計算分も加算
+    if (rtKey === 'part_shohi' && (v === undefined || v === '')) {
+      const autoV = autoConsumeCache[`${pid}_${d}`];
+      if (autoV) { sum += autoV; hasVal = true; }
+    }
+  }
+  if (hasVal && sum !== 0) return { text:sum.toLocaleString(), cls:sum < 0 ? ' neg' : '', title:'' };
+  return { text:'', cls:'', title:'' };
+}
+// 月合計のセルだけ書き換える（表は描き直さない）
+function updatePartShohiTotals_() {
+  const days = daysInMonth(viewYear, viewMonth);
+  document.querySelectorAll('td[data-part-shohi-total]').forEach(td => {
+    const t = partRowTotal_(td.getAttribute('data-part-shohi-total'), 'part_shohi', days);
+    td.className = 'c-total' + t.cls;
+    td.textContent = t.text;
+    if (t.title) td.title = t.title; else td.removeAttribute('title');
+  });
 }
 
 // partsRelMap 取得（製品セルの🔩ヒント表示用）
@@ -2605,6 +2649,7 @@ function renderTable() {
           // ── 部品合計列 ──
           let ptotalVal = '';
           let ptotalCls = '';
+          let ptotalAttr = '';
           if (rtype === 'part_zaiko') {
             let lastStock = null;
             for (let d = days; d >= 1; d--) {
@@ -2623,23 +2668,12 @@ function renderTable() {
             const rtKey = rtype === 'part_nyuuka_plan' ? 'part_nyuuka_plan'
                         : rtype === 'part_nyuuka'      ? 'part_nyuuka'
                         : 'part_shohi';
-            let sum = 0;
-            let hasVal = false;
-            for (let d = 1; d <= days; d++) {
-              const v = mdata[`${prod.id}_${rtKey}_${d}`];
-              if (v !== undefined && v !== '') { sum += parseFloat(v) || 0; hasVal = true; }
-              // 消費数は自動計算分も加算
-              if (rtKey === 'part_shohi' && (v === undefined || v === '')) {
-                const autoV = autoConsumeCache[`${prod.id}_${d}`];
-                if (autoV) { sum += autoV; hasVal = true; }
-              }
-            }
-            if (hasVal && sum !== 0) {
-              ptotalVal = sum.toLocaleString();
-              ptotalCls = sum < 0 ? ' neg' : '';
-            }
+            const total = partRowTotal_(prod.id, rtKey, days);
+            ptotalVal = escH(total.text);
+            ptotalCls = total.cls;
+            if (rtKey === 'part_shohi') ptotalAttr = ` data-part-shohi-total="${escAttr(prod.id)}"` + (total.title ? ` title="${escAttr(total.title)}"` : '');
           }
-          rHtml += `<td class="c-total${ptotalCls}">${ptotalVal}</td>`;
+          rHtml += `<td class="c-total${ptotalCls}"${ptotalAttr}>${ptotalVal}</td>`;
           rHtml += '</tr>';
         });
 
