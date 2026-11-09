@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-e1YnquumBM9Tm43ECfdJK33uJYN24fUo3LI2VV+kwgg='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-onfFnLTYhmuHCA59i5JtrrNFqEhAOuO4kgLOlG9Fj5M='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>実習生勉強会の議事録 | 関ケ原プラ工業(株)</title>
@@ -516,7 +516,7 @@ async function loadList_() {
     const item = el_('div', { cls: 'list-item', data: { id: m.id } }, [
       el_('div', null, [
         el_('div', { cls: 'list-item-title', text: m.title || '(無題)' }),
-        el_('div', { cls: 'list-item-sub', text: '開催: ' + (m.createdAt || '-') + '　次回予定: ' + (m.nextDate || '-') + '　作成者: ' + (m.creatorName || '-') })
+        el_('div', { cls: 'list-item-sub', text: '開催: ' + fmtDateTime_(m.createdAt) + '　次回予定: ' + (m.nextDate || '-') + '　作成者: ' + (m.creatorName || '-') })
       ]),
       el_('div', { cls: 'list-item-badge', text: '参加 ' + m.attendanceCount + '人' })
     ]);
@@ -582,7 +582,7 @@ function attNote_(a) {
 function renderDetail_(seq) {
   const d = detail;
   $('d-title').textContent = d.title || '(無題)';
-  $('d-datetime').textContent = (d.createdAt || '-') + '　〜　' + (d.endAt || '-');
+  $('d-datetime').textContent = fmtRange_(d.createdAt, d.endAt);
   $('d-creator').textContent = (d.creatorName || '-') + (d.origin === 'import' ? '（キントーンから取込）' : '');
   $('d-participants').textContent = d.participants.map(function (p) { return p.name; }).join('、') || '(未設定)';
   $('d-notify').textContent = d.notifyOthers.map(function (p) { return p.name; }).join('、') || '(未設定)';
@@ -716,6 +716,28 @@ function toLocalInput(iso) {
   if (isNaN(d.getTime())) return '';
   const p = function (n) { return String(n).padStart(2, '0'); };
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+// ★2026-11-09 N07：開催日時・終了日時を「2026/11/09(月) 18:19」の形で出す（保存の値は世界標準時の文字のまま。表示だけ）。
+//   時刻は入力欄（toLocalInput）と同じ端末の時刻。読めない値はそのまま出す。終了が同じ日なら時刻だけ。
+function dtParts_(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const p = function (n) { return String(n).padStart(2, '0'); };
+  return {
+    date: d.getFullYear() + '/' + p(d.getMonth() + 1) + '/' + p(d.getDate()) + '(' + '日月火水木金土'.charAt(d.getDay()) + ')',
+    time: p(d.getHours()) + ':' + p(d.getMinutes())
+  };
+}
+function fmtDateTime_(iso) {
+  const t = dtParts_(iso);
+  return t ? t.date + ' ' + t.time : (iso ? String(iso) : '-');
+}
+function fmtRange_(startIso, endIso) {
+  const s = dtParts_(startIso), e = dtParts_(endIso);
+  const right = e ? ((s && s.date === e.date) ? e.time : e.date + ' ' + e.time) : (endIso ? String(endIso) : '-');
+  return fmtDateTime_(startIso) + '　〜　' + right;
 }
 
 async function ensureEmployees_() {
