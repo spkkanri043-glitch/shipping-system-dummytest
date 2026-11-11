@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-onfFnLTYhmuHCA59i5JtrrNFqEhAOuO4kgLOlG9Fj5M='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-8uREY1bqciIvza+Pxbi8niCNvMN2Rys6Kcx77MVvdis='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>実習生勉強会の議事録 | 関ケ原プラ工業(株)</title>
@@ -151,7 +151,10 @@ textarea.fi { resize: vertical; min-height: 80px; }
       <div class="card">
         <div class="card-title">
           <span id="d-title">-</span>
-          <button type="button" class="btn sm hid" id="btn-edit">編集</button>
+          <span style="display:flex;gap:6px;flex-shrink:0">
+            <button type="button" class="btn sm hid" id="btn-edit">編集</button>
+            <button type="button" class="btn sm danger hid" id="btn-delete">削除</button>
+          </span>
         </div>
         <div class="detail-block"><div class="detail-label">開催日時 〜 終了日時</div><div class="detail-body" id="d-datetime">-</div></div>
         <div class="detail-block"><div class="detail-label">作成者</div><div class="detail-body" id="d-creator">-</div></div>
@@ -254,11 +257,12 @@ const ACTIONS_ = {
   getMinutesDetail: { write: false, timeout: 60000 }, getEmployeeMaster: { write: false, timeout: 60000 },
   getMinutesExport: { write: false, timeout: 120000 }, getAttachment: { write: false, timeout: 120000 },
   saveMinutes: { write: true, timeout: 90000 }, importMinutes: { write: true, timeout: 180000 },
-  checkIn: { write: true, timeout: 60000 }, uploadPhoto: { write: true, timeout: 180000 }
+  checkIn: { write: true, timeout: 60000 }, uploadPhoto: { write: true, timeout: 180000 },
+  deleteMinutes: { write: true, timeout: 180000 }   // ★2026-11-09 マスター管理者だけ（決めるのは GAS）
 };
 const KNOWN_ERRORS_ = ['unavailable', 'busy', 'invalid_data', 'not_found', 'limit_exceeded', 'sheet_unavailable', 'schema_mismatch',
   'attachments_stopped', 'attach_not_configured', 'attach_folder_shared', 'operation_failed',
-  'attach_unverifiable', 'attach_pending', 'attach_undetermined', 'attach_conflict'];
+  'attach_unverifiable', 'attach_pending', 'attach_undetermined', 'attach_conflict', 'delete_incomplete'];
 const FIELDS_ = [['photo1', '改善状況写真1'], ['photo2', '改善状況写真2'], ['photo3', '改善状況写真3'], ['material', '勉強会資料'], ['scene', '勉強会の様子']];
 const ROLE_LABELS_ = { staff: '一般', leader: 'リーダー', admin: '管理者', master: 'マスター管理者' };
 const ATT_MIME_ = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -448,7 +452,8 @@ function setControls_() {
   $('btn-export').classList.toggle('hid', !(ok && can.export));
   $('btn-new').classList.toggle('hid', !(ok && can.edit));
   $('btn-edit').classList.toggle('hid', !(ok && can.edit && detail));
-  ['btn-import', 'btn-export', 'btn-new', 'btn-edit', 'btn-save'].forEach(function (id) { $(id).disabled = !ok || busy; });
+  $('btn-delete').classList.toggle('hid', !(ok && can.del === true && detail));   // ★2026-11-09 マスター管理者だけ（決めるのは GAS）
+  ['btn-import', 'btn-export', 'btn-new', 'btn-edit', 'btn-delete', 'btn-save'].forEach(function (id) { $(id).disabled = !ok || busy; });
   const ci = $('btn-checkin');
   if (!ok || !detail || !can.checkIn) { ci.disabled = true; ci.textContent = ok && detail && !can.checkIn ? '参加の登録はできません' : '参加する'; }
   else { ci.disabled = checkedIn || busy; ci.textContent = checkedIn ? '参加済み ✓' : '参加する'; }
@@ -707,6 +712,39 @@ async function doCheckIn_() {
   if (typeof res.already !== 'boolean') { showToast(errText_('write_unknown', true), 'error'); return; }
   showToast(res.already ? 'すでに参加登録済みです' : '参加を記録しました', 'success');
   if (seq === viewSeq) openDetail_(id);
+}
+
+// ---------------------------------------------------------------- 削除（★2026-11-09 マスター管理者だけ。ボタンを出すかも、消してよいかも GAS が決める）
+function deleteErrText_(code) {
+  switch (code) {
+    case 'write_unknown': case 'operation_failed': return '削除の結果を確かめられません。一覧を開き直して確かめてから、必要ならもう一度削除してください。';
+    case 'not_found': return 'この議事録は見つかりません（もう削除されている可能性があります）。';
+    case 'delete_incomplete': return '添付の一部をまだ消せていないため、議事録は消していません。少し待ってから、もう一度「削除」を押してください（続くときは管理者に連絡してください）。';
+    case 'attachments_stopped': return '添付を止めているため、添付のある議事録は今は削除できません。';
+    default: return errText_(code, false);
+  }
+}
+async function doDelete_() {
+  if (!detail || !can || can.del !== true || busy || authLost) return;
+  const id = detail.id, seq = viewSeq;
+  if (!window.confirm('「' + (detail.title || '(無題)') + '」を削除します。\n議事録・参加の記録・添付（写真・資料）をすべて消します。元に戻せません。よろしいですか？')) return;
+  if (!detail || detail.id !== id || seq !== viewSeq || busy || authLost) return;
+  busy = true; setControls_(); showLoading('削除中...');
+  let res;
+  try { res = await gasCall_('deleteMinutes', { minutesId: id }); }
+  catch (e) {
+    busy = false; hideLoading(); setControls_();
+    if (quiet_(e)) return;
+    showToast(deleteErrText_(e.code), 'error');
+    if (e.code === 'not_found' && seq === viewSeq) backToList_();
+    return;
+  }
+  busy = false; hideLoading(); setControls_();
+  if (authLost) return;
+  if (res.deleted !== true) { showToast(deleteErrText_('write_unknown'), 'error'); return; }
+  showToast('削除しました', 'success');
+  if (seq === viewSeq) backToList_();
+  else if (!$('view-list').classList.contains('hid') && can && can.view) loadList_();   // 待つ間に一覧へ戻っていた：一覧を読み直す
 }
 
 // ---------------------------------------------------------------- 作成・編集
@@ -1166,6 +1204,7 @@ function bindEvents_() {
   $('btn-new').addEventListener('click', function () { openForm_(true); });
   $('btn-back').addEventListener('click', backToList_);
   $('btn-edit').addEventListener('click', function () { if (detail) openForm_(false); });
+  $('btn-delete').addEventListener('click', doDelete_);
   $('btn-checkin').addEventListener('click', doCheckIn_);
   $('btn-save').addEventListener('click', saveForm_);
   $('btn-cancel').addEventListener('click', cancelEdit_);
