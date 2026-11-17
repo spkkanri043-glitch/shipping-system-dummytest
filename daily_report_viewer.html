@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lltMuEiz09lcPNVMpMqbHl1Y0WHrJ7l/LLrdEQ5I2Og=' 'sha256-YCoTvQLwd2wP1q1XfCDEb218OQ91cNx6jebLc0qdrnA='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lltMuEiz09lcPNVMpMqbHl1Y0WHrJ7l/LLrdEQ5I2Og=' 'sha256-fhDUfrMOukeYCp9i0TlxJom+SrEO6miMszC4MI0MkWE='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -960,6 +960,7 @@ function openDetail(idx) {
       <div class="detail-section-title">📦 製品・数量</div>
       <div class="detail-grid">
         <div class="detail-item"><div class="detail-label">品番</div><div class="detail-value" style="font-family:monospace">${escapeHtml(r['品番']||'—')}</div></div>
+        <div class="detail-item"><div class="detail-label">色調</div><div class="detail-value" style="font-family:monospace">${escapeHtml(r['色調']||'—')}</div></div>
         <div class="detail-item"><div class="detail-label">基本取引先</div><div class="detail-value">${escapeHtml(r['基本取引先']||'—')}</div></div>
         <div class="detail-item"><div class="detail-label">箱入数</div><div class="detail-value">${escapeHtml(r['箱入数']||'—')} 個/箱</div></div>
         <div class="detail-item"><div class="detail-label">カウント</div><div class="detail-value">${escapeHtml(r['カウント']||0)} 箱</div></div>
@@ -999,7 +1000,7 @@ document.getElementById('modal').addEventListener('click', e => { if (e.target==
 // CSVエクスポート
 function exportCSV() {
   if (!filtered.length) { showToast('エクスポートするデータがありません', 'err'); return; }
-  const headers = ['報告ID','作成日時','終了日時','担当者','作業項目','品番','基本取引先','箱入数','カウント','合計数量','作業時間分','不具合数','不具合内容','完了フラグ'];
+  const headers = ['報告ID','作成日時','終了日時','担当者','作業項目','品番','色調','基本取引先','箱入数','カウント','合計数量','作業時間分','不具合数','不具合内容','完了フラグ'];
   const escape = v => `"${String(v??'').replace(/"/g,'""')}"`;
   const rows = filtered.map(r => headers.map(h => {
     const keyMap = {'報告ID':'id','合計数量':'合計'};
