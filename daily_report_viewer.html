@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lltMuEiz09lcPNVMpMqbHl1Y0WHrJ7l/LLrdEQ5I2Og=' 'sha256-7C/hVP4jqqZcaZhF88za/acOYHf966k79Gs2yqlQcKw='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-lltMuEiz09lcPNVMpMqbHl1Y0WHrJ7l/LLrdEQ5I2Og=' 'sha256-YCoTvQLwd2wP1q1XfCDEb218OQ91cNx6jebLc0qdrnA='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -801,6 +801,7 @@ function renderTable() {
       <td style="font-weight:600">${escapeHtml(r['担当者']||'—')}</td>
       <td>${escapeHtml(r['作業項目']||'—')}</td>
       <td style="font-family:monospace;font-size:11px">${escapeHtml(r['品番']||'—')}</td>
+      <td style="font-family:monospace;font-size:11px;white-space:nowrap">${escapeHtml(r['色調']||'—')}</td>
       <td style="text-align:center">${Number(r['カウント'])||0} 箱</td>
       <td style="text-align:center;color:var(--tx2)">${Number(r['端数個数']||0) > 0 ? `+${Number(r['端数個数'])||0}個` : '—'}</td>
       <td style="text-align:center;font-weight:700;color:var(--pr)">${(Number(r['合計'])||0).toLocaleString()}</td>
@@ -821,6 +822,7 @@ function renderTable() {
           <th>担当者(報告者)</th>
           <th>作業項目</th>
           <th>品番</th>
+          <th>色調</th>
           <th>カウント</th>
           <th>端数</th>
           <th>合計数量</th>
