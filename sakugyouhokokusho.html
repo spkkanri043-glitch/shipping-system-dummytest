@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-771vNSeUHT6JthaPCQ0CTBHiGNDXljzKCaD/eu9dUMI=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-Bui7sEH2mZgBNTOWxJqjmotPaLf2ot1QW/hHgyeC6Kc=' 'sha256-baCR+23LYIhntGHStSP4UIKugNd/6/y7aV1Po/V/l5Y=' https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js https://cdn.jsdelivr.net/npm/jsqr@1.3.1/dist/jsQR.min.js; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -597,6 +597,7 @@ textarea.fi2 { resize: none; line-height: 1.6; }
       <button class="btn-resume" id="btn-resume" data-csp-click="h3" data-csp-source-click="doResume()" disabled>▶ 再開</button>
       <button class="btn-end"    id="btn-end"    data-csp-click="h4" data-csp-source-click="doEnd()">🏁 作業終了して保存</button>
     </div>
+    <div id="submit-msg" class="shikicho-msg" role="status" style="display:none;margin-top:8px"></div>
 
     <!-- 基本情報 -->
     <div class="section-card">
@@ -990,7 +991,13 @@ async function gasPost(action, data) {
   if (!res.ok) throw new Error('通信エラー ' + res.status);
   const json = await res.json();
   if (json && json.error === 'unauthorized') { handleUnauthorized_(); throw new Error('認証が無効です。ポータルから入り直してください。'); }
-  if (!json || typeof json !== 'object' || json.ok === false || json.error) throw new Error('処理に失敗しました');
+  if (!json || typeof json !== 'object' || json.ok === false || json.error) {
+    // ★2026-11-18 決まった記号（error）を例外に付ける（保存の未完了・識別値の扱いの判定に使う。文は今までどおり）
+    const err = new Error('処理に失敗しました');
+    err.code = json && typeof json.error === 'string' ? json.error : '';
+    err.data = json && typeof json === 'object' && !Array.isArray(json) ? json : null;
+    throw err;
+  }
   return json;
 }
 
@@ -1017,6 +1024,7 @@ function doLogout() {
     clearBrowserBusinessData_();
     stopTimer(); stopCamera(true); hideBreakOverlay();
     clearAutoSave(); // ログアウト → バックアップ破棄
+    resetSubmission_();
     sessionStorage.removeItem('kpk_report_user');
     try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch(e) {}
     AUTH_TOKEN = '';
@@ -1657,17 +1665,19 @@ function renderDefects() {
 // 作業終了
 // ============================================================
 function doEnd() {
-  if (!validate()) return;
+  // ★2026-11-18 送った内容があるとき（未完了・結果不明のあと）は、画面の今の値ではなく、その内容で確かめる（判定は GAS）
+  const pend = pendingReport_;
+  if (!pend && !validate()) return;
   openConfirm(
-    '作業を終了して報告書を保存しますか？\n\n' +
-    '品番: ' + (document.getElementById('f-hinban').value||'未入力') + '\n' +
-    '色調: ' + (document.getElementById('f-shikicho').value||'なし') + '\n' +
-    'カウント: ' + count + ' 箱\n' +
-    '合計: ' + document.getElementById('total-disp').textContent + ' 個',
+    (pend ? '前に送った内容で、保存を確かめます（二重にはなりません）。\n\n' : '作業を終了して報告書を保存しますか？\n\n') +
+    '品番: ' + ((pend ? pend['品番'] : document.getElementById('f-hinban').value)||'未入力') + '\n' +
+    '色調: ' + ((pend ? pend['色調'] : document.getElementById('f-shikicho').value)||'なし') + '\n' +
+    'カウント: ' + (pend ? pend['カウント'] : count) + ' 箱\n' +
+    '合計: ' + (pend ? pend['合計'] : document.getElementById('total-disp').textContent) + ' 個',
     '作業終了・保存',
     async () => {
-      // ★F01/F02：確認を出している間に品番などが変わっていないか、保存の直前にもう一度確かめる
-      if (!productConfirmed_()) { showToast(productBlockReason_() || '箱入数が確定していません。現品票を読み取ってください。', 'error'); return; }
+      // ★F01/F02：確認を出している間に品番などが変わっていないか、保存の直前にもう一度確かめる（送った内容で確かめるときを除く）
+      if (!pendingReport_ && !productConfirmed_()) { showToast(productBlockReason_() || '箱入数が確定していません。現品票を読み取ってください。', 'error'); return; }
       if (workState.status === 'paused') doResume();
       workState.status = 'ended';
       ['btn-pause','btn-resume','btn-end'].forEach(id => {
@@ -1752,10 +1762,46 @@ function notificationSummary_(notification) {
   return { text: 'LINE WORKS API受理' + sent + '件・スキップ' + skipped + '件（既読未確認）。', type: skipped > 0 ? 'warn' : 'success' };
 }
 
+// ★2026-11-18 送信の識別値（田中さんの指示書 11/17「P1 の3件」1117-02・1117-03）
+//   作業ごとに1つ（新しい作業を始めたときだけ新しく作る）。保存の要求に付け、再送・下書きの復元でも同じ値を送る。
+//   送った内容（写真を除く）は pendingReport_ に持ち、下書きにも残す。保存が始まったかもしれない間（未完了・結果不明）は、
+//   再送でこの内容をそのまま送る。GAS は同じ識別値・同じ内容のときだけ続きを処理し、足りない分だけ足す（二重にならない）。
+//   保存の前に断られた（数量の不一致など）ときだけ pendingReport_ を捨て、直した内容で同じ識別値のまま送れる（GAS は何も残していない）。
+let submissionId_ = '';
+let pendingReport_ = null;
+const PRE_SAVE_REJECT_CODES_ = ['invalid_report', 'product_not_found', 'invalid_shikicho', 'invalid_quantity', 'products_unavailable',
+  'product_undetermined', 'box_unavailable', 'box_mismatch', 'total_mismatch'];
+const SUBMISSION_ID_RE_ = /^[A-Za-z][A-Za-z0-9_-]{15,63}$/;
+function newSubmissionId_() {
+  const a = new Uint8Array(16);
+  crypto.getRandomValues(a);
+  return 'S' + Array.from(a, b => ('0' + b.toString(16)).slice(-2)).join('');
+}
+function showSubmitMsg_(text) {
+  const el = document.getElementById('submit-msg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.style.display = text ? 'block' : 'none';
+}
+function resetSubmission_() { submissionId_ = ''; pendingReport_ = null; showSubmitMsg_(''); }
+function submitFailureText_(e) {
+  const code = e && e.code || '';
+  const data = e && e.data || {};
+  const id = typeof data.id === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(data.id) ? data.id : '';
+  if (code === 'partial_saved') {
+    if (data.needPhotos === true) return '保存が途中です（記録番号 ' + id + '）。写真をもう一度付けてから「作業終了して保存」を押してください。足りない分だけ保存します。';
+    return '保存が途中です（記録番号 ' + id + '）。不具合の記録などがまだそろっていません。もう一度「作業終了して保存」を押すと、足りない分だけ保存します（二重にはなりません）。';
+  }
+  if (code === 'submission_mismatch') return 'この作業は前に送った内容で保存が始まっています。内容を変えて保存することはできません。管理者に確認してください。';
+  if (code === 'submission_conflict' || code === 'submission_unavailable' || code === 'invalid_submission') return '保存の状態を確かめられませんでした。管理者に確認してください（' + code + '）。';
+  return '保存の結果を確かめられませんでした。記録はできているかもしれません。もう一度「作業終了して保存」を押すと、二重にならずに確かめます。';
+}
+
 async function submitReport(isFinal) {
   let notification, saved;
   // ★F01/F02：最終保存の処理でも確かめる（画面のボタンや確認だけに頼らない）。未確定なら保存要求を出さない
-  if (!productConfirmed_()) {
+  //   ★2026-11-18 送った内容で確かめるとき（pendingReport_）は除く（その内容は前に送ったもの。判定は GAS）
+  if (!pendingReport_ && !productConfirmed_()) {
     showToast(productBlockReason_() || '箱入数が確定していません。現品票を読み取ってください。', 'error');
     ['btn-pause','btn-end'].forEach(id => { document.getElementById(id).disabled = false; });
     if (workState.status === 'ended') { workState.status = 'working'; startTimer(); }
@@ -1770,7 +1816,8 @@ const hasuu      = parseInt(document.getElementById('f-hasuu')?.value) || 0;
 const totalCount = count * hakoiri + hasuu;
   const fuguaiCount = defects.reduce((s, d) => s + (parseInt(d.count) || 0), 0);
 
-  const report = {
+  // ★2026-11-18 送った内容があれば、それをそのまま送る（写真は画面にあれば付ける）
+  const report = pendingReport_ ? Object.assign({}, pendingReport_, { photos: photos }) : {
     担当者:     currentUser.name,
     担当者ID:   currentUser.id,
     作成日時:   document.getElementById('f-date').value,
@@ -1792,24 +1839,44 @@ const totalCount = count * hakoiri + hasuu;
     photos:     photos  // Base64写真データ（GAS側でドライブに保存）
   };
 
+  // ★2026-11-18 送る前に、識別値と送る内容を下書きへ残す（応答が届かなくても、開き直して同じ識別値・同じ内容で送り直せる）
+  if (!submissionId_) submissionId_ = newSubmissionId_();
+  if (!pendingReport_) { pendingReport_ = Object.assign({}, report); delete pendingReport_.photos; }
+  autoSave(true);
+
   try {
-    const res = await gasPost('saveReport', { report });
+    const res = await gasPost('saveReport', { report, submissionId: submissionId_ });
     if (!res || res.ok !== true) throw new Error((res && res.message) || '保存失敗');
     saved = res;
     notification = res.notification;
   } catch(e) {
     hideLoading();
-    showToast('保存エラー: ' + e.message, 'error');
+    const code = e && e.code || '';
+    if (PRE_SAVE_REJECT_CODES_.indexOf(code) >= 0) {
+      pendingReport_ = null;   // 保存の前に断られた＝何も保存していない。直した内容で送れる（識別値はそのまま）
+      showSubmitMsg_('');
+      showToast('保存エラー: ' + e.message, 'error');
+    } else if (!code && /認証が無効/.test(String(e && e.message))) {
+      showToast('保存エラー: ' + e.message, 'error');   // 入り直したあと、同じ識別値・同じ内容で送り直せる（下書きに残っている）
+    } else {
+      const text = submitFailureText_(e);   // 未完了・結果不明など：同じ識別値・同じ内容で送り直す（二重にならない）
+      showSubmitMsg_(text);
+      showToast(text, 'error');
+    }
     ['btn-pause','btn-end'].forEach(id => {
       document.getElementById(id).disabled = false;
     });
     workState.status = 'working';
     startTimer();
+    autoSave(true);
     return;
   }
 
   hideLoading();
-  clearAutoSave(); // 正常保存完了 → バックアップ破棄
+  pendingReport_ = null;
+  showSubmitMsg_('');
+  clearAutoSave(); // 正常保存完了 → バックアップ破棄（全部の保存先がそろったときだけ）
+  if (saved && saved.resumed === true) showToast('前に保存した内容を確かめました（二重には保存していません）', 'success');
   if (isFinal) showComplete(report, notification, saved);
 }
 
@@ -1850,6 +1917,7 @@ function startNew() {
   document.getElementById('s-main').classList.add('on');
   hideBreakOverlay();
   clearAutoSave(); // 新しい作業を開始 → 前のバックアップ破棄
+  resetSubmission_();   // ★2026-11-18 新しい作業は新しい識別値（送るときに作る）
   resetForm();
   count   = 0;
   defects = [];
@@ -1946,8 +2014,9 @@ const draftStorage = (() => {
 })();
 
 // 作業中データを保存（端末に置けないときは画面の中のメモリ）
-function autoSave() {
-  if (!currentUser || workState.status === 'ended') return;
+function autoSave(force) {
+  // ★2026-11-18 force＝true：送る直前・送ったあと（作業が終了でも、識別値と送った内容を残す）
+  if (!currentUser || (workState.status === 'ended' && force !== true)) return;
   try {
     const data = {
       savedAt: new Date().toISOString(),
@@ -1970,6 +2039,8 @@ function autoSave() {
       },
       count:   count,
       defects: defects,
+      // ★2026-11-18 送信の識別値と送った内容（写真は入れない）
+      submission: submissionId_ ? { id: submissionId_, report: pendingReport_ } : null,
     };
     draftStorage.setItem(BACKUP_KEY, JSON.stringify(data));
   } catch(e) {}
@@ -1987,10 +2058,16 @@ function checkAndRestoreBackup() {
     if (!raw) return;
     const data = JSON.parse(raw);
     if (!data.user || !currentUser || data.user.id !== currentUser.id) { clearAutoSave(); return; }
+    // ★2026-11-18 保存の結果を確かめていない作業（送った内容がある）は7日まで残す。過ぎたら黙って捨てずに知らせる
+    const pending = !!(data.submission && data.submission.report);
     // 24時間以上古いバックアップは無視
-    if (Date.now() - new Date(data.savedAt).getTime() > 24 * 60 * 60 * 1000) { clearAutoSave(); return; }
+    if (Date.now() - new Date(data.savedAt).getTime() > (pending ? 7 : 1) * 24 * 60 * 60 * 1000) {
+      clearAutoSave();
+      if (pending) showToast('7日より前に、保存の結果を確かめていない作業がありました。日報確認で記録を確かめてください。', 'warn');
+      return;
+    }
     // 中身が空（何も入力していない状態）なら復元不要
-    if (!data.form.hinban && !data.count && (!data.defects || !data.defects.length)) { clearAutoSave(); return; }
+    if (!pending && !data.form.hinban && !data.count && (!data.defects || !data.defects.length)) { clearAutoSave(); return; }
 
     const savedAt = new Date(data.savedAt);
     const timeStr = pad(savedAt.getHours()) + ':' + pad(savedAt.getMinutes());
@@ -2003,10 +2080,13 @@ function checkAndRestoreBackup() {
       `カウント: ${data.count} 箱
 
 ` +
+      (pending ? `※前回、保存の結果を確かめられませんでした。続きから再開して「作業終了して保存」を押すと、二重にならずに確かめます（キャンセルすると確かめられなくなります）。
+
+` : '') +
       `続きから再開しますか？`,
       '💾 作業データの復元',
       () => restoreBackup(data),
-      () => clearAutoSave()   // 「キャンセル」＝破棄して新規作業
+      () => { clearAutoSave(); resetSubmission_(); }   // 「キャンセル」＝破棄して新規作業
     );
   } catch(e) { clearAutoSave(); }
 }
@@ -2042,6 +2122,13 @@ function restoreBackup(data) {
   updateStatusBar();
   startTimer();
   showToast('作業データを復元しました', 'success');
+  // ★2026-11-18 送信の識別値と送った内容を戻す（同じ作業の再送で二重にしない）
+  const sub = data.submission;
+  if (sub && typeof sub.id === 'string' && SUBMISSION_ID_RE_.test(sub.id)) {
+    submissionId_ = sub.id;
+    pendingReport_ = sub.report && typeof sub.report === 'object' && !Array.isArray(sub.report) ? sub.report : null;
+    showSubmitMsg_(pendingReport_ ? '前回、保存の結果を確かめられませんでした。「作業終了して保存」を押すと、前に送った内容で、二重にならずに確かめます。' : '');
+  } else resetSubmission_();
   // ★F01：復元した品番・色調で製品を確かめ直す。確定するまで（取得中・失敗・色で決まらない）は最終保存しない
   if (f.hinban) searchProduct(f.hinban); else invalidateProduct_('empty');
 }
