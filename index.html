@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-pO+3KFV3/rbE3YzPiM2LlDGxRERnK6OF02jnNdMQAbQ='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'sha256-LEBn/9POn2IH0kDT0VAkPRKzXIzyhTzHdVeDHUmftdI=' 'sha256-sptq+ApuuSLYnYNokgr7G3hWPeJbc/XL2Dgh+p/5TEQ=' 'sha256-dnnxJQP816+wcbWMch+fYhzNAPQEkln7ImLYQ+NmiRU='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; form-action 'none'">
 <script>/* MOGU_CSP_RUNTIME_V1 */
 const __moguCsp = (() => {
   const handlers = {"h0": function(event, _p) { goPortal()
@@ -310,6 +310,13 @@ select,input[type=date]{width:100%;padding:10px;border:1px solid #ccc;border-rad
   </div>
   <!-- ★2026-10-29 全部済んだのに出荷の締め（完了の判定）ができなかったときの知らせ（締まらないと次の出荷を保存できないため） -->
   <div id="complete-alert" style="display:none;margin-bottom:10px;padding:10px 12px;border-radius:8px;background:#b56e00;color:#fff;font-size:13px;font-weight:600;line-height:1.6;white-space:pre-wrap"></div>
+  <div id="export-prompt" style="display:none;margin-bottom:12px;padding:14px;border:3px solid #1e8a55;border-radius:10px;background:#eafaf1;color:#14532d;text-align:center">
+    <div style="font-size:16px;font-weight:700">✅ 全部済みました（<span id="export-prompt-count">0</span>件）</div>
+    <div id="export-prompt-title" style="font-size:18px;font-weight:800;margin:6px 0">📤 CSV書き出しを押してください</div>
+    <div style="font-size:12px;line-height:1.6">LINE WORKS に完了の知らせが出ます。押すのが遅れると出荷が締まり（早ければ数分）、書き出しできなくなります。</div>
+    <button type="button" id="export-prompt-btn" style="margin-top:10px;padding:12px 28px;background:#1e8a55;color:#fff;border:none;border-radius:8px;font-size:17px;font-weight:700;cursor:pointer">📤 CSV書き出し</button>
+  </div>
+  <div id="closed-alert" style="display:none;margin-bottom:10px;padding:10px 12px;border-radius:8px;background:#4a5568;color:#fff;font-size:13px;font-weight:600;line-height:1.6;white-space:pre-wrap"></div>
   <!-- ★2026-10-29 閉じたときの対策①：開いたときに途中の出荷（📦 取り込み済み）を知らせて、ボタン1つで続きを開く -->
   <div id="resume-box" style="display:none;margin-bottom:12px;padding:12px;border:2px solid #e8a000;border-radius:10px;background:#fff8ec"></div>
   <div id="file-chips-wrap" class="file-chips-wrap" style="display:none">
@@ -455,6 +462,11 @@ let unsavedSince_     = 0;       // 保存を送っていない変更が最初�
 const SAVE_RETRY_MS_  = 30000;
 const SAVE_MAX_WAIT_MS_ = 10000;
 const UNSAVED_WARNING_ = 'まだクラウドに保存できていない消し込みがあります。\nこのまま進むと、その消し込みは消えます。';
+// ★2026-11-19 電波が切れる前提の直し：締め済みの出荷・締めの頼み直し・書き出しの促し
+let closedBatch_            = '';     // 締め済み（BATCH_NOT_WRITABLE）とわかった出荷。この出荷は保存をやり直さない
+let completionPendingBatch_ = '';     // 全部済んだのに締めの頼みが通信の失敗で通らなかった出荷（保存し直してから頼み直す）
+let completionRetryTimer_   = null;
+let exportedBatch_          = '';     // この画面で「📤 CSV書き出し」が済んだ出荷（書き出しの促しを消す）
 
 function getBaseFileName(filename) {
   var name = filename.replace(/\.(csv|CSV)$/i, '');
@@ -515,6 +527,12 @@ async function manualRefresh() {
       if (data.ok && data.records && data.records.length > 0) {
         const cloudMap = {};
         data.records.forEach(function(r) { cloudMap[r['バーコード番号']] = r; });
+        // ★2026-11-19 クラウドに無い消し込みがこの画面にあるときだけ保存する（同じなら全部の行を保存し直さない）
+        let needSave = hasUnsavedChanges_();
+        records.forEach(function(r) {
+          const c = cloudMap[r['バーコード番号']];
+          if (c && r['消込済'] === '済' && c['消込済'] !== '済') needSave = true;
+        });
         records = records.map(function(r) {
           const bc = r['バーコード番号'];
           if (cloudMap[bc]) {
@@ -524,7 +542,8 @@ async function manualRefresh() {
           }
           return r;
         });
-        updateStats(); renderList(); autoSave();
+        updateStats(); renderList();
+        if (needSave) autoSave();
         showFB('ok', '☁️ クラウドと同期しました');
       }
     } catch(err) { console.warn('クラウド同期失敗:', err.message); }
@@ -603,12 +622,15 @@ async function saveToCloud(delay) {
 //   1回通れば、それまでの消し込みが全部クラウドに入る）。前の出荷の締め待ち（BATCH_BUSY）も、締めが進めば通る。
 async function runCloudSave_() {
   if (saveInFlight_) { saveToCloud(1000); return; }
-  if (savedSeq_ >= saveSeq_) return;
+  if (closedBatch_ && closedBatch_ === sourceFileName) return;   // ★2026-11-19 締め済みの出荷は保存し直さない
+  // ★2026-11-19 締めの頼みが通信の失敗で通らなかったときは、消し込みが保存済みでも保存し直してから頼み直す
+  //   （保存がサーバーで「締め済みか」を確かめるので、締め済みの出荷に締めを頼み直してしまうことがない）
+  if (savedSeq_ >= saveSeq_ && !completionRetryWanted_()) return;
   const seq = saveSeq_;
   saveInFlight_ = true;
   unsavedSince_ = 0;   // ここまでの変更はこの保存に入る（このあとの変更から、また10秒を数える）
   try {
-    const data = await gasCall('saveShippingData', { records: records, logEntries: logEntries, savedAt: nowStr(), batchId: sourceFileName || '' });
+    const data = await gasCall('saveShippingData', { records: records, logEntries: validLogEntries_(), savedAt: nowStr(), batchId: sourceFileName || '' });
     if (!data || !data.ok) throw new Error((data && (data.message || data.error)) || '保存に失敗しました');
     savedSeq_ = Math.max(savedSeq_, seq);
     if (savedSeq_ >= saveSeq_) clearSaveProblem_();
@@ -619,12 +641,88 @@ async function runCloudSave_() {
     //   ・客先CSV生成はここでは呼ばない（時間主導トリガーが分離実行 §6-3/§7-1）。
     if (sourceFileName && records.length && records.every(function(r){ return isDone(r); })) {
       await requestCompletion_(sourceFileName);
+    } else {
+      completionPendingBatch_ = '';
     }
   } catch(e) {
-    if (savedSeq_ < saveSeq_) showSaveProblem_(e && e.message);
+    const m = String((e && e.message) || '');
+    if (m.indexOf('BATCH_NOT_WRITABLE') >= 0) markBatchClosed_();   // ★2026-11-19 締め済み＝やり直しても通らない
+    else if (m === 'unauthorized') return;                           // 案内画面に戻った（やり直さない）
+    else if (savedSeq_ < saveSeq_) showSaveProblem_(m);
+    else if (completionRetryWanted_()) scheduleCompletionRetry_(m);
   } finally {
     saveInFlight_ = false;
   }
+}
+
+// ★2026-11-19 消込履歴のうち、今の行と合うものだけを送る（クラウド復元・更新で消込日時がクラウドの値になった行の履歴で、保存ごと断られないように）。
+//   サーバーは履歴を確かめるだけで、記録は行から作る。
+function validLogEntries_() {
+  const byBc = Object.create(null);
+  records.forEach(function(r) { byBc[r['バーコード番号']] = r; });
+  return logEntries.filter(function(l) {
+    const r = byBc[l['バーコード番号']];
+    return !!r && r['消込済'] === '済' && r['消込日時'] === l.ts;
+  });
+}
+
+function completionRetryWanted_() { return !!completionPendingBatch_ && completionPendingBatch_ === sourceFileName; }
+
+function scheduleCompletionRetry_(reason) {
+  clearTimeout(completionRetryTimer_);
+  completionRetryTimer_ = setTimeout(retryCompletionNow_, SAVE_RETRY_MS_);
+  showCompletionProblem_(reason, new Date(Date.now() + SAVE_RETRY_MS_));
+}
+
+function retryCompletionNow_() {
+  clearTimeout(completionRetryTimer_);
+  completionRetryTimer_ = null;
+  if (completionRetryWanted_()) saveToCloud(0);
+}
+
+// ★2026-11-19 保存が BATCH_NOT_WRITABLE で断られた＝この出荷は締め（客先CSVの作成）に進んでいる。
+//   締まるのはサーバーが全部済みを確かめたときだけなので、画面も全部済みなら消し込みはクラウドに入っている。
+function markBatchClosed_() {
+  closedBatch_ = sourceFileName;
+  completionPendingBatch_ = '';
+  clearTimeout(completionRetryTimer_); completionRetryTimer_ = null;
+  clearTimeout(cloudSaveTimer);
+  clearTimeout(saveRetryTimer_); saveRetryTimer_ = null;
+  const allDone = records.length > 0 && records.every(function(r) { return isDone(r); });
+  if (allDone) { savedSeq_ = saveSeq_; unsavedSince_ = 0; }
+  const sa = document.getElementById('save-alert');
+  if (sa) sa.style.display = 'none';
+  clearCompletionProblem_();
+  const box = document.getElementById('closed-alert');
+  if (box) {
+    box.textContent = allDone
+      ? '🔒 この出荷は締め済みです（客先CSVの作成に進みました）。\n消し込みはすべてクラウドに入っています。この画面は閉じてかまいません。\n締まる前に「📤 CSV書き出し」をしていなければ、LINE WORKS の完了の知らせは出ていません。'
+      : '🔒 この出荷は締めに進んでいるため、この画面からは保存できません。\nこの画面の消し込みが、クラウドに入っていないかもしれません。管理者に連絡してください。';
+    box.style.display = 'block';
+  }
+  const el = document.getElementById('save-indicator');
+  if (el) { el.textContent = '🔒 締め済み'; el.style.opacity = '1'; el.style.color = 'rgba(255,255,255,0.7)'; }
+  updateExportPrompt_();
+}
+
+function clearClosedState_() {
+  closedBatch_ = '';
+  const box = document.getElementById('closed-alert');
+  if (box) box.style.display = 'none';
+}
+
+// ★2026-11-19 全部済んだら、大きく「📤 CSV書き出しを押してください」と出す（書き出しは自動ではしない）。
+//   LINE WORKS の完了の知らせは書き出しの中で出る。締まったあとは書き出しできない。
+function updateExportPrompt_() {
+  const cb = document.getElementById('closed-alert');
+  if (cb && closedBatch_ !== sourceFileName) cb.style.display = 'none';   // 別の出荷に替わったら「締め済み」は消す
+  const box = document.getElementById('export-prompt');
+  if (!box) return;
+  const show = records.length > 0 && !!sourceFileName && records.every(function(r) { return isDone(r); }) &&
+    exportedBatch_ !== sourceFileName && closedBatch_ !== sourceFileName;
+  box.style.display = show ? 'block' : 'none';
+  const n = document.getElementById('export-prompt-count');
+  if (n && show) n.textContent = String(records.length);
 }
 
 // ★2026-10-29 出荷の締め（完了の判定 evaluateCompletion）。混み合い・通信の失敗で断られたら、少し待って3回まで頼み直す。
@@ -632,33 +730,46 @@ async function runCloudSave_() {
 //   頼み直しても締まらないときは、理由を知らせて「📤 CSV書き出し」をもう一度押してもらう（判定は何度頼んでも同じ結果になる）。
 async function requestCompletion_(batchId) {
   let reason = '';
+  let answered = false;   // ★2026-11-19 サーバーが判定の結果（state）を返した＝頼み直しても同じ。通信の失敗・混み合いだけ自動で頼み直す
   for (let i = 0; i < 3; i++) {
     if (i) await new Promise(function(r) { setTimeout(r, 2000 * i); });
     try {
       const res = await gasCall('evaluateCompletion', { batchId: batchId });
       if (res && res.ok) {
+        if (completionPendingBatch_ === batchId) completionPendingBatch_ = '';
+        clearTimeout(completionRetryTimer_); completionRetryTimer_ = null;
         clearCompletionProblem_();
         const el = document.getElementById('save-indicator');
         if (el) { el.textContent = '✅ 全件そろい、締めに進みました ' + nowStr().slice(11,16); el.style.opacity = '1'; }
         return true;
       }
       reason = (res && (res.message || res.error || res.state)) || '判定できませんでした';
+      answered = !!(res && res.state);
     } catch (e) {
       if (e && e.message === 'unauthorized') return false;
       reason = (e && e.message) || '判定できませんでした';
+      answered = false;
     }
   }
-  showCompletionProblem_(reason);
+  if (answered) {
+    if (completionPendingBatch_ === batchId) completionPendingBatch_ = '';
+    showCompletionProblem_(reason);
+  } else {
+    completionPendingBatch_ = batchId;
+    scheduleCompletionRetry_(reason);
+  }
   return false;
 }
 
-function showCompletionProblem_(msg) {
+function showCompletionProblem_(msg, next) {
   const m = String(msg || '');
   const reason = /failed to fetch|load failed|networkerror/i.test(m) ? '通信できませんでした（電波・回線を確かめてください）' : friendlyError_(m);
   const box = document.getElementById('complete-alert');
   if (!box) return;
   box.textContent = '⚠ 全部済みましたが、出荷の締め（完了の判定）ができませんでした：' + reason +
-    '\nこのままだと、次の出荷を保存できません。「📤 CSV書き出し」をもう一度押してください。続くときは管理者に連絡してください。';
+    (next
+      ? '\n' + pad(next.getHours()) + ':' + pad(next.getMinutes()) + ':' + pad(next.getSeconds()) + ' に自動で頼み直します（電波が戻ったときも、すぐ頼み直します）。締まるまで、この画面は閉じないでください。'
+      : '\nこのままだと、次の出荷を保存できません。「📤 CSV書き出し」をもう一度押してください。続くときは管理者に連絡してください。');
   box.style.display = 'block';
 }
 
@@ -701,10 +812,35 @@ async function loadFromCloud() {
     if (data.ok && data.records && data.records.length > 0) {
       const batches = [...new Set(data.records.map(r => r.batchId))];
       if (batches.length !== 1 || !batches[0]) throw new Error('旧データのバッチ移行が必要です');
-      records = data.records; sourceFileName = batches[0]; loadedFiles = [sourceFileName + '.csv']; logEntries = [];
+      // ★2026-11-19 この画面に保存できていない消し込みがあれば、消さずに足し合わせる（同じ出荷のとき）。
+      //   別の出荷なら、置き換えてよいかを確かめる。足すものが無ければ保存し直さない（全部の行を送らない）。
+      const sameBatch = !!sourceFileName && sourceFileName === batches[0];
+      let kept = 0;
+      if (hasUnsavedChanges_() && sameBatch) {
+        const local = Object.create(null);
+        records.forEach(function(r) { local[r['バーコード番号']] = r; });
+        data.records.forEach(function(r) {
+          const l = local[r['バーコード番号']];
+          if (l && l['消込済'] === '済' && r['消込済'] !== '済') {
+            r['消込済'] = '済'; r['消込日時'] = l['消込日時']; r['納品調整'] = l['納品調整'];
+            kept++;
+          }
+        });
+      } else if (hasUnsavedChanges_() && !confirm(UNSAVED_WARNING_ + '\n\nクラウドの出荷で置き換えますか？')) {
+        return;
+      }
+      if (!sameBatch) { clearClosedState_(); completionPendingBatch_ = ''; logEntries = []; }
+      records = data.records; sourceFileName = batches[0]; loadedFiles = [sourceFileName + '.csv'];
       updateStats(); renderList();
-      showFB('ok', '☁️ クラウドから復元しました（' + records.length + '件）');
-      autoSave();
+      if (kept) {
+        showFB('ok', '☁️ クラウドから復元しました（' + records.length + '件）。この画面で保存できていなかった消し込み ' + kept + '件は残して、保存し直します');
+        autoSave();
+      } else {
+        savedSeq_ = saveSeq_; unsavedSince_ = 0; clearTimeout(cloudSaveTimer); clearSaveProblem_();
+        showFB('ok', '☁️ クラウドから復元しました（' + records.length + '件）');
+        // 全部済みなら、締めに進めるために保存する（締め済みなら「締め済み」と出る）
+        if (records.every(function(r) { return isDone(r); }) && closedBatch_ !== sourceFileName) autoSave();
+      }
     } else { showFB('warn', 'クラウドにデータがありません'); }
   } catch(e) { showFB('err', 'クラウド読込失敗: ' + e.message); }
 }
@@ -844,6 +980,7 @@ function updateStats() {
   document.getElementById('s-remain').textContent = active.filter(r=>isPending(r)).length;
   document.getElementById('prog').style.width     = (total > 0 ? Math.round(done/total*100) : 0) + '%';
   if (records.length) hideResumeBox_();   // ★2026-10-29 出荷を開いたら「途中の出荷があります」は消す
+  updateExportPrompt_();                  // ★2026-11-19 全部済んだら「📤 CSV書き出しを押してください」
 }
 
 // ============================================================
@@ -968,10 +1105,24 @@ async function exportCSVByStatus() {
         if (r.type === 'cancel')  msgs.push('キャンセルフォルダ: ' + r.count + '件');
       });
       const notificationFailed = (data.notifications || []).some(n => !n.ok);
+      exportedBatch_ = sourceFileName;   // ★2026-11-19 書き出しの促しを消す
+      updateExportPrompt_();
       showFB(notificationFailed ? 'warn' : 'ok', '☁️ Googleドライブに保存しました\n' + msgs.join('\n') + (notificationFailed ? '\n通知は未完了です。送信結果を確認してください。' : ''));
     } catch(err) {
-      showFB('err', '書き出し失敗: ' + friendlyError_(err.message));
-      if (hasUnsavedChanges_()) saveToCloud();   // ★2026-10-29 止めた自動保存を戻す（失敗なら赤い知らせ・自動でやり直し）
+      const m = String((err && err.message) || '');
+      if (m.indexOf('BATCH_NOT_WRITABLE') >= 0) {
+        // ★2026-11-19 締め済み：書き出しはできない。保存のやり直しも止める
+        markBatchClosed_();
+        showFB('err', '書き出しできません：この出荷は締め済みです（客先CSVはできています）。\n締まる前に書き出していなければ、LINE WORKS の完了の知らせは出ていません。');
+      } else if (savedOk && m.indexOf('OUTPUT_NAME_COLLISION') >= 0) {
+        // ★2026-11-19 同じ中身の書き出しがもうある（通信が切れて返事だけ届かなかった・ほかの端末で書き出した）
+        exportedBatch_ = sourceFileName;
+        updateExportPrompt_();
+        showFB('warn', 'この中身の書き出しは、もう済んでいます（同じ CSV がドライブにあります）。');
+      } else {
+        showFB('err', '書き出し失敗: ' + friendlyError_(m));
+        if (hasUnsavedChanges_()) saveToCloud();   // ★2026-10-29 止めた自動保存を戻す（失敗なら赤い知らせ・自動でやり直し）
+      }
     }
     // ★v3.3 書き出しの前の保存で、サーバーの状態は「保存済み（要再判定）」に戻る。
     //   全件済みなら完了判定をやり直す（しないと客先CSVの自動作成〈processCompletedBatches_〉の対象にならない）。
@@ -1260,25 +1411,65 @@ function verifySession() {
       clearTimeout(timer);
       let data;
       try { data = JSON.parse(text); } catch (e) { throw new Error('bad-response'); }
+      // ★2026-11-19 混み合い（busy）・いま確かめられない（unavailable）は、拒否ではない（やり直せば通る）
+      if (data && data.ok === false && (data.error === 'busy' || data.error === 'unavailable')) throw new Error(data.error);
       if (!data || data.ok !== true || !data.id) throw new Error('unauthorized');
       return data;
     }, function(err) { clearTimeout(timer); throw err; });
+}
+
+// ★2026-11-19 電波が切れる前提の直し：開くときの確認が「通信できない・混み合い」だけなら、入場券（トークン）を消さない。
+//   「通信を待っています」と出して、10秒ごと・電波が戻ったときに確かめ直す。サーバーが拒否したときだけ、今までどおりポータルからやり直し。
+//   ★確認が通るまでメイン画面を出さないのは今までと同じ（守りは変えない）。
+const VERIFY_RETRY_MS_ = 10000;
+let verifyWaiting_     = false;
+let verifyInFlight_    = false;
+let verifyRetryTimer_  = null;
+
+function isTransientVerifyError_(err) {
+  const m = String((err && err.message) || '');
+  if (err && err.name === 'AbortError') return true;                 // 15秒たっても返事が無い
+  if (err && err.name === 'TypeError') return true;                  // 通信できない（Failed to fetch など）
+  if (/failed to fetch|load failed|networkerror/i.test(m)) return true;
+  return m === 'busy' || m === 'unavailable' || m === 'bad-response';   // bad-response：電波の途中の画面などが返った
+}
+
+function startSession_() {
+  if (verifyInFlight_) return;
+  if (!getStoredToken()) { verifyWaiting_ = false; showGuide(); return; }
+  clearTimeout(verifyRetryTimer_); verifyRetryTimer_ = null;
+  verifyInFlight_ = true;
+  // ★ここではメイン画面を出さない。サーバー確認が通ってから showMainScreen する。
+  verifySession().then(function(res) {
+    verifyInFlight_ = false;
+    verifyWaiting_ = false;
+    const u = { id: res.id, name: res.name || '', admin: (res.role === 'admin' || res.role === 'master') };
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(u)); } catch (e) {}
+    showMainScreen(u);   // ← 認証確定後に初めてメイン表示＋restoreData（名前も確定値で表示）
+  }).catch(function(err) {
+    verifyInFlight_ = false;
+    if (isTransientVerifyError_(err)) {
+      verifyWaiting_ = true;
+      const next = new Date(Date.now() + VERIFY_RETRY_MS_);
+      showGuide('通信できないため、まだ開けません（電波・回線を確かめてください）。\n' +
+        pad(next.getHours()) + ':' + pad(next.getMinutes()) + ':' + pad(next.getSeconds()) +
+        ' に自動でつなぎ直します。電波が戻ったときも、すぐつなぎ直します。ログインし直す必要はありません。');
+      const err2 = document.getElementById('login-error');
+      if (err2) err2.style.whiteSpace = 'pre-wrap';
+      verifyRetryTimer_ = setTimeout(startSession_, VERIFY_RETRY_MS_);
+      return;
+    }
+    verifyWaiting_ = false;
+    clearSession();
+    showGuide('認証を確認できませんでした。ポータルから開き直してください');
+  });
 }
 
 (function() {
   // <head> の先頭スクリプトが、フラグメントからトークンを回収して保存済み。
   // トークンが無ければ、この時点で案内画面（メインは非表示のまま）。
   if (!getStoredToken()) { showGuide(); return; }
-
-  // ★ここではメイン画面を出さない。サーバー確認が通ってから showMainScreen する。
-  verifySession().then(function(res) {
-    const u = { id: res.id, name: res.name || '', admin: (res.role === 'admin' || res.role === 'master') };
-    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(u)); } catch (e) {}
-    showMainScreen(u);   // ← 認証確定後に初めてメイン表示＋restoreData（名前も確定値で表示）
-  }).catch(function() {
-    clearSession();
-    showGuide('認証を確認できませんでした。ポータルから開き直してください');
-  });
+  startSession_();
 })();
 
 // ============================================================
@@ -1458,6 +1649,7 @@ function friendlyError_(msg) {
     busy: '混み合っていました。少しして、もう一度ためしてください'
   };
   for (const k of Object.keys(map)) if (m.indexOf(k) >= 0) return map[k] + '（' + k + '）';
+  if (/failed to fetch|load failed|networkerror/i.test(m)) return '通信できませんでした（電波・回線を確かめて、もう一度ためしてください）';   // ★2026-11-19
   return m;
 }
 
@@ -1694,6 +1886,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (text) text.textContent = '保存し直しています…';
     saveToCloud(0);
   });
+  // ★2026-11-19 書き出しの促しのボタン
+  const ex = document.getElementById('export-prompt-btn');
+  if (ex) ex.addEventListener('click', function() { exportCSVByStatus(); });
+});
+
+// ★2026-11-19 電波が戻った・ハンディの画面がついた → 30秒を待たずに、すぐやり直す
+//   （画面が消えている間はタイマーが止まることがあるため）
+function onNetworkBack_() {
+  if (verifyWaiting_) { startSession_(); return; }
+  if (closedBatch_ && closedBatch_ === sourceFileName) return;
+  if (saveRetryTimer_ && hasUnsavedChanges_()) {
+    clearTimeout(saveRetryTimer_); saveRetryTimer_ = null;
+    saveToCloud(0);
+  } else if (completionRetryTimer_ && completionRetryWanted_()) {
+    retryCompletionNow_();
+  }
+}
+window.addEventListener('online', onNetworkBack_);
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') onNetworkBack_();
 });
 </script>
 </body>
